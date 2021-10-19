@@ -1,0 +1,8 @@
+prefix=/home/ros/abb_ws/install
+
+Name: test_robot
+Description: Description of test_robot
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

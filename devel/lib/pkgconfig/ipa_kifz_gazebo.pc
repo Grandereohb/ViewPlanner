@@ -1,0 +1,8 @@
+prefix=/home/ros/abb_ws/devel
+
+Name: ipa_kifz_gazebo
+Description: Description of ipa_kifz_gazebo
+Version: 0.0.1
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

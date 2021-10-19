@@ -1,0 +1,8 @@
+prefix=/home/ros/abb_ws/devel
+
+Name: view_planner
+Description: Description of view_planner
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: roscpp moveit_ros_planning_interface moveit_core

@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: ""
+    relative_path: /home/ros/abb_ws/irb1600_6_12.urdf
+    xacro_args: ""
+  SRDF:
+    relative_path: config/abb_irb1600_6_12.srdf
+  CONFIG:
+    author_name: Qingpeng YANG
+    author_email: qpyang0108@gmail.com
+    generated_timestamp: 1631934285

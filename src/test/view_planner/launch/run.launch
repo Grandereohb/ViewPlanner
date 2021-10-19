@@ -1,0 +1,18 @@
+<launch>
+    <!-- <include file="$(find irb1600_6_12_moveit_config)/launch/demo.launch" /> -->
+  <node name="setScene" pkg="view_planner" type="setScene" output="screen" />
+
+  <include file="$(find irb1600_6_12_moveit_config)/launch/planning_context.launch">
+    <arg name="load_robot_description" value="true"/>
+  </include>
+
+  <node name="planner"
+        pkg="view_planner"
+        type="planner"
+        respawn="false" output="screen">
+    <rosparam command="load"
+              file="$(find irb1600_6_12_moveit_config)/config/kinematics.yaml"/>
+  </node>
+    <!-- <include file="$(find view_planner)/launch/joint_state.launch" /> -->
+    <!-- <node name="planner" pkg="view_planner" type="planner" /> -->
+</launch>

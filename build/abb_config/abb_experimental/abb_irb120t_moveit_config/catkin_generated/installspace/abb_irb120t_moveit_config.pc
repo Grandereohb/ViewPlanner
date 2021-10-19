@@ -1,0 +1,8 @@
+prefix=/home/ros/abb_ws/install
+
+Name: abb_irb120t_moveit_config
+Description: Description of abb_irb120t_moveit_config
+Version: 0.2.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

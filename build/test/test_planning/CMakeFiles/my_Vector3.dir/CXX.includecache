@@ -1,0 +1,18 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/ros/abb_ws/src/test/test_planning/include/my_Vector3.h
+
+/home/ros/abb_ws/src/test/test_planning/src/my_Vector3.cpp
+my_Vector3.h
+/home/ros/abb_ws/src/test/test_planning/src/my_Vector3.h
+iostream
+-
+cmath
+-
+

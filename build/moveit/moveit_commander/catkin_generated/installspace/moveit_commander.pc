@@ -1,0 +1,8 @@
+prefix=/home/ros/abb_ws/install
+
+Name: moveit_commander
+Description: Description of moveit_commander
+Version: 1.1.6
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

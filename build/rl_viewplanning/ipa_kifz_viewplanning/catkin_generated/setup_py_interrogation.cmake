@@ -1,0 +1,7 @@
+set(ipa_kifz_viewplanning_SETUP_PY_SETUP_MODULE "distutils.core")
+set(ipa_kifz_viewplanning_SETUP_PY_VERSION "0.0.1")
+set(ipa_kifz_viewplanning_SETUP_PY_SCRIPTS "")
+set(ipa_kifz_viewplanning_SETUP_PY_PACKAGES "helper")
+set(ipa_kifz_viewplanning_SETUP_PY_PACKAGE_DIRS "scripts/helper")
+set(ipa_kifz_viewplanning_SETUP_PY_MODULES "")
+set(ipa_kifz_viewplanning_SETUP_PY_MODULE_DIRS "")

@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC   -shared -Wl,-soname,libview_planner.so -o /home/ros/abb_ws/devel/lib/libview_planner.so CMakeFiles/view_planner.dir/src/ViewPlan.cpp.o 

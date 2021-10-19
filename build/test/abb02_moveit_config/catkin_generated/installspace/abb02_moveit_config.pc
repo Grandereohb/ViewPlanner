@@ -1,0 +1,8 @@
+prefix=/home/ros/abb_ws/install
+
+Name: abb02_moveit_config
+Description: Description of abb02_moveit_config
+Version: 0.3.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
