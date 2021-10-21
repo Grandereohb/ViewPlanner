@@ -1845,19 +1845,6 @@ ViewPlanning_demo/fast:
 .PHONY : ViewPlanning_demo/fast
 
 #=============================================================================
-# Target rules for targets named setScene
-
-# Build rule for target.
-setScene: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 setScene
-.PHONY : setScene
-
-# fast build rule for target.
-setScene/fast:
-	$(MAKE) -f test/view_planner/CMakeFiles/setScene.dir/build.make test/view_planner/CMakeFiles/setScene.dir/build
-.PHONY : setScene/fast
-
-#=============================================================================
 # Target rules for targets named planner
 
 # Build rule for target.
@@ -2025,7 +2012,6 @@ help:
 	@echo "... run_tests_moveit_kinematics_rostest_fanuc-kdl__ik_plugin_lma_kinematics_plugin_LMAKinematicsPlugin__tolerance_0.0005.test"
 	@echo "... _run_tests_moveit_kinematics_rostest_fanuc-kdl__ik_plugin_lma_kinematics_plugin_LMAKinematicsPlugin__tolerance_0.0005.test"
 	@echo "... ViewPlanning_demo"
-	@echo "... setScene"
 	@echo "... planner"
 	@echo "... ViewPlan"
 .PHONY : help

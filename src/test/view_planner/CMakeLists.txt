@@ -118,9 +118,8 @@ add_definitions(${EIGEN_DEFINITIONS})
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES view_planner
-  # CATKIN_DEPENDS roscpp
+  # INCLUDE_DIRS include
+  # LIBRARIES view_planner
   CATKIN_DEPENDS
   roscpp
   moveit_ros_planning_interface
@@ -146,12 +145,15 @@ include_directories(
 #add_executable(ViewPlan src/ViewPlan.cpp)
 add_library(ViewPlan
     include/ViewPlan.h
+    # include/ViewPoint.h
     src/ViewPlan.cpp
-)
-add_library(RKGA
-    include/RKGA.h
     src/RKGA.cpp
 )
+# add_library(RKGA
+#     # include/RKGA.h
+#     # include/ViewPoint.h
+#     src/RKGA.cpp
+# )
 #add_dependencies(base64 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 
@@ -165,7 +167,7 @@ add_library(RKGA
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/view_planner_node.cpp)
 add_executable(planner src/planner.cpp)
-add_executable(setScene src/setScene.cpp)
+# add_executable(setScene src/setScene.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -176,11 +178,11 @@ add_executable(setScene src/setScene.cpp)
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-#target_link_libraries(ViewPlan ${catkin_LIBRARIES})
-target_link_libraries(ViewPlan ${catkin_LIBRARIES} RKGA)
-target_link_libraries(RKGA ${catkin_LIBRARIES} ViewPlan)
-target_link_libraries(planner ${catkin_LIBRARIES} ViewPlan RKGA)
-target_link_libraries(setScene ${catkin_LIBRARIES} ViewPlan)
+# target_link_libraries(ViewPlan ${catkin_LIBRARIES})
+# target_link_libraries(ViewPlan ${catkin_LIBRARIES} RKGA)
+# target_link_libraries(RKGA ${catkin_LIBRARIES} ViewPlan)
+target_link_libraries(planner ${catkin_LIBRARIES} ViewPlan)
+# target_link_libraries(setScene ${catkin_LIBRARIES} ViewPlan)
 # target_link_libraries(planner ViewPlan)
 # target_link_libraries(setScene ViewPlan)
 

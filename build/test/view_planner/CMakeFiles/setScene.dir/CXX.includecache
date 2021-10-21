@@ -59,8 +59,6 @@ eigen_conversions/eigen_msg.h
 /home/ros/abb_ws/src/test/view_planner/src/setScene.cpp
 ViewPlan.h
 /home/ros/abb_ws/src/test/view_planner/src/ViewPlan.h
-ros/ros.h
--
 
 /opt/ros/noetic/include/actionlib/action_definition.h
 

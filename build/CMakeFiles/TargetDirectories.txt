@@ -267,6 +267,5 @@
 /home/ros/abb_ws/build/test/view_planner/CMakeFiles/rebuild_cache.dir
 /home/ros/abb_ws/build/test/view_planner/CMakeFiles/edit_cache.dir
 /home/ros/abb_ws/build/test/view_planner/CMakeFiles/test.dir
-/home/ros/abb_ws/build/test/view_planner/CMakeFiles/setScene.dir
 /home/ros/abb_ws/build/test/view_planner/CMakeFiles/planner.dir
 /home/ros/abb_ws/build/test/view_planner/CMakeFiles/ViewPlan.dir

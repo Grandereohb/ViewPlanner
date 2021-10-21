@@ -168,21 +168,6 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-test/view_planner/CMakeFiles/setScene.dir/rule:
-	cd /home/ros/abb_ws/build && $(MAKE) -f CMakeFiles/Makefile2 test/view_planner/CMakeFiles/setScene.dir/rule
-.PHONY : test/view_planner/CMakeFiles/setScene.dir/rule
-
-# Convenience name for target.
-setScene: test/view_planner/CMakeFiles/setScene.dir/rule
-
-.PHONY : setScene
-
-# fast build rule for target.
-setScene/fast:
-	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/setScene.dir/build.make test/view_planner/CMakeFiles/setScene.dir/build
-.PHONY : setScene/fast
-
-# Convenience name for target.
 test/view_planner/CMakeFiles/planner.dir/rule:
 	cd /home/ros/abb_ws/build && $(MAKE) -f CMakeFiles/Makefile2 test/view_planner/CMakeFiles/planner.dir/rule
 .PHONY : test/view_planner/CMakeFiles/planner.dir/rule
@@ -211,6 +196,33 @@ ViewPlan: test/view_planner/CMakeFiles/ViewPlan.dir/rule
 ViewPlan/fast:
 	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/ViewPlan.dir/build.make test/view_planner/CMakeFiles/ViewPlan.dir/build
 .PHONY : ViewPlan/fast
+
+src/RKGA.o: src/RKGA.cpp.o
+
+.PHONY : src/RKGA.o
+
+# target to build an object file
+src/RKGA.cpp.o:
+	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/ViewPlan.dir/build.make test/view_planner/CMakeFiles/ViewPlan.dir/src/RKGA.cpp.o
+.PHONY : src/RKGA.cpp.o
+
+src/RKGA.i: src/RKGA.cpp.i
+
+.PHONY : src/RKGA.i
+
+# target to preprocess a source file
+src/RKGA.cpp.i:
+	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/ViewPlan.dir/build.make test/view_planner/CMakeFiles/ViewPlan.dir/src/RKGA.cpp.i
+.PHONY : src/RKGA.cpp.i
+
+src/RKGA.s: src/RKGA.cpp.s
+
+.PHONY : src/RKGA.s
+
+# target to generate assembly for a file
+src/RKGA.cpp.s:
+	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/ViewPlan.dir/build.make test/view_planner/CMakeFiles/ViewPlan.dir/src/RKGA.cpp.s
+.PHONY : src/RKGA.cpp.s
 
 src/ViewPlan.o: src/ViewPlan.cpp.o
 
@@ -266,33 +278,6 @@ src/planner.cpp.s:
 	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/planner.dir/build.make test/view_planner/CMakeFiles/planner.dir/src/planner.cpp.s
 .PHONY : src/planner.cpp.s
 
-src/setScene.o: src/setScene.cpp.o
-
-.PHONY : src/setScene.o
-
-# target to build an object file
-src/setScene.cpp.o:
-	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/setScene.dir/build.make test/view_planner/CMakeFiles/setScene.dir/src/setScene.cpp.o
-.PHONY : src/setScene.cpp.o
-
-src/setScene.i: src/setScene.cpp.i
-
-.PHONY : src/setScene.i
-
-# target to preprocess a source file
-src/setScene.cpp.i:
-	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/setScene.dir/build.make test/view_planner/CMakeFiles/setScene.dir/src/setScene.cpp.i
-.PHONY : src/setScene.cpp.i
-
-src/setScene.s: src/setScene.cpp.s
-
-.PHONY : src/setScene.s
-
-# target to generate assembly for a file
-src/setScene.cpp.s:
-	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/setScene.dir/build.make test/view_planner/CMakeFiles/setScene.dir/src/setScene.cpp.s
-.PHONY : src/setScene.cpp.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -306,18 +291,17 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... test"
-	@echo "... setScene"
 	@echo "... planner"
 	@echo "... ViewPlan"
+	@echo "... src/RKGA.o"
+	@echo "... src/RKGA.i"
+	@echo "... src/RKGA.s"
 	@echo "... src/ViewPlan.o"
 	@echo "... src/ViewPlan.i"
 	@echo "... src/ViewPlan.s"
 	@echo "... src/planner.o"
 	@echo "... src/planner.i"
 	@echo "... src/planner.s"
-	@echo "... src/setScene.o"
-	@echo "... src/setScene.i"
-	@echo "... src/setScene.s"
 .PHONY : help
 
 

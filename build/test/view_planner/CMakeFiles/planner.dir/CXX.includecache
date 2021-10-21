@@ -6,6 +6,10 @@
 
 #IncludeRegexTransform: 
 
+/home/ros/abb_ws/src/test/view_planner/include/RKGA.h
+ViewPlan.h
+/home/ros/abb_ws/src/test/view_planner/include/ViewPlan.h
+
 /home/ros/abb_ws/src/test/view_planner/include/ViewPlan.h
 vector
 -
@@ -59,6 +63,8 @@ eigen_conversions/eigen_msg.h
 /home/ros/abb_ws/src/test/view_planner/src/planner.cpp
 ViewPlan.h
 /home/ros/abb_ws/src/test/view_planner/src/ViewPlan.h
+RKGA.h
+/home/ros/abb_ws/src/test/view_planner/src/RKGA.h
 ros/ros.h
 -
 cstring
