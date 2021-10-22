@@ -199,6 +199,7 @@ void RKGA::evolve(Population &curr, Population &next){
         next.setFitness(i, cost);
         ++i;
     }
+    cout << "202" << endl;
     next.sortFitness();
     cout << "199 sorted fitness: " << endl;
     for (int i = 0; i < next.fitness.size(); i++){
