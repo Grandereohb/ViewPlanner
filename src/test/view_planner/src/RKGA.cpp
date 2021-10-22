@@ -156,17 +156,17 @@ void RKGA::calcMotionCost(vector<ViewPoint> single, double &cost){
 void RKGA::evolve(Population &curr, Population &next){
     cout << "进化开始：" << endl;
     unsigned i = 0;
-    cout << "159, i = " << i << endl;
+    // cout << "159, i = " << i << endl;
     // 父母为精英，后代直接复制
     while(i < pe){
         next.population[i].clear();
-        cout << "162 curr.pop.size = " << curr.population[curr.fitness[i].second].size() <<", next: "<<next.population[i].size()<< endl;
+        // cout << "162 curr.pop.size = " << curr.population[curr.fitness[i].second].size() <<", next: "<<next.population[i].size()<< endl;
         for (int j = 0; j < curr.population[curr.fitness[i].second].size(); j++){
-            cout << "164 pn: " << curr.population[curr.fitness[i].second][j].num << ", j = "<< j << endl;
+            // cout << "164 pn: " << curr.population[curr.fitness[i].second][j].num << ", j = "<< j << endl;
             next.population[i].push_back(curr.population[curr.fitness[i].second][j]);
-            cout << "166 next pop size: " << next.population[i].size() << endl;
+            // cout << "166 next pop size: " << next.population[i].size() << endl;
         }
-        cout << "169 ";
+        // cout << "169 ";
         next.fitness[i].first = curr.fitness[i].first;
         next.fitness[i].second = i;
         ++i;
@@ -174,7 +174,7 @@ void RKGA::evolve(Population &curr, Population &next){
     cout << "174 i=" << i << ", p=" << p << ", pm=" << pm << endl;
     // for (i; i < (p - pm); i++){
     while (i < p - pm){
-        cout << "176 ";
+        cout << "177 ";
         const int eliteParent = rand() % (int)pe;
         const int noneliteParent = pe + rand() % (int)(p - pe);
         int j = 0;
