@@ -39,6 +39,7 @@ private:
     const Graph *graph;
     const vector<ViewPoint> candVP;
     const vector<vector<int>> visibility_matrix;
+    const double minCost = 20;
 
     Population* previous;
     Population* current;

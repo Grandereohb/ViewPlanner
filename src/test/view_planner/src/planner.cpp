@@ -12,12 +12,11 @@ int main(int argc, char **argv)
     int sampleNum = 20;  // 采样次数;
     double coverage_rate = 0.6;  // 采样覆盖率
     // RKGA参数
-    int maxGen = 10; // 最大进化代数
-    int pop = 10;       // 每代个体样本数
+    int maxGen = 100; // 最大进化代数
+    int pop = 50;       // 每代个体样本数
     double pop_elite = 0.1;    // 每代种群中的精英个体比例
     double pop_mate = 0.8;   // 每代种群中交叉的个体比例
     double rhoe = 80;  // probability that an offspring inherits the allele of its elite parent
-    int MAX = 50;     // number of threads for parallel decoding
 
     ros::init(argc, argv, "planner");
     ros::NodeHandle node_handle; 

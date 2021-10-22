@@ -57,9 +57,9 @@ vector<ViewPoint> RKGA::solveRKGA(int maxGen){
 
         if(iteration >= maxGen)
             run = false;
-        // if(bestFitness<=minCost)
-        //     run = false;
-        if(iteration - lastUpdate >= 30)
+        if(bestFitness <= minCost)
+            run = false;
+        if(iteration - lastUpdate >= 0.2 * maxGen)
             run = false;
 
         ++iteration;
@@ -90,7 +90,7 @@ void RKGA::initialize(Population& curr){
         curr.setFitness(j, cost);
     }
     curr.sortFitness();
-    cout << "92 sorted fitness: " << endl;
+    cout << "93 sorted fitness: " << endl;
     for (int i = 0; i < curr.fitness.size(); i++){
         cout <<"("<< curr.fitness[i].first << ", " << curr.fitness[i].second<<"), ";
     }
@@ -155,20 +155,26 @@ void RKGA::calcMotionCost(vector<ViewPoint> single, double &cost){
 }
 void RKGA::evolve(Population &curr, Population &next){
     cout << "进化开始：" << endl;
-    int i = 0;
+    unsigned i = 0;
+    cout << "159, i = " << i << endl;
     // 父母为精英，后代直接复制
     while(i < pe){
         next.population[i].clear();
-        for (int j = 0; j < curr.population[i].size(); j++){
-            // next(i, j) = curr(curr.fitness[i].second, j);
-            next.population[i].push_back(candVP[curr(curr.fitness[i].second, j).num]);
+        cout << "162 curr.pop.size = " << curr.population[curr.fitness[i].second].size() <<", next: "<<next.population[i].size()<< endl;
+        for (int j = 0; j < curr.population[curr.fitness[i].second].size(); j++){
+            cout << "164 pn: " << curr.population[curr.fitness[i].second][j].num << ", j = "<< j << endl;
+            next.population[i].push_back(curr.population[curr.fitness[i].second][j]);
+            cout << "166 next pop size: " << next.population[i].size() << endl;
         }
+        cout << "169 ";
         next.fitness[i].first = curr.fitness[i].first;
-		next.fitness[i].second = i;
-		++i;
+        next.fitness[i].second = i;
+        ++i;
     }
-    cout << "170" << endl;
+    cout << "174 i=" << i << ", p=" << p << ", pm=" << pm << endl;
+    // for (i; i < (p - pm); i++){
     while (i < p - pm){
+        cout << "176 ";
         const int eliteParent = rand() % (int)pe;
         const int noneliteParent = pe + rand() % (int)(p - pe);
         int j = 0;
@@ -186,22 +192,23 @@ void RKGA::evolve(Population &curr, Population &next){
         next.setFitness(i, cost);
         ++i;
     }
-    cout << "189" << endl;
+    cout << "191 ";
     while (i < p){
         next.population[i].clear();
+        vector<pair<double, int>> temp_RK_index;
+        setRandomKey(candVP.size(), temp_RK_index);
+        sortRK(temp_RK_index);
         for (int j = 0; j < curr.population[i].size(); j++){
-            int randNum = rand() % (curr.fitness.size());
-            // next(i, j) = curr(randNum, j);
-            next.population[i].push_back(candVP[curr(curr.fitness[randNum].second, j).num]);
+            next.population[i].push_back(candVP[temp_RK_index[j].second]);
         }
         double cost = 0;
         calcMotionCost(next.population[i], cost);
         next.setFitness(i, cost);
         ++i;
     }
-    cout << "202" << endl;
+    cout << "205" << endl;
     next.sortFitness();
-    cout << "199 sorted fitness: " << endl;
+    cout << "207 sorted fitness: " << endl;
     for (int i = 0; i < next.fitness.size(); i++){
         cout <<"("<< next.fitness[i].first << ", " << next.fitness[i].second<<"), ";
     }
