@@ -132,16 +132,19 @@ bool RKGA::isMostCovered(vector<ViewPoint> single){
     // cout << "131 visible num: " << visible_num<<" / "<< coverage_rate * tempVM[0].size() << endl;
     if (visible_num >= coverage_rate * tempVM[0].size())
     {
+        // cout << "135 true" << endl;
         return 1;
     }
     else
         return 0;
 }
 void RKGA::calcMotionCost(vector<ViewPoint> single, double &cost){
+    // cout << "142 开始计算运动成本" << endl;
     // 起始和最终位置的运动成本为与机器人home位置的角度差
     for (int i = 0; i < 6; i++){
         cost += abs(single[0].joint_state[i]) + abs(single[single.size() - 1].joint_state[i]);
     }
+    // cout << "147 " <<cost<< endl;
     int k = 0;
     while(k < (single.size()-1)){
         ViewPoint *curr = graph->edges[single[k].num];
@@ -158,7 +161,7 @@ void RKGA::evolve(Population &curr, Population &next){
     unsigned i = 0;
     // cout << "159, i = " << i << endl;
     // 父母为精英，后代直接复制
-    while(i < pe){
+    while (i < pe){
         next.population[i].clear();
         // cout << "162 curr.pop.size = " << curr.population[curr.fitness[i].second].size() <<", next: "<<next.population[i].size()<< endl;
         for (int j = 0; j < curr.population[curr.fitness[i].second].size(); j++){
@@ -171,28 +174,52 @@ void RKGA::evolve(Population &curr, Population &next){
         next.fitness[i].second = i;
         ++i;
     }
-    cout << "174 i=" << i << ", p=" << p << ", pm=" << pm << endl;
-    // for (i; i < (p - pm); i++){
+    // cout << "175 i=" << i << ", p=" << p << ", pm=" << pm << endl;
     while (i < p - pm){
-        cout << "177 ";
+        // cout << "177 ";
         const int eliteParent = rand() % (int)pe;
         const int noneliteParent = pe + rand() % (int)(p - pe);
         int j = 0;
         double cost = 0;
         next.population[i].clear();
+        // cout << "183 ep="<<eliteParent<<", nep="<<noneliteParent<<", i="<<i<<endl;
         do{
+            bool isRepeated = false;
             int sourceParent = ((rand() % 101 < rhoe) ? eliteParent : noneliteParent);
-            //next(i, j) = curr(curr.fitness[sourceParent].second, j);
+            int nonParent = ((sourceParent == eliteParent) ? noneliteParent : eliteParent);
+           
             if(j >= curr.population[curr.fitness[sourceParent].second].size())
                 break;
-            next.population[i].push_back(candVP[curr(curr.fitness[sourceParent].second, j).num]);
-            j++;
+
+            // for (int l = 0; l < j; l++){
+            //     if(next.population[i][l].num == curr(curr.fitness[sourceParent].second, j).num){
+            //         if(j >= curr.population[curr.fitness[nonParent].second].size()){
+            //             isRepeated = true;
+            //             break;
+            //         }
+            //         for (int m = 0; m < j; m++){
+            //             if(next.population[i][m].num == curr(curr.fitness[nonParent].second, j).num){
+            //                 isRepeated = true;
+            //                 break;
+            //             }
+            //         }
+            //         if(!isRepeated)
+            //             sourceParent = nonParent;
+            //         break;
+            //     }
+            // }
+            if(!ifRepeated(j, curr, next.population[i], sourceParent, nonParent)){
+                next.population[i].push_back(candVP[curr(curr.fitness[sourceParent].second, j).num]);
+                // cout <<" ("<< j << ", "<<curr(curr.fitness[sourceParent].second, j).num<<") "<<endl;
+            }
+            ++j;
         } while (!isMostCovered(next.population[i]));
         calcMotionCost(next.population[i], cost);
+        // cout << "218 cost=" << cost << endl;
         next.setFitness(i, cost);
         ++i;
     }
-    cout << "191 ";
+    // cout << "199 ";
     while (i < p){
         next.population[i].clear();
         vector<pair<double, int>> temp_RK_index;
@@ -206,7 +233,6 @@ void RKGA::evolve(Population &curr, Population &next){
         next.setFitness(i, cost);
         ++i;
     }
-    cout << "205" << endl;
     next.sortFitness();
     cout << "207 sorted fitness: " << endl;
     for (int i = 0; i < next.fitness.size(); i++){
@@ -216,6 +242,21 @@ void RKGA::evolve(Population &curr, Population &next){
 }
 double RKGA::getBestFitness() const{
     return current->fitness[0].first;
+}
+bool RKGA::ifRepeated(int j, const Population &curr, const vector<ViewPoint> &next, int &src, int nsrc){
+    for (int l = 0; l < j; l++){
+        if(next[l].num == curr.population[curr.fitness[src].second][j].num){
+            if(j >= curr.population[curr.fitness[nsrc].second].size()){
+                return true;
+            }
+            for (int m = 0; m < j; m++){
+                if(next[m].num == curr.population[curr.fitness[src].second][j].num)
+                    return true;
+            }
+            src = nsrc;
+            return false;
+        }
+     }
 }
 RKGA::~RKGA(){
     delete current;

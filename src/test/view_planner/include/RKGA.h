@@ -51,5 +51,6 @@ private:
     void calcMotionCost(vector<ViewPoint> single, double &cost);  // 计算该个体的运动成本
     void evolve(Population &curr, Population &next);
     double getBestFitness() const;
+    bool ifRepeated(int j, const Population &curr, const vector<ViewPoint> &next, int &src, int nsrc);
 };
 #endif

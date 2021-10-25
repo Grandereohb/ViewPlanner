@@ -86,7 +86,7 @@ private:
 	int maxFOD = 940;  // 后景深(单位：mm) maxFOD = measure_dist + 400
     //int rangeFOD = maxFOD - minFOD;  // 测量范围
 	double minFOV = 0.463;  // 视野(弧度) 水平视角30度，垂直视角25度  minFOV = 25/180*PI = 0.436332306
-	double view_angle_range = 1.309;  // 测量视角范围 view_angle_range = 75/180*PI = 1.309
+	double view_angle_range = 1.0471987;  // 测量视角范围 view_angle_range = 75/180*PI = 1.309
 	// 仿真场景距离参数
 	double model_position_x = 0.8;  // 待测模型在x轴上的位置（单位：m）  
 	double model_position_z = 0.35;  // 待测模型在z轴上的位置（单位：m）  

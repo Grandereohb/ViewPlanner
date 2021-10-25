@@ -10,13 +10,13 @@ int main(int argc, char **argv)
     const char* file_path = "/home/ros/abb_ws/src/test/view_planner/model/test_model.stl";  // 用于视点生成的模型文件路径
     const char* file_path_small = "package://view_planner/model/test_model_small.stl";  // 用于构建场景的模型文件路径
     int sampleNum = 40;  // 采样次数;
-    double coverage_rate = 0.65;  // 采样覆盖率
+    double coverage_rate = 0.60;  // 采样覆盖率
     // RKGA参数
     int maxGen = 100; // 最大进化代数
     int pop = 50;       // 每代个体样本数
     double pop_elite = 0.1;    // 每代种群中的精英个体比例
-    double pop_mate = 0.8;   // 每代种群中交叉的个体比例
-    double rhoe = 80;  // probability that an offspring inherits the allele of its elite parent
+    double pop_mutant = 0.1;   // 每代种群中变异的个体比例
+    double rhoe = 70;  // probability that an offspring inherits the allele of its elite parent
 
     ros::init(argc, argv, "planner");
     ros::NodeHandle node_handle; 
@@ -102,9 +102,10 @@ int main(int argc, char **argv)
     }
 
     // 计算视点，规划并执行机器人轨迹
+    // vector<ViewPoint> best_view_point = vp.generateViewPoint(file_path, sampleNum, coverage_rate);   // 候选视点
     vector<ViewPoint> candViewPoint = vp.generateViewPoint(file_path, sampleNum, coverage_rate);   // 候选视点
     
-    RKGA scp_solver(pop, pop_elite, pop_mate, rhoe, coverage_rate, candViewPoint, vp.g, vp.visibility_matrix);
+    RKGA scp_solver(pop, pop_elite, pop_mutant, rhoe, coverage_rate, candViewPoint, vp.g, vp.visibility_matrix);
     vector<ViewPoint> best_view_point = scp_solver.solveRKGA(maxGen); // 最优视点
 
     cout<<"共获得"<<best_view_point.size()<<"个最佳视点，开始规划机器人运动轨迹："<<endl;
@@ -122,7 +123,7 @@ int main(int argc, char **argv)
         target_pose1.position.z = vp.getModelPositionZ() + best_view_point[i].position.m_floats[2] / 1000;
         group.setPoseTarget(target_pose1);
 
-        cout << i << " (" << target_pose1.position.x << ", " << target_pose1.position.y << ", " << target_pose1.position.z << ")" << endl;
+        cout << i << " (" << target_pose1.position.x << ", " << target_pose1.position.y << ", " << target_pose1.position.z << ")" << best_view_point[i].num << endl;
 
         // 进行运动规划，计算机器人移动到目标的运动轨迹，此时只是计算出轨迹，并不会控制机械臂运动
         moveit::planning_interface::MoveGroupInterface::Plan my_plan;
