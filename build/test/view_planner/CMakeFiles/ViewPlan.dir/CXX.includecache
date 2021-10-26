@@ -6,10 +6,6 @@
 
 #IncludeRegexTransform: 
 
-/home/ros/abb_ws/src/test/view_planner/include/RKGA.h
-ViewPlan.h
-/home/ros/abb_ws/src/test/view_planner/include/ViewPlan.h
-
 /home/ros/abb_ws/src/test/view_planner/include/ViewPlan.h
 vector
 -
@@ -60,9 +56,13 @@ Eigen/Dense
 eigen_conversions/eigen_msg.h
 -
 
-/home/ros/abb_ws/src/test/view_planner/src/RKGA.cpp
-RKGA.h
-/home/ros/abb_ws/src/test/view_planner/src/RKGA.h
+/home/ros/abb_ws/src/test/view_planner/src/ViewPlan.cpp
+ViewPlan.h
+/home/ros/abb_ws/src/test/view_planner/src/ViewPlan.h
+time.h
+-
+stdlib.h
+-
 
 /opt/ros/noetic/include/actionlib/action_definition.h
 

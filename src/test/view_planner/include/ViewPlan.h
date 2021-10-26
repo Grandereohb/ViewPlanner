@@ -100,7 +100,9 @@ private:
     vector<TriSurface> readASCII(const char *cfilename);  // 读取ASCII格式STL
 	vector<TriSurface> readBinary(const char *cfilename);  // 读取二进制格式STL
 	
-    void sampleViewPoint(const vector<TriSurface> &model, int sampleNum, int already_sampled, vector<ViewPoint> &candidate_view_point);  // 生成候选视点
+    void sampleViewPoint(const vector<TriSurface> &model, int sampleNum, int already_sampled, vector<ViewPoint> &candidate_view_point, const vector<pair<double, int>> &RK_index);  // 生成候选视点
+	void setRandomKey(int size, vector<pair<double, int>>& RK_index);  // 给每个面片设置随机Key值
+    void sortRK(vector<pair<double,int>>& RK_index);  // 将Key从小到大排序
 	bool sampleEnough(const vector<TriSurface> &model, int candidate_num, int sample_num, double coverage_rate);  // 判断是否已经生成足够视点 sampleEnough(模型, 已采集的视点, 每次采样数)
 	bool getJointState(ViewPoint &viewpoint, robot_model_loader::RobotModelLoader robot_model_loader);  // 计算机器人在视点位置处的轴配置数据
     bool isCovered(Vector3 orig, Vector3 position, const TriSurface &TriSurface);  // 检测是否被遮挡
