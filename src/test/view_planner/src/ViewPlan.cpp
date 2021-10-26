@@ -10,10 +10,13 @@ vector<ViewPoint> ViewPlan::generateViewPoint(const char *cfilename, int sampleN
 
     vector<ViewPoint> candidate_view_point;
     vector<ViewPoint> best_view_point;
+	vector<pair<double, int>> RK_index;
+	setRandomKey(model.size(), RK_index);
+    sortRK(RK_index);
 
 	while(!sampleEnough(model, candidate_view_point.size(), sampleNum, coverage_rate)){
 		int already_sampled = candidate_view_point.size();
-		sampleViewPoint(model, sampleNum, already_sampled, candidate_view_point);  // 采样生成候选视点
+		sampleViewPoint(model, sampleNum, already_sampled, candidate_view_point, RK_index);  // 采样生成候选视点
 	}
 	//getJointState(candidate_view_point);  // 计算每个候选视点的机器人轴配置参数
 	// for(int i=0; i<candidate_view_point.size();i++){
@@ -186,22 +189,31 @@ vector<TriSurface> ViewPlan::readBinary(const char* buffer) {
     return TriSurfaces;
 }
 
-void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, int already_sampled, vector<ViewPoint> &candidate_view_point){
+void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, int already_sampled, vector<ViewPoint> &candidate_view_point, const vector<pair<double, int>> &RK_index){
     robot_model_loader::RobotModelLoader robot_model_loader("robot_description");  // 原为getJointState第一行，但在循环中无法生成随机数，所以提前声明
 	srand((unsigned)time(NULL));
 
     cout<<"开始生成候选视点："<<endl;
 	int candidate_num = already_sampled;
-    while((candidate_view_point.size() - already_sampled) < sampleNum){
+	int rand_sample_num = already_sampled;
+    
+	while((candidate_view_point.size() - already_sampled) < sampleNum){
 		ViewPoint candidate;
 		vector<int> tempVisibility;
-        int randNum = rand() % model.size();  // 生成随机数选取表面片
-		
-        candidate.position = model[randNum].center + model[randNum].normal.normalized() * measure_dist;  // 沿面片法线方向延伸最佳测量距离，生成候选视点
-        
+		if(rand_sample_num >= model.size()){
+			cout << "随机采样数超过模型面片数！" <<model.size()<< endl;
+			break;
+		}
+		// cout << "207 rsn=" << rand_sample_num << endl;
+		int randNum = RK_index[rand_sample_num].second;
+		++rand_sample_num;
+		candidate.position = model[randNum].center + model[randNum].normal.normalized() * measure_dist; // 沿面片法线方向延伸最佳测量距离，生成候选视点
+
 		// 生成视点的z过低，重新生成
-		if(candidate.position.m_floats[2] < -100)
+		if(candidate.position.m_floats[2] < -100){
+			// cout << "生成视点的z过低，重新生成!" << endl;
 			continue;
+		}
         
 		// 在所选面片的rangeFOD/2范围内寻找夹角小于90度的邻面片，势场法计算视点方向        
 		candidate.direction = Vector3(0,0,0);
@@ -214,8 +226,10 @@ void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, i
         }
 		
 		// 计算视点的机器人轴配置参数和碰撞检测，舍弃无法求解IK或发生碰撞的候选视点
-		if(!getJointState(candidate, robot_model_loader) || checkCollision(candidate, robot_model_loader))
+		if(!getJointState(candidate, robot_model_loader) || checkCollision(candidate, robot_model_loader)){
+			// cout << "运动学不可解！" << endl;
 			continue;
+		}
 
 		// 计算视点的可见性矩阵
 		for(int j=0; j<model.size(); j++){
@@ -232,10 +246,25 @@ void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, i
 		candidate_view_point.push_back(candidate);
 		visibility_matrix.push_back(tempVisibility);
 
-		cout<<"随机数为： "<<randNum<<endl;
-		cout<<"生成第"<<candidate.num<<"个视点，位置为("<<candidate.position.m_floats[0]<<", "<<candidate.position.m_floats[1]<<", "<<candidate.position.m_floats[2]<<"), ";
-        cout<<"方向为("<<candidate.direction.m_floats[0]<<", "<<candidate.direction.m_floats[1]<<", "<<candidate.direction.m_floats[2]<<")"<<endl;
+		cout << "随机数为： " << randNum << endl;
+		cout << "生成第" << candidate.num << "个视点，位置为(" << candidate.position.m_floats[0] << ", " << candidate.position.m_floats[1] << ", " << candidate.position.m_floats[2] << "), ";
+		cout<<"方向为("<<candidate.direction.m_floats[0]<<", "<<candidate.direction.m_floats[1]<<", "<<candidate.direction.m_floats[2]<<")"<<endl;
 	}
+}
+void ViewPlan::setRandomKey(int size, vector<pair<double, int>> &RK_index){
+    for (int i = 0; i < size; i++){
+        pair<double, int> temp;  // <key， 序号>
+        temp.first = (double)rand() / RAND_MAX;
+        while (temp.first == 1.0) {
+            temp.first = ((double) rand() / RAND_MAX);
+        }
+        temp.second = i;
+        RK_index.push_back(temp);
+        //cout << "104 setRK: " << RK_index[i].first << ", " << RK_index[i].second << endl;
+    }
+}
+void ViewPlan::sortRK(vector<pair<double, int>> &RK_index){
+    sort(RK_index.begin(), RK_index.end(), less<pair<double, int>>());
 }
 bool ViewPlan::sampleEnough(const vector<TriSurface> &model, int candidate_num, int sample_num, double coverage_rate){
 	// 未开始采样，可见性矩阵仍为空，进行采样
