@@ -49,9 +49,10 @@ class ViewPoint {
 public:
 	int num;
 	double cost;
-	Vector3 position;
-	Vector3 direction;
-	Eigen::Quaterniond quaternion;
+	Vector3 position;  // 视点位置
+	Vector3 direction;  // 视点方向
+	Vector3 robot_position;  // 视点位置对应的机械臂末端位置
+	Eigen::Quaterniond quaternion;  // 视点位置对应的机械臂四元数
 	vector<double> joint_state;
 	ViewPoint *next;
 	ViewPoint(int num, double cost);
@@ -82,16 +83,16 @@ private:
     // 相机参数
 	const float PI =3.1415926;
 	const int measure_dist = 540;  // 最佳测量距离(单位：mm)
-    int minFOD = 340;  // 前景深(单位：mm) minFOD = measure_dist - 200
-	int maxFOD = 940;  // 后景深(单位：mm) maxFOD = measure_dist + 400
+    const int minFOD = 340;  // 前景深(单位：mm) minFOD = measure_dist - 200
+	const int maxFOD = 940;  // 后景深(单位：mm) maxFOD = measure_dist + 400
     //int rangeFOD = maxFOD - minFOD;  // 测量范围
-	double minFOV = 0.463;  // 视野(弧度) 水平视角30度，垂直视角25度  minFOV = 25/180*PI = 0.436332306
-	double view_angle_range = 1.134463994;  // 测量视角范围 view_angle_range = 65/180*PI = 1.309
+	const double minFOV = 0.52359877;  // 视野(弧度) 水平视角30度，垂直视角25度  minFOV = 30/180*PI = 0.52359877
+	const double view_angle_range = 1.309;  // 测量视角范围 view_angle_range = 75/180*PI = 1.309
 	// 仿真场景距离参数
-	double model_position_x = 0.8;  // 待测模型在x轴上的位置（单位：m）  
-	double model_position_z = 0.35;  // 待测模型在z轴上的位置（单位：m）  
-	double table_position_x = model_position_x - 0.05;  // 平台在x轴上的位置（单位：m）  
-	double table_position_z = (model_position_z - 0.07)/2;  // 平台在z轴上的位置（单位：m） z = (转向节中心高度 - 转向节下半部分高度0.07)/2 
+	const double model_position_x = 0.8;  // 待测模型在x轴上的位置（单位：m）  
+	const double model_position_z = 0.2;  // 待测模型在z轴上的位置（单位：m）  
+	const double table_position_x = model_position_x - 0.05;  // 平台在x轴上的位置（单位：m）  
+	const double table_position_z = (model_position_z - 0.07)/2;  // 平台在z轴上的位置（单位：m） z = (转向节中心高度 - 转向节下半部分高度0.07)/2 
     
 	//int numTriangles = 0;  // 面片数量
 	//int sampleNum;  // 视点采样数量
@@ -100,7 +101,7 @@ private:
     vector<TriSurface> readASCII(const char *cfilename);  // 读取ASCII格式STL
 	vector<TriSurface> readBinary(const char *cfilename);  // 读取二进制格式STL
 	
-    void sampleViewPoint(const vector<TriSurface> &model, int sampleNum, int already_sampled, vector<ViewPoint> &candidate_view_point, const vector<pair<double, int>> &RK_index);  // 生成候选视点
+    void sampleViewPoint(const vector<TriSurface> &model, int sampleNum, int already_sampled, vector<ViewPoint> &candidate_view_point, const vector<pair<double, int>> &RK_index, int &rand_sample_num);  // 生成候选视点
 	void setRandomKey(int size, vector<pair<double, int>>& RK_index);  // 给每个面片设置随机Key值
     void sortRK(vector<pair<double,int>>& RK_index);  // 将Key从小到大排序
 	bool sampleEnough(const vector<TriSurface> &model, int candidate_num, int sample_num, double coverage_rate);  // 判断是否已经生成足够视点 sampleEnough(模型, 已采集的视点, 每次采样数)

@@ -56,7 +56,9 @@ CMAKE_BINARY_DIR = /home/ros/abb_ws/build
 all: gtest/all
 all: abb_config/abb_experimental/abb_experimental/all
 all: abb_config/abb_experimental/abb_irb1600_6_12_moveit_config/all
+all: abbcam_moveit_config/all
 all: irb1600_6_12_moveit_config/all
+all: irb1600_moveit_config/all
 all: abb_config/abb_irb1600_support/all
 all: test/test_robot_state/all
 all: test/test_description/all
@@ -71,7 +73,9 @@ all: test/view_planner/all
 preinstall: gtest/preinstall
 preinstall: abb_config/abb_experimental/abb_experimental/preinstall
 preinstall: abb_config/abb_experimental/abb_irb1600_6_12_moveit_config/preinstall
+preinstall: abbcam_moveit_config/preinstall
 preinstall: irb1600_6_12_moveit_config/preinstall
+preinstall: irb1600_moveit_config/preinstall
 preinstall: abb_config/abb_irb1600_support/preinstall
 preinstall: test/test_robot_state/preinstall
 preinstall: test/test_description/preinstall
@@ -91,7 +95,9 @@ clean: CMakeFiles/download_extra_data.dir/clean
 clean: gtest/clean
 clean: abb_config/abb_experimental/abb_experimental/clean
 clean: abb_config/abb_experimental/abb_irb1600_6_12_moveit_config/clean
+clean: abbcam_moveit_config/clean
 clean: irb1600_6_12_moveit_config/clean
+clean: irb1600_moveit_config/clean
 clean: abb_config/abb_irb1600_support/clean
 clean: test/test_robot_state/clean
 clean: test/test_description/clean
@@ -181,6 +187,24 @@ abb_irb1600_6_12_arm_ikfast_plugin/clean: abb_irb1600_6_12_arm_ikfast_plugin/CMa
 .PHONY : abb_irb1600_6_12_arm_ikfast_plugin/clean
 
 #=============================================================================
+# Directory level rules for directory abbcam_moveit_config
+
+# Recursive "all" directory target.
+abbcam_moveit_config/all:
+
+.PHONY : abbcam_moveit_config/all
+
+# Recursive "preinstall" directory target.
+abbcam_moveit_config/preinstall:
+
+.PHONY : abbcam_moveit_config/preinstall
+
+# Recursive "clean" directory target.
+abbcam_moveit_config/clean:
+
+.PHONY : abbcam_moveit_config/clean
+
+#=============================================================================
 # Directory level rules for directory gtest
 
 # Recursive "all" directory target.
@@ -254,6 +278,24 @@ irb1600_6_12_moveit_config/preinstall:
 irb1600_6_12_moveit_config/clean:
 
 .PHONY : irb1600_6_12_moveit_config/clean
+
+#=============================================================================
+# Directory level rules for directory irb1600_moveit_config
+
+# Recursive "all" directory target.
+irb1600_moveit_config/all:
+
+.PHONY : irb1600_moveit_config/all
+
+# Recursive "preinstall" directory target.
+irb1600_moveit_config/preinstall:
+
+.PHONY : irb1600_moveit_config/preinstall
+
+# Recursive "clean" directory target.
+irb1600_moveit_config/clean:
+
+.PHONY : irb1600_moveit_config/clean
 
 #=============================================================================
 # Directory level rules for directory moveit_kinematics

@@ -1096,6 +1096,12 @@ abb_resources_BINARY_DIR:STATIC=/home/ros/abb_ws/build/abb_config/abb/abb_resour
 //Value Computed by CMake
 abb_resources_SOURCE_DIR:STATIC=/home/ros/abb_ws/src/abb_config/abb/abb_resources
 
+//Value Computed by CMake
+abbcam_moveit_config_BINARY_DIR:STATIC=/home/ros/abb_ws/build/abbcam_moveit_config
+
+//Value Computed by CMake
+abbcam_moveit_config_SOURCE_DIR:STATIC=/home/ros/abb_ws/src/abbcam_moveit_config
+
 //The directory containing a CMake configuration file for actionlib.
 actionlib_DIR:PATH=/opt/ros/noetic/share/actionlib/cmake
 
@@ -1390,6 +1396,12 @@ irb1600_6_12_moveit_config_BINARY_DIR:STATIC=/home/ros/abb_ws/build/irb1600_6_12
 
 //Value Computed by CMake
 irb1600_6_12_moveit_config_SOURCE_DIR:STATIC=/home/ros/abb_ws/src/irb1600_6_12_moveit_config
+
+//Value Computed by CMake
+irb1600_moveit_config_BINARY_DIR:STATIC=/home/ros/abb_ws/build/irb1600_moveit_config
+
+//Value Computed by CMake
+irb1600_moveit_config_SOURCE_DIR:STATIC=/home/ros/abb_ws/src/irb1600_moveit_config
 
 //The directory containing a CMake configuration file for kdl_conversions.
 kdl_conversions_DIR:PATH=/opt/ros/noetic/share/kdl_conversions/cmake
@@ -2333,6 +2345,8 @@ CMAKE_C_FLAGS_RELEASE-ADVANCED:INTERNAL=1
 CMAKE_C_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_DLLTOOL
 CMAKE_DLLTOOL-ADVANCED:INTERNAL=1
+//Path to cache edit program executable.
+CMAKE_EDIT_COMMAND:INTERNAL=/usr/bin/cmake-gui
 //Executable file format
 CMAKE_EXECUTABLE_FORMAT:INTERNAL=ELF
 //ADVANCED property for variable: CMAKE_EXE_LINKER_FLAGS
@@ -2419,7 +2433,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=20
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=22
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

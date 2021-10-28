@@ -1,0 +1,4 @@
+arm:
+  kinematics_solver: abb_irb1600_6_12_arm/IKFastKinematicsPlugin
+  kinematics_solver_search_resolution: 0.005
+  kinematics_solver_timeout: 0.005

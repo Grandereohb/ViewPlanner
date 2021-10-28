@@ -7,10 +7,10 @@
 int main(int argc, char **argv)
 {
     // 使用前请根据需求修改以下参数 
-    const char* file_path = "/home/ros/abb_ws/src/test/view_planner/model/turning_bin_07_reversal.stl";  // 用于视点生成的模型文件路径
-    const char* file_path_small = "package://view_planner/model/turning_bin_07_reversal_small.stl";  // 用于构建场景的模型文件路径
-    int sampleNum = 60;  // 采样次数;
-    double coverage_rate = 0.60;  // 采样覆盖率
+    const char* file_path = "/home/ros/abb_ws/src/test/view_planner/model/model1026.stl";  // 用于视点生成的模型文件路径
+    const char* file_path_small = "package://view_planner/model/model1026_small.stl";  // 用于构建场景的模型文件路径
+    int sampleNum = 40;  // 采样次数;
+    double coverage_rate = 0.7;  // 采样覆盖率
     // RKGA参数
     int maxGen = 100; // 最大进化代数
     int pop = 50;       // 每代个体样本数
@@ -53,8 +53,7 @@ int main(int argc, char **argv)
     primitive.dimensions.resize(3);
     primitive.dimensions[0] = 0.2;  //x
     primitive.dimensions[1] = 0.2;  //y
-    // primitive.dimensions[2] = vp.getModelPositionZ() - 0.02;  //z = 转向节中心高度 - 转向节下半部分高度0.02
-    primitive.dimensions[2] = vp.getModelPositionZ();  //z = 转向节中心高度 - 转向节下半部分高度0.02
+    primitive.dimensions[2] = vp.getModelPositionZ() - 0.02;  //z = 转向节中心高度 - 转向节下半部分高度0.02
 
     // 设置待测物体和平台位置
     geometry_msgs::Pose model_pose;
@@ -102,9 +101,7 @@ int main(int argc, char **argv)
     }
 
     // 计算视点，规划并执行机器人轨迹
-    // vector<ViewPoint> best_view_point = vp.generateViewPoint(file_path, sampleNum, coverage_rate);   // 候选视点
     vector<ViewPoint> candViewPoint = vp.generateViewPoint(file_path, sampleNum, coverage_rate);   // 候选视点
-    
     RKGA scp_solver(pop, pop_elite, pop_mutant, rhoe, coverage_rate, candViewPoint, vp.g, vp.visibility_matrix);
     vector<ViewPoint> best_view_point = scp_solver.solveRKGA(maxGen); // 最优视点
 
@@ -118,9 +115,12 @@ int main(int argc, char **argv)
         target_pose1.orientation.y = best_view_point[i].quaternion.y();
         target_pose1.orientation.z = best_view_point[i].quaternion.z();
 
-        target_pose1.position.x = vp.getModelPositionX() + best_view_point[i].position.m_floats[0] / 1000;
-        target_pose1.position.y = best_view_point[i].position.m_floats[1] / 1000;
-        target_pose1.position.z = vp.getModelPositionZ() + best_view_point[i].position.m_floats[2] / 1000;
+        // target_pose1.position.x = vp.getModelPositionX() + best_view_point[i].position.m_floats[0] / 1000;
+        // target_pose1.position.y = best_view_point[i].position.m_floats[1] / 1000;
+        // target_pose1.position.z = vp.getModelPositionZ() + best_view_point[i].position.m_floats[2] / 1000;
+        target_pose1.position.x = best_view_point[i].robot_position.m_floats[0];
+        target_pose1.position.y = best_view_point[i].robot_position.m_floats[1];
+        target_pose1.position.z = best_view_point[i].robot_position.m_floats[2];
         group.setPoseTarget(target_pose1);
 
         cout << i << " (" << target_pose1.position.x << ", " << target_pose1.position.y << ", " << target_pose1.position.z << ")" << best_view_point[i].num << endl;

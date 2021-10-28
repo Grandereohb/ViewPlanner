@@ -180,11 +180,33 @@
     <child link="flange"/>
   </joint>
   <!-- ROS-Industrial 'tool0' frame: all-zeros tool frame -->
-  <link name="tool0"/>
+  <!-- <link name="tool0"/>
   <joint name="link_6-tool0" type="fixed">
     <origin rpy="0 1.5707963267948966 0" xyz="0 0 0"/>
     <parent link="flange"/>
     <child link="tool0"/>
+  </joint> -->
+  <!-- PowerScan - tool0 -->
+  <link name="PowerScan">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://view_planner/model/PowerScan_small.stl"/>
+      </geometry>
+      <material name="abb_orange"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://view_planner/model/PowerScan_small.stl"/>
+      </geometry>
+      <material name="yellow"/>
+    </collision>
+  </link>
+  <joint name="link_6-PowerScan" type="fixed">
+    <origin rpy="0 1.5707963267948966 0" xyz="0 0 0"/>
+    <parent link="flange"/>
+    <child link="PowerScan"/>
   </joint>
 </robot>
 
