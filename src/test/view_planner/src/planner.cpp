@@ -12,10 +12,10 @@ int main(int argc, char **argv)
     int sampleNum = 40;  // 采样次数;
     double coverage_rate = 0.7;  // 采样覆盖率
     // RKGA参数
-    int maxGen = 100; // 最大进化代数
+    int maxGen = 200; // 最大进化代数
     int pop = 50;       // 每代个体样本数
     double pop_elite = 0.1;    // 每代种群中的精英个体比例
-    double pop_mutant = 0.1;   // 每代种群中变异的个体比例
+    double pop_mutant = 0.3;   // 每代种群中变异的个体比例
     double rhoe = 70;  // probability that an offspring inherits the allele of its elite parent
 
     ros::init(argc, argv, "planner");
@@ -115,9 +115,6 @@ int main(int argc, char **argv)
         target_pose1.orientation.y = best_view_point[i].quaternion.y();
         target_pose1.orientation.z = best_view_point[i].quaternion.z();
 
-        // target_pose1.position.x = vp.getModelPositionX() + best_view_point[i].position.m_floats[0] / 1000;
-        // target_pose1.position.y = best_view_point[i].position.m_floats[1] / 1000;
-        // target_pose1.position.z = vp.getModelPositionZ() + best_view_point[i].position.m_floats[2] / 1000;
         target_pose1.position.x = best_view_point[i].robot_position.m_floats[0];
         target_pose1.position.y = best_view_point[i].robot_position.m_floats[1];
         target_pose1.position.z = best_view_point[i].robot_position.m_floats[2];

@@ -341,7 +341,7 @@ bool ViewPlan::getJointState(ViewPoint &viewpoint, robot_model_loader::RobotMode
 	// 2.超时时间：0.1 秒
 	double timeout = 0.1;
 	int n = 0;
-	Eigen::AngleAxisd v(PI / 18, Eigen::Vector3d(0,0,1));
+	Eigen::AngleAxisd v(PI / 180, Eigen::Vector3d(0,0,1));
 	Eigen::Matrix3d rotationMatrix = v.matrix();  // 绕光轴旋转20度的旋转矩阵
 	Eigen::Vector3d translation2(0, 0, 0);
 	Eigen::Isometry3d rotation = Eigen::Isometry3d::Identity();
@@ -351,7 +351,7 @@ bool ViewPlan::getJointState(ViewPoint &viewpoint, robot_model_loader::RobotMode
 	while(!found_ik){
 		end_effector_state = end_effector_state * resCalibration * rotation * resCalibration.inverse();
 		found_ik = kinematic_state->setFromIK(joint_model_group, end_effector_state, timeout);
-		if(++n >= 36)
+		if(++n >= 360)
 			break;
 	}
 	if (found_ik){
@@ -408,13 +408,11 @@ int ViewPlan::checkVisibility(const ViewPoint &view_point, const vector<TriSurfa
 	// 2.表面片的所有顶点都在景深FOD内 ———— minFOD < distance < maxFOD
 	// 3.视角必须在特定角度之内 ———— model[i].normal.angle(view_point - model[i])
 	// 4.没有遮挡 ———— isCovered()
-
 	// 1&2.判断表面片顶点是否都在FOV和FOD中
 	for (int j = 0; j < 3; j++){
-		if (view_point.position.distance(model[i].vertex[j]) <= minFOD ||
-			view_point.position.distance(model[i].vertex[j]) >= maxFOD ||
-			view_point.direction.angle(model[i].vertex[j] - view_point.position) >= minFOV / 2)
-		{
+		double dist = (model[i].vertex[j] - view_point.position).dot(view_point.direction.normalized());
+		if (dist <= minFOD || dist >= maxFOD ||
+			abs(view_point.direction.angle(model[i].vertex[j] - view_point.position)) >= minFOV / 2){
 			return 0;
 		}
 	}

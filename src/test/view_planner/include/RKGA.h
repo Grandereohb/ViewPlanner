@@ -39,7 +39,7 @@ private:
     const Graph *graph;
     const vector<ViewPoint> candVP;
     const vector<vector<int>> visibility_matrix;
-    const double minCost = 20;
+    const double minCost = 10;
 
     Population* previous;
     Population* current;
@@ -49,8 +49,9 @@ private:
     void sortRK(vector<pair<double,int>>& RK_index);  // 将Key从小到大排序
     bool isMostCovered(vector<ViewPoint> single);  // 个体是否满足覆盖度要求
     void calcMotionCost(vector<ViewPoint> single, double &cost);  // 计算该个体的运动成本
-    void evolve(Population &curr, Population &next);
+    void evolve(Population curr, Population &next);
     double getBestFitness() const;
-    bool ifRepeated(int j, const Population &curr, const vector<ViewPoint> &next, int &src, int nsrc);
+    bool isRepeated(int j, const Population &curr, const vector<ViewPoint> &next, int &src, int nsrc);
+    bool isRepeated(const ViewPoint &curr, const vector<ViewPoint> &next);
 };
 #endif
