@@ -56,18 +56,6 @@ CMAKE_BINARY_DIR = /home/ros/abb_ws/build
 #=============================================================================
 # Targets provided globally by CMake.
 
-# Special rule for the target install/strip
-install/strip: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip
-
-# Special rule for the target install/strip
-install/strip/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip/fast
-
 # Special rule for the target install/local
 install/local: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
@@ -135,6 +123,18 @@ test/fast: test
 
 .PHONY : test/fast
 
+# Special rule for the target install/strip
+install/strip: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
+	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip
+
+# Special rule for the target install/strip
+install/strip/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
+	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip/fast
+
 # The main all target
 all: cmake_check_build_system
 	cd /home/ros/abb_ws/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/ros/abb_ws/build/CMakeFiles /home/ros/abb_ws/build/test/view_planner/CMakeFiles/progress.marks
@@ -168,19 +168,169 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-test/view_planner/CMakeFiles/planner.dir/rule:
-	cd /home/ros/abb_ws/build && $(MAKE) -f CMakeFiles/Makefile2 test/view_planner/CMakeFiles/planner.dir/rule
-.PHONY : test/view_planner/CMakeFiles/planner.dir/rule
+test/view_planner/CMakeFiles/tf_generate_messages_cpp.dir/rule:
+	cd /home/ros/abb_ws/build && $(MAKE) -f CMakeFiles/Makefile2 test/view_planner/CMakeFiles/tf_generate_messages_cpp.dir/rule
+.PHONY : test/view_planner/CMakeFiles/tf_generate_messages_cpp.dir/rule
 
 # Convenience name for target.
-planner: test/view_planner/CMakeFiles/planner.dir/rule
+tf_generate_messages_cpp: test/view_planner/CMakeFiles/tf_generate_messages_cpp.dir/rule
 
-.PHONY : planner
+.PHONY : tf_generate_messages_cpp
 
 # fast build rule for target.
-planner/fast:
-	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/planner.dir/build.make test/view_planner/CMakeFiles/planner.dir/build
-.PHONY : planner/fast
+tf_generate_messages_cpp/fast:
+	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/tf_generate_messages_cpp.dir/build.make test/view_planner/CMakeFiles/tf_generate_messages_cpp.dir/build
+.PHONY : tf_generate_messages_cpp/fast
+
+# Convenience name for target.
+test/view_planner/CMakeFiles/tf_generate_messages_lisp.dir/rule:
+	cd /home/ros/abb_ws/build && $(MAKE) -f CMakeFiles/Makefile2 test/view_planner/CMakeFiles/tf_generate_messages_lisp.dir/rule
+.PHONY : test/view_planner/CMakeFiles/tf_generate_messages_lisp.dir/rule
+
+# Convenience name for target.
+tf_generate_messages_lisp: test/view_planner/CMakeFiles/tf_generate_messages_lisp.dir/rule
+
+.PHONY : tf_generate_messages_lisp
+
+# fast build rule for target.
+tf_generate_messages_lisp/fast:
+	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/tf_generate_messages_lisp.dir/build.make test/view_planner/CMakeFiles/tf_generate_messages_lisp.dir/build
+.PHONY : tf_generate_messages_lisp/fast
+
+# Convenience name for target.
+test/view_planner/CMakeFiles/tf_generate_messages_nodejs.dir/rule:
+	cd /home/ros/abb_ws/build && $(MAKE) -f CMakeFiles/Makefile2 test/view_planner/CMakeFiles/tf_generate_messages_nodejs.dir/rule
+.PHONY : test/view_planner/CMakeFiles/tf_generate_messages_nodejs.dir/rule
+
+# Convenience name for target.
+tf_generate_messages_nodejs: test/view_planner/CMakeFiles/tf_generate_messages_nodejs.dir/rule
+
+.PHONY : tf_generate_messages_nodejs
+
+# fast build rule for target.
+tf_generate_messages_nodejs/fast:
+	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/tf_generate_messages_nodejs.dir/build.make test/view_planner/CMakeFiles/tf_generate_messages_nodejs.dir/build
+.PHONY : tf_generate_messages_nodejs/fast
+
+# Convenience name for target.
+test/view_planner/CMakeFiles/tf_generate_messages_eus.dir/rule:
+	cd /home/ros/abb_ws/build && $(MAKE) -f CMakeFiles/Makefile2 test/view_planner/CMakeFiles/tf_generate_messages_eus.dir/rule
+.PHONY : test/view_planner/CMakeFiles/tf_generate_messages_eus.dir/rule
+
+# Convenience name for target.
+tf_generate_messages_eus: test/view_planner/CMakeFiles/tf_generate_messages_eus.dir/rule
+
+.PHONY : tf_generate_messages_eus
+
+# fast build rule for target.
+tf_generate_messages_eus/fast:
+	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/tf_generate_messages_eus.dir/build.make test/view_planner/CMakeFiles/tf_generate_messages_eus.dir/build
+.PHONY : tf_generate_messages_eus/fast
+
+# Convenience name for target.
+test/view_planner/CMakeFiles/tf_generate_messages_py.dir/rule:
+	cd /home/ros/abb_ws/build && $(MAKE) -f CMakeFiles/Makefile2 test/view_planner/CMakeFiles/tf_generate_messages_py.dir/rule
+.PHONY : test/view_planner/CMakeFiles/tf_generate_messages_py.dir/rule
+
+# Convenience name for target.
+tf_generate_messages_py: test/view_planner/CMakeFiles/tf_generate_messages_py.dir/rule
+
+.PHONY : tf_generate_messages_py
+
+# fast build rule for target.
+tf_generate_messages_py/fast:
+	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/tf_generate_messages_py.dir/build.make test/view_planner/CMakeFiles/tf_generate_messages_py.dir/build
+.PHONY : tf_generate_messages_py/fast
+
+# Convenience name for target.
+test/view_planner/CMakeFiles/std_srvs_generate_messages_py.dir/rule:
+	cd /home/ros/abb_ws/build && $(MAKE) -f CMakeFiles/Makefile2 test/view_planner/CMakeFiles/std_srvs_generate_messages_py.dir/rule
+.PHONY : test/view_planner/CMakeFiles/std_srvs_generate_messages_py.dir/rule
+
+# Convenience name for target.
+std_srvs_generate_messages_py: test/view_planner/CMakeFiles/std_srvs_generate_messages_py.dir/rule
+
+.PHONY : std_srvs_generate_messages_py
+
+# fast build rule for target.
+std_srvs_generate_messages_py/fast:
+	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/std_srvs_generate_messages_py.dir/build.make test/view_planner/CMakeFiles/std_srvs_generate_messages_py.dir/build
+.PHONY : std_srvs_generate_messages_py/fast
+
+# Convenience name for target.
+test/view_planner/CMakeFiles/moveit_ros_manipulation_gencfg.dir/rule:
+	cd /home/ros/abb_ws/build && $(MAKE) -f CMakeFiles/Makefile2 test/view_planner/CMakeFiles/moveit_ros_manipulation_gencfg.dir/rule
+.PHONY : test/view_planner/CMakeFiles/moveit_ros_manipulation_gencfg.dir/rule
+
+# Convenience name for target.
+moveit_ros_manipulation_gencfg: test/view_planner/CMakeFiles/moveit_ros_manipulation_gencfg.dir/rule
+
+.PHONY : moveit_ros_manipulation_gencfg
+
+# fast build rule for target.
+moveit_ros_manipulation_gencfg/fast:
+	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/moveit_ros_manipulation_gencfg.dir/build.make test/view_planner/CMakeFiles/moveit_ros_manipulation_gencfg.dir/build
+.PHONY : moveit_ros_manipulation_gencfg/fast
+
+# Convenience name for target.
+test/view_planner/CMakeFiles/std_srvs_generate_messages_lisp.dir/rule:
+	cd /home/ros/abb_ws/build && $(MAKE) -f CMakeFiles/Makefile2 test/view_planner/CMakeFiles/std_srvs_generate_messages_lisp.dir/rule
+.PHONY : test/view_planner/CMakeFiles/std_srvs_generate_messages_lisp.dir/rule
+
+# Convenience name for target.
+std_srvs_generate_messages_lisp: test/view_planner/CMakeFiles/std_srvs_generate_messages_lisp.dir/rule
+
+.PHONY : std_srvs_generate_messages_lisp
+
+# fast build rule for target.
+std_srvs_generate_messages_lisp/fast:
+	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/std_srvs_generate_messages_lisp.dir/build.make test/view_planner/CMakeFiles/std_srvs_generate_messages_lisp.dir/build
+.PHONY : std_srvs_generate_messages_lisp/fast
+
+# Convenience name for target.
+test/view_planner/CMakeFiles/std_srvs_generate_messages_cpp.dir/rule:
+	cd /home/ros/abb_ws/build && $(MAKE) -f CMakeFiles/Makefile2 test/view_planner/CMakeFiles/std_srvs_generate_messages_cpp.dir/rule
+.PHONY : test/view_planner/CMakeFiles/std_srvs_generate_messages_cpp.dir/rule
+
+# Convenience name for target.
+std_srvs_generate_messages_cpp: test/view_planner/CMakeFiles/std_srvs_generate_messages_cpp.dir/rule
+
+.PHONY : std_srvs_generate_messages_cpp
+
+# fast build rule for target.
+std_srvs_generate_messages_cpp/fast:
+	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/std_srvs_generate_messages_cpp.dir/build.make test/view_planner/CMakeFiles/std_srvs_generate_messages_cpp.dir/build
+.PHONY : std_srvs_generate_messages_cpp/fast
+
+# Convenience name for target.
+test/view_planner/CMakeFiles/std_srvs_generate_messages_eus.dir/rule:
+	cd /home/ros/abb_ws/build && $(MAKE) -f CMakeFiles/Makefile2 test/view_planner/CMakeFiles/std_srvs_generate_messages_eus.dir/rule
+.PHONY : test/view_planner/CMakeFiles/std_srvs_generate_messages_eus.dir/rule
+
+# Convenience name for target.
+std_srvs_generate_messages_eus: test/view_planner/CMakeFiles/std_srvs_generate_messages_eus.dir/rule
+
+.PHONY : std_srvs_generate_messages_eus
+
+# fast build rule for target.
+std_srvs_generate_messages_eus/fast:
+	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/std_srvs_generate_messages_eus.dir/build.make test/view_planner/CMakeFiles/std_srvs_generate_messages_eus.dir/build
+.PHONY : std_srvs_generate_messages_eus/fast
+
+# Convenience name for target.
+test/view_planner/CMakeFiles/std_srvs_generate_messages_nodejs.dir/rule:
+	cd /home/ros/abb_ws/build && $(MAKE) -f CMakeFiles/Makefile2 test/view_planner/CMakeFiles/std_srvs_generate_messages_nodejs.dir/rule
+.PHONY : test/view_planner/CMakeFiles/std_srvs_generate_messages_nodejs.dir/rule
+
+# Convenience name for target.
+std_srvs_generate_messages_nodejs: test/view_planner/CMakeFiles/std_srvs_generate_messages_nodejs.dir/rule
+
+.PHONY : std_srvs_generate_messages_nodejs
+
+# fast build rule for target.
+std_srvs_generate_messages_nodejs/fast:
+	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/std_srvs_generate_messages_nodejs.dir/build.make test/view_planner/CMakeFiles/std_srvs_generate_messages_nodejs.dir/build
+.PHONY : std_srvs_generate_messages_nodejs/fast
 
 # Convenience name for target.
 test/view_planner/CMakeFiles/ViewPlan.dir/rule:
@@ -196,6 +346,21 @@ ViewPlan: test/view_planner/CMakeFiles/ViewPlan.dir/rule
 ViewPlan/fast:
 	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/ViewPlan.dir/build.make test/view_planner/CMakeFiles/ViewPlan.dir/build
 .PHONY : ViewPlan/fast
+
+# Convenience name for target.
+test/view_planner/CMakeFiles/planner.dir/rule:
+	cd /home/ros/abb_ws/build && $(MAKE) -f CMakeFiles/Makefile2 test/view_planner/CMakeFiles/planner.dir/rule
+.PHONY : test/view_planner/CMakeFiles/planner.dir/rule
+
+# Convenience name for target.
+planner: test/view_planner/CMakeFiles/planner.dir/rule
+
+.PHONY : planner
+
+# fast build rule for target.
+planner/fast:
+	cd /home/ros/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/planner.dir/build.make test/view_planner/CMakeFiles/planner.dir/build
+.PHONY : planner/fast
 
 src/RKGA.o: src/RKGA.cpp.o
 
@@ -284,15 +449,26 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... install/strip"
 	@echo "... install/local"
 	@echo "... install"
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... test"
-	@echo "... planner"
+	@echo "... tf_generate_messages_cpp"
+	@echo "... tf_generate_messages_lisp"
+	@echo "... tf_generate_messages_nodejs"
+	@echo "... tf_generate_messages_eus"
+	@echo "... tf_generate_messages_py"
+	@echo "... std_srvs_generate_messages_py"
+	@echo "... moveit_ros_manipulation_gencfg"
+	@echo "... std_srvs_generate_messages_lisp"
+	@echo "... std_srvs_generate_messages_cpp"
+	@echo "... std_srvs_generate_messages_eus"
+	@echo "... std_srvs_generate_messages_nodejs"
+	@echo "... install/strip"
 	@echo "... ViewPlan"
+	@echo "... planner"
 	@echo "... src/RKGA.o"
 	@echo "... src/RKGA.i"
 	@echo "... src/RKGA.s"
