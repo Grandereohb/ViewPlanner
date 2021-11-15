@@ -79,7 +79,7 @@ test_kinematics_plugin_EXTERNAL_OBJECTS =
 
 /home/ros/abb_ws/devel/lib/moveit_kinematics/test_kinematics_plugin: moveit_kinematics/test/CMakeFiles/test_kinematics_plugin.dir/test_kinematics_plugin.cpp.o
 /home/ros/abb_ws/devel/lib/moveit_kinematics/test_kinematics_plugin: moveit_kinematics/test/CMakeFiles/test_kinematics_plugin.dir/build.make
-/home/ros/abb_ws/devel/lib/moveit_kinematics/test_kinematics_plugin: lib/libgtest.so
+/home/ros/abb_ws/devel/lib/moveit_kinematics/test_kinematics_plugin: lib/libgtestd.so
 /home/ros/abb_ws/devel/lib/moveit_kinematics/test_kinematics_plugin: /opt/ros/noetic/lib/libmoveit_exceptions.so
 /home/ros/abb_ws/devel/lib/moveit_kinematics/test_kinematics_plugin: /opt/ros/noetic/lib/libmoveit_background_processing.so
 /home/ros/abb_ws/devel/lib/moveit_kinematics/test_kinematics_plugin: /opt/ros/noetic/lib/libmoveit_kinematics_base.so
