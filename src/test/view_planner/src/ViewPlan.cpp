@@ -268,14 +268,14 @@ bool ViewPlan::sampleEnough(const vector<TriSurface> &model, int candidate_num, 
 
 	// 判断模型表面覆盖率是否达到要求
 	double visible_num = 0;
-	for(int j=0; j<model.size(); j++){
+	for(int j = 0; j < model.size(); j++){
 		double visible_tmp = 0;
-		for(int i=0; i<candidate_num; i++){
+		for(int i = 0; i < candidate_num; i++){
 			visible_tmp += visibility_matrix[i][j];
-			if(visible_tmp == 1)  // 建议设为2
+			if(visible_tmp == 2)  // 建议设为2
 				break;
 		}
-		visible_num += visible_tmp;
+		visible_num += visible_tmp / 2;
 	}
 	cout<<"表面覆盖率为： "<< visible_num / model.size() <<endl;
 	if(visible_num >= coverage_rate * model.size()){

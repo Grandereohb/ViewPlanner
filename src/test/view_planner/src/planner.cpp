@@ -7,13 +7,13 @@
 int main(int argc, char **argv)
 {
     // 使用前请根据需求修改以下参数 
-    const char* file_path = "/home/ros/abb_ws/src/test/view_planner/model/model1026.stl";  // 用于视点生成的模型文件路径
-    const char* file_path_small = "package://view_planner/model/model1026_small.stl";  // 用于构建场景的模型文件路径
-    int sampleNum = 40;  // 采样次数;
-    double coverage_rate = 0.7;  // 采样覆盖率
+    const char* file_path = "/home/ros/abb_ws/src/test/view_planner/model/model1123_5k.stl";  // 用于视点生成的模型文件路径
+    const char* file_path_small = "package://view_planner/model/model1123_5k_small.stl";  // 用于构建场景的模型文件路径
+    int sampleNum = 30;  // 采样次数;
+    double coverage_rate = 0.98;  // 采样覆盖率
     // RKGA参数
     int maxGen = 200; // 最大进化代数
-    int pop = 50;       // 每代个体样本数
+    int pop = 200;       // 每代个体样本数
     double pop_elite = 0.1;    // 每代种群中的精英个体比例
     double pop_mutant = 0.3;   // 每代种群中变异的个体比例
     double rhoe = 70;  // probability that an offspring inherits the allele of its elite parent
@@ -51,9 +51,10 @@ int main(int argc, char **argv)
     shape_msgs::SolidPrimitive primitive;
     primitive.type = primitive.BOX;
     primitive.dimensions.resize(3);
-    primitive.dimensions[0] = 0.2;  //x
-    primitive.dimensions[1] = 0.2;  //y
-    primitive.dimensions[2] = vp.getModelPositionZ() - 0.02;  //z = 转向节中心高度 - 转向节下半部分高度0.02
+    primitive.dimensions[0] = 0.42;  // x
+    primitive.dimensions[1] = 0.37;  // y
+    primitive.dimensions[2] = vp.getModelPositionZ();  // z
+    // primitive.dimensions[2] = vp.getModelPositionZ() - 0.02;  //z = 转向节中心高度 - 转向节下半部分高度0.02
 
     // 设置待测物体和平台位置
     geometry_msgs::Pose model_pose;
