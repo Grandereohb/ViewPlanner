@@ -94,6 +94,7 @@ if __name__ == "__main__":
     # print(element)
 
     namespace = "http://www.collada.org/2008/03/COLLADASchema"
+    # dom = etree.parse(io.BytesIO(str.encode(xml)))
     dom = etree.parse(io.BytesIO(xml))
 
     # find elements of particular name

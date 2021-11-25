@@ -3,10 +3,10 @@
   <name>irb1600_moveit_config</name>
   <version>0.3.0</version>
   <description>
-     An automatically generated package with all the configuration and launch files for using the abb_irb1600_6_12 with the MoveIt Motion Planning Framework
+     An automatically generated package with all the configuration and launch files for using the abb_irb1600_10_145 with the MoveIt Motion Planning Framework
   </description>
-  <author email="qpyang0108@gmail.com">OHB</author>
-  <maintainer email="qpyang0108@gmail.com">OHB</maintainer>
+  <author email="qpyang0108@gmail.com">ohb</author>
+  <maintainer email="qpyang0108@gmail.com">ohb</maintainer>
 
   <license>BSD</license>
 

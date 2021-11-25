@@ -99,7 +99,7 @@ if(NOT " " STREQUAL " ")
   elseif(NOT "http://moveit.ros.org/ " STREQUAL " ")
     set(_report "Check the website 'http://moveit.ros.org/' for information and consider reporting the problem.")
   else()
-    set(_report "Report the problem to the maintainer 'OHB <qpyang0108@gmail.com>' and request to fix the problem.")
+    set(_report "Report the problem to the maintainer 'ohb <qpyang0108@gmail.com>' and request to fix the problem.")
   endif()
   foreach(idir ${_include_dirs})
     if(IS_ABSOLUTE ${idir} AND IS_DIRECTORY ${idir})
@@ -154,7 +154,7 @@ foreach(library ${libraries})
     set(lib_path "")
     set(lib "${library}-NOTFOUND")
     # since the path where the library is found is returned we have to iterate over the paths manually
-    foreach(path /home/ros/abb_ws/install/lib;/home/ros/abb_ws/devel/lib;/opt/ros/noetic/lib)
+    foreach(path /home/ros/abb_ws/install/lib;/opt/ros/noetic/lib)
       find_library(lib ${library}
         PATHS ${path}
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)
@@ -211,7 +211,7 @@ foreach(depend ${depends})
   _unpack_libraries_with_build_configuration(irb1600_moveit_config_LIBRARIES ${irb1600_moveit_config_LIBRARIES})
 
   _list_append_unique(irb1600_moveit_config_LIBRARY_DIRS ${${irb1600_moveit_config_dep}_LIBRARY_DIRS})
-  list(APPEND irb1600_moveit_config_EXPORTED_TARGETS ${${irb1600_moveit_config_dep}_EXPORTED_TARGETS})
+  _list_append_deduplicate(irb1600_moveit_config_EXPORTED_TARGETS ${${irb1600_moveit_config_dep}_EXPORTED_TARGETS})
 endforeach()
 
 set(pkg_cfg_extras "")
