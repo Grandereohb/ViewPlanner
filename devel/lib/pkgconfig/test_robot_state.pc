@@ -1,8 +1,0 @@
-prefix=/home/ros/abb_ws/devel
-
-Name: test_robot_state
-Description: Description of test_robot_state
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

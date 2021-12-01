@@ -1,8 +1,0 @@
-prefix=/home/ros/abb_ws/install
-
-Name: abb_irb52_support
-Description: Description of abb_irb52_support
-Version: 0.1.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

@@ -211,7 +211,7 @@ foreach(depend ${depends})
   _unpack_libraries_with_build_configuration(abb_irb1600_support_LIBRARIES ${abb_irb1600_support_LIBRARIES})
 
   _list_append_unique(abb_irb1600_support_LIBRARY_DIRS ${${abb_irb1600_support_dep}_LIBRARY_DIRS})
-  list(APPEND abb_irb1600_support_EXPORTED_TARGETS ${${abb_irb1600_support_dep}_EXPORTED_TARGETS})
+  _list_append_deduplicate(abb_irb1600_support_EXPORTED_TARGETS ${${abb_irb1600_support_dep}_EXPORTED_TARGETS})
 endforeach()
 
 set(pkg_cfg_extras "")

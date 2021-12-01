@@ -341,7 +341,7 @@ bool ViewPlan::getJointState(ViewPoint &viewpoint, robot_model_loader::RobotMode
 	// 2.超时时间：0.1 秒
 	double timeout = 0.1;
 	int n = 0;
-	Eigen::AngleAxisd v(PI / 180, Eigen::Vector3d(0,0,1));
+	Eigen::AngleAxisd v(PI / 90, Eigen::Vector3d(0,0,1));
 	Eigen::Matrix3d rotationMatrix = v.matrix();  // 绕光轴旋转20度的旋转矩阵
 	Eigen::Vector3d translation2(0, 0, 0);
 	Eigen::Isometry3d rotation = Eigen::Isometry3d::Identity();
@@ -351,7 +351,7 @@ bool ViewPlan::getJointState(ViewPoint &viewpoint, robot_model_loader::RobotMode
 	while(!found_ik){
 		end_effector_state = end_effector_state * resCalibration * rotation * resCalibration.inverse();
 		found_ik = kinematic_state->setFromIK(joint_model_group, end_effector_state, timeout);
-		if(++n >= 360)
+		if(++n >= 180)
 			break;
 	}
 	if (found_ik){

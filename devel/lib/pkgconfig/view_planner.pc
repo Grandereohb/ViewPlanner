@@ -3,6 +3,6 @@ prefix=/home/ros/abb_ws/devel
 Name: view_planner
 Description: Description of view_planner
 Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: roscpp moveit_ros_planning_interface moveit_core
+Cflags: -I/usr/include -I/usr/share/orocos_kdl/cmake/../../../include -I/usr/include/eigen3
+Libs: -L${prefix}/lib /usr/lib/x86_64-linux-gnu/libboost_date_time.so.1.71.0 -lorocos-kdl
+Requires: roscpp moveit_ros_planning_interface moveit_core trac_ik_lib

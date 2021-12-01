@@ -1,2 +1,2 @@
-abb_config/abb_experimental/abb_experimental:abb_config/abb_experimental/abb_irb1600_6_12_moveit_config:abb_config/abb_irb1600_support:abb_irb1600_6_12_arm_ikfast_plugin:irb1600_moveit_config:moveit_kinematics:test/view_planner
+abb_irb1600_10_145_ikfast_arm_plugin:abb_irb1600_10_145_moveit_config:abb_irb1600_support:test/view_planner
 -DCATKIN_DEVEL_PREFIX=/home/ros/abb_ws/devel -DCMAKE_INSTALL_PREFIX=/home/ros/abb_ws/install -G Unix Makefiles

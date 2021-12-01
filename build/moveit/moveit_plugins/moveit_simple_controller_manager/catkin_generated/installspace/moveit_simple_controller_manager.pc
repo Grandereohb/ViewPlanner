@@ -1,8 +1,0 @@
-prefix=/home/ros/abb_ws/install
-
-Name: moveit_simple_controller_manager
-Description: Description of moveit_simple_controller_manager
-Version: 1.1.6
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib -lmoveit_simple_controller_manager
-Requires: actionlib control_msgs moveit_core roscpp

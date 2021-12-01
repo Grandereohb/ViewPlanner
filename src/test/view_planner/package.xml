@@ -57,6 +57,15 @@
   <exec_depend>moveit_core</exec_depend>
   <exec_depend>moveit_ros_planning_interface</exec_depend>
 
+  <build_depend>boost</build_depend>
+  <build_depend>trac_ik_lib</build_depend>
+  <build_depend>orocos_kdl</build_depend>
+
+  <exec_depend>boost</exec_depend>
+  <exec_depend>orocos_kdl</exec_depend>
+  <exec_depend>trac_ik_lib</exec_depend>
+  <exec_depend>xacro</exec_depend>
+
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

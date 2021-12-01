@@ -1,8 +1,0 @@
-prefix=/home/ros/abb_ws/devel
-
-Name: abb0916_moveit_config
-Description: Description of abb0916_moveit_config
-Version: 0.3.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

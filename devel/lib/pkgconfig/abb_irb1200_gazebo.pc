@@ -1,8 +1,0 @@
-prefix=/home/ros/abb_ws/devel
-
-Name: abb_irb1200_gazebo
-Description: Description of abb_irb1200_gazebo
-Version: 0.0.1
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

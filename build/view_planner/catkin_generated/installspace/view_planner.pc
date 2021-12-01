@@ -1,8 +1,0 @@
-prefix=/home/ros/abb_ws/install
-
-Name: view_planner
-Description: Description of view_planner
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

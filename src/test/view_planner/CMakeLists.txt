@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   geometry_msgs
   sensor_msgs
-  tf
+  # tf
   moveit_ros_planning_interface
   moveit_core
   actionlib_msgs
@@ -20,6 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometric_shapes
   tf2_ros
   tf2_geometry_msgs
+  trac_ik_lib
 )
 
 #uncomment the following 4 lines to use the Eigen library
@@ -27,6 +28,10 @@ find_package(cmake_modules REQUIRED)
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 add_definitions(${EIGEN_DEFINITIONS})
+
+#trac-ik
+find_package(Boost REQUIRED COMPONENTS date_time)
+find_package(orocos_kdl REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -121,10 +126,13 @@ catkin_package(
   # INCLUDE_DIRS include
   # LIBRARIES view_planner
   CATKIN_DEPENDS
-  roscpp
-  moveit_ros_planning_interface
-  moveit_core
-#  DEPENDS system_lib
+    roscpp
+    moveit_ros_planning_interface
+    moveit_core
+    trac_ik_lib
+  DEPENDS 
+    Boost
+    orocos_kdl
 )
 
 ###########
@@ -136,6 +144,8 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
+  ${orocos_kdl_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -181,7 +191,8 @@ add_executable(planner src/planner.cpp)
 # target_link_libraries(ViewPlan ${catkin_LIBRARIES})
 # target_link_libraries(ViewPlan ${catkin_LIBRARIES} RKGA)
 # target_link_libraries(RKGA ${catkin_LIBRARIES} ViewPlan)
-target_link_libraries(planner ${catkin_LIBRARIES} ViewPlan)
+target_link_libraries(planner ${catkin_LIBRARIES} ${Boost_LIBRARIES}
+                      ${orocos_kdl_LIBRARIES} ViewPlan)
 # target_link_libraries(setScene ${catkin_LIBRARIES} ViewPlan)
 # target_link_libraries(planner ViewPlan)
 # target_link_libraries(setScene ViewPlan)
@@ -194,7 +205,13 @@ target_link_libraries(planner ${catkin_LIBRARIES} ViewPlan)
 #############
 ## Install ##
 #############
-
+install(TARGETS planner
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+install(DIRECTORY launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 # all install targets should use catkin DESTINATION variables
 # See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
 

@@ -1,8 +1,0 @@
-prefix=/home/ros/abb_ws/devel
-
-Name: abb_irb1600_6_12_arm_ikfast_plugin
-Description: Description of abb_irb1600_6_12_arm_ikfast_plugin
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

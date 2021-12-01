@@ -1,8 +1,0 @@
-prefix=/home/ros/abb_ws/devel
-
-Name: industrial_trajectory_filters
-Description: Description of industrial_trajectory_filters
-Version: 0.7.1
-Cflags: -I/home/ros/abb_ws/src/industrial_core/industrial_trajectory_filters/include
-Libs: -L${prefix}/lib -lindustrial_trajectory_filters
-Requires: moveit_ros_planning trajectory_msgs

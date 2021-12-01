@@ -1,2 +1,0 @@
-set(openai_ros_MESSAGE_FILES "/home/ros/abb_ws/src/rl_viewplanning/openai_ros/msg/RLExperimentInfo.msg")
-set(openai_ros_SERVICE_FILES "")

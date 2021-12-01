@@ -91,9 +91,9 @@ endif()
 # flag project as catkin-based to distinguish if a find_package()-ed project is a catkin project
 set(view_planner_FOUND_CATKIN_PROJECT TRUE)
 
-if(NOT " " STREQUAL " ")
+if(NOT "/usr/include;/usr/share/orocos_kdl/cmake/../../../include;/usr/include/eigen3 " STREQUAL " ")
   set(view_planner_INCLUDE_DIRS "")
-  set(_include_dirs "")
+  set(_include_dirs "/usr/include;/usr/share/orocos_kdl/cmake/../../../include;/usr/include/eigen3")
   if(NOT " " STREQUAL " ")
     set(_report "Check the issue tracker '' and consider creating a ticket if the problem has not been reported yet.")
   elseif(NOT " " STREQUAL " ")
@@ -116,7 +116,7 @@ if(NOT " " STREQUAL " ")
   endforeach()
 endif()
 
-set(libraries "")
+set(libraries "/usr/lib/x86_64-linux-gnu/libboost_date_time.so.1.71.0;orocos-kdl")
 foreach(library ${libraries})
   # keep build configuration keywords, target names and absolute libraries as-is
   if("${library}" MATCHES "^(debug|optimized|general)$")
@@ -154,7 +154,7 @@ foreach(library ${libraries})
     set(lib_path "")
     set(lib "${library}-NOTFOUND")
     # since the path where the library is found is returned we have to iterate over the paths manually
-    foreach(path /home/ros/abb_ws/devel/lib;/opt/ros/noetic/lib)
+    foreach(path /home/ros/abb_ws/devel/lib;/home/ros/abb_ws/devel/lib;/opt/ros/noetic/lib)
       find_library(lib ${library}
         PATHS ${path}
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)
@@ -185,7 +185,7 @@ foreach(t ${view_planner_EXPORTED_TARGETS})
   endif()
 endforeach()
 
-set(depends "roscpp;moveit_ros_planning_interface;moveit_core")
+set(depends "roscpp;moveit_ros_planning_interface;moveit_core;trac_ik_lib")
 foreach(depend ${depends})
   string(REPLACE " " ";" depend_list ${depend})
   # the package name of the dependency must be kept in a unique variable so that it is not overwritten in recursive calls

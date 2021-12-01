@@ -1,8 +1,0 @@
-prefix=/home/ros/abb_ws/install
-
-Name: ipa_kifz_data
-Description: Description of ipa_kifz_data
-Version: 0.0.1
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 
