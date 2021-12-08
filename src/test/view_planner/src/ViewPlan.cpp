@@ -317,14 +317,24 @@ bool ViewPlan::getJointState(ViewPoint &viewpoint, robot_model_loader::RobotMode
 	// 机器人末端到视点位置的变换矩阵T1
 	end_effector_state.rotate(rotMatrix);
 	end_effector_state.pretranslate(translation);
-	// 手眼标定结果 X
-	Eigen::Matrix4d resCalibration;
-	resCalibration << 0.206326, 0.001152, 0.978508, 0.067869619,
-					 -0.000008, 0.999980, 0.001183,-0.139219215,
-					 -0.978482, 0.000183, 0.206310, 0.102563320,
-					  0,        0,        0,        1;
-	// 根据手眼标定关系校正后的机器人位姿变换矩阵T2      T1 = T2 * X
-	end_effector_state = end_effector_state * resCalibration.inverse();
+	// 右相机到机械臂手眼标定结果 X1
+	Eigen::Matrix4d rob_cam_calibration;
+	rob_cam_calibration << 0.206326, 0.001152, 0.978508, 0.067869619,
+					      -0.000008, 0.999980, 0.001183,-0.139219215,
+					      -0.978482, 0.000183, 0.206310, 0.102563320,
+					       0,        0,        0,        1;
+	// 右相机到投影仪标定结果 X2
+	Eigen::Matrix4d cam_pro_calibration;
+	// cam_pro_calibration << 0.9726830895886041,  -0.002346875884211844, 0.2321251804564764,  -0.1409574458184522,
+	// 				       0.003367426665242761, 0.9999863284976849,  -0.004000406901106243,-0.0001083651746352479,
+	// 				      -0.2321126184980511,   0.004672792666523019, 0.9726776944819254,  -0.02790086249003743,
+	// 				       0,                    0,                    0,                    1;
+	cam_pro_calibration <<  0.9726776944819254,  -0.2321126184980511,   0.004672792666523019,  -0.02790086249003743,
+					        0.2321251804564764,   0.9726830895886041,  -0.002346875884211844,  -0.1409574458184522,
+					       -0.004000406901106243, 0.003367426665242761, 0.9999863284976849,    -0.0001083651746352479,
+					        0,                    0,                    0,                      1;
+	// 根据手眼标定关系校正后的机器人位姿变换矩阵T2      T1 = T2 * X1 * X2‘
+	end_effector_state = end_effector_state * cam_pro_calibration * rob_cam_calibration.inverse();
 
 	rotMatrix = end_effector_state.rotation();
 	translation = end_effector_state.translation();
@@ -349,7 +359,7 @@ bool ViewPlan::getJointState(ViewPoint &viewpoint, robot_model_loader::RobotMode
 	rotation.pretranslate(translation2);
 	bool found_ik = kinematic_state->setFromIK(joint_model_group, end_effector_state, timeout);
 	while(!found_ik){
-		end_effector_state = end_effector_state * resCalibration * rotation * resCalibration.inverse();
+		end_effector_state = end_effector_state * rob_cam_calibration * rotation * rob_cam_calibration.inverse();
 		found_ik = kinematic_state->setFromIK(joint_model_group, end_effector_state, timeout);
 		if(++n >= 180)
 			break;

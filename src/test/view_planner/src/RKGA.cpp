@@ -23,16 +23,16 @@ vector< ViewPoint >& Population::operator()(unsigned chromosome) {
 	return population[chromosome];
 }
 
-RKGA::RKGA(int _p, double _pe, double _pm, double _rhoe, double _coverage_rate, vector<ViewPoint> _candVP, Graph *_graph, vector<vector<int>> _visibility_matrix) throw(std::range_error) :
+RKGA::RKGA(int _p, double _pe, double _pm, double _rhoe, double _coverage_rate, vector<ViewPoint> _candVP, Graph *_graph, vector<vector<int>> _visibility_matrix) :
 p(_p), pe(_pe*p), pm(_pm*p), rhoe(_rhoe), coverage_rate(_coverage_rate), candVP(_candVP), graph(_graph), visibility_matrix(_visibility_matrix) {
-    // Error check:
-    using std::range_error;
-	//if(n == 0) { throw range_error("Chromosome size equals zero."); }
-	if(p == 0) { throw range_error("Population size equals zero."); }
-	if(pe == 0) { throw range_error("Elite-set size equals zero."); }
-	if(pe > p) { throw range_error("Elite-set size greater than population size (pe > p)."); }
-	if(pm > p) { throw range_error("Mutant-set size (pm) greater than population size (p)."); }
-	if(pe + pm > p) { throw range_error("elite + mutant sets greater than population size (p)."); }
+    // // Error check:
+    // using std::range_error;
+	// //if(n == 0) { throw range_error("Chromosome size equals zero."); }
+	// if(p == 0) { throw range_error("Population size equals zero."); }
+	// if(pe == 0) { throw range_error("Elite-set size equals zero."); }
+	// if(pe > p) { throw range_error("Elite-set size greater than population size (pe > p)."); }
+	// if(pm > p) { throw range_error("Mutant-set size (pm) greater than population size (p)."); }
+	// if(pe + pm > p) { throw range_error("elite + mutant sets greater than population size (p)."); }
 }
 vector<ViewPoint> RKGA::solveRKGA(int maxGen){
     unsigned long iteration = 0;  // 记录迭代次数

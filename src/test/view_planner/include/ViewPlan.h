@@ -82,7 +82,7 @@ public:
 private:
     // 相机参数
 	const float PI =3.1415926;
-	const double measure_dist = 600.0;  // 最佳测量距离(单位：mm)
+	const double measure_dist = 650.0;  // 最佳测量距离(单位：mm)
     const double minFOD = measure_dist - 200.0;  // 前景深(单位：mm) minFOD = measure_dist - 200
 	const double maxFOD = measure_dist + 200.0;  // 后景深(单位：mm) maxFOD = measure_dist + 400
     //int rangeFOD = maxFOD - minFOD;  // 测量范围

@@ -25,7 +25,7 @@ private:
 
 class RKGA{
 public:
-    RKGA(int p, double pe, double pm, double rhoe, double coverage_rate, vector<ViewPoint> candVP, Graph *graph, vector<vector<int>> visibility_matrix) throw(std::range_error);
+    RKGA(int p, double pe, double pm, double rhoe, double coverage_rate, vector<ViewPoint> candVP, Graph *graph, vector<vector<int>> visibility_matrix);
     ~RKGA();
 
 	vector<ViewPoint> solveRKGA(int maxGen);  // RKGA求解最优视点和测量路径
