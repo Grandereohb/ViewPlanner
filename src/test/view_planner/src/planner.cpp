@@ -4,48 +4,108 @@
 #include <cstring>
 #include <vector>
 
+// 在RViz环境中发布实验环境/视点位置/机器人运动轨迹
+ros::Publisher env_vis_pub, view_point_vis_pub, traj_vis_pub;
+void visEnv(const char *file_path_small, const ViewPlan &vp);
+void visCandidateViewPoint(const vector<ViewPoint> cand_view_point, const ViewPlan &vp);
+void visBestViewPoint(const vector<ViewPoint> best_view_point, const ViewPlan &vp);
+void visTraj(const vector<trajectory_msgs::JointTrajectoryPoint> traj_point, int id);
+
 int main(int argc, char **argv)
 {
     // 使用前请根据需求修改以下参数 
-    const char* file_path = "/home/ros/abb_ws/src/test/view_planner/model/model1123_5k.stl";  // 用于视点生成的模型文件路径
-    const char* file_path_small = "package://view_planner/model/model1123_5k_small.stl";  // 用于构建场景的模型文件路径
-    int sampleNum = 20;  // 采样次数;
-    double coverage_rate = 0.98;  // 采样覆盖率
+    const char* file_path       = "/home/ros/abb_ws/src/test/view_planner/model/model1123_5k.stl";  // 用于视点生成的模型文件路径
+    const char* file_path_small = "package://view_planner/model/model1123_5k_small.stl";            // 用于构建场景的模型文件路径
+
+    int sampleNum        = 20;    // 采样候选视点个数
+    double coverage_rate = 0.98;  // 要求的采样覆盖率
+
     // RKGA参数
-    int maxGen = 200; // 最大进化代数
-    int pop = 200;       // 每代个体样本数
-    double pop_elite = 0.1;    // 每代种群中的精英个体比例
-    double pop_mutant = 0.3;   // 每代种群中变异的个体比例
-    double rhoe = 70;  // probability that an offspring inherits the allele of its elite parent
+    int maxGen        = 200;  // 最大进化代数
+    int pop           = 200;  // 每代个体样本数
+    double pop_elite  = 0.1;  // 每代种群中的精英个体比例
+    double pop_mutant = 0.3;  // 每代种群中变异的个体比例
+    double rhoe       = 70;   // probability that an offspring inherits the allele of its elite parent
 
     ros::init(argc, argv, "planner");
     ros::NodeHandle node_handle; 
     ros::AsyncSpinner spinner(1);
     spinner.start();
 
+    env_vis_pub        = node_handle.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
+    view_point_vis_pub = node_handle.advertise<visualization_msgs::Marker>("vis_view_point", 1);
+    traj_vis_pub       = node_handle.advertise<visualization_msgs::Marker>("vis_traj", 1);
+
     moveit::planning_interface::MoveGroupInterface group("arm");
     ViewPlan vp;
 
+    visEnv(file_path_small, vp);
+    
+    // 计算视点，规划并执行机器人轨迹
+    vector<ViewPoint> cand_view_point = vp.generateViewPoint(file_path, sampleNum, coverage_rate, group);   // 候选视点
+    visCandidateViewPoint(cand_view_point, vp);
+
+    RKGA scp_solver(pop, pop_elite, pop_mutant, rhoe, coverage_rate, cand_view_point, vp.g, vp.visibility_matrix);
+    vector<ViewPoint> best_view_point = scp_solver.solveRKGA(maxGen); // 最优视点
+    visBestViewPoint(best_view_point, vp);
+
+    cout<<"共获得"<<best_view_point.size()<<"个最佳视点，开始规划机器人运动轨迹："<<endl;
+    group.setStartStateToCurrentState();
+    for (int i = 0; i < best_view_point.size(); i++)
     {
+        // geometry_msgs::Pose target_pose1;
+        // target_pose1.orientation.w = best_view_point[i].quaternion.w(); 
+        // target_pose1.orientation.x = best_view_point[i].quaternion.x();
+        // target_pose1.orientation.y = best_view_point[i].quaternion.y();
+        // target_pose1.orientation.z = best_view_point[i].quaternion.z();
+
+        // target_pose1.position.x = best_view_point[i].robot_position.m_floats[0];
+        // target_pose1.position.y = best_view_point[i].robot_position.m_floats[1];
+        // target_pose1.position.z = best_view_point[i].robot_position.m_floats[2];
+        // group.setPoseTarget(target_pose1);
+        group.setPoseTarget(best_view_point[i].end_effector_state);
+
+        cout << i << " (" << best_view_point[i].robot_position << ")" << best_view_point[i].num << endl;
+
+        // 进行运动规划，计算机器人移动到目标的运动轨迹，此时只是计算出轨迹，并不会控制机械臂运动
+        moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+        moveit::planning_interface::MoveItErrorCode success = group.plan(my_plan);
+        // visTraj(my_plan.trajectory_.joint_trajectory.points, i);
+        cout << "第" << i << "条轨迹时间：";
+        // for (int j = 0; j < my_plan.trajectory_.joint_trajectory.points.size(); ++j){
+        int size = my_plan.trajectory_.joint_trajectory.points.size();
+        cout << my_plan.trajectory_.joint_trajectory.points[size - 1].time_from_start << endl;
+        // }
+        ROS_INFO("Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
+
+        //让机械臂按照规划的轨迹开始运动。
+        if (success)
+            group.execute(my_plan);
+    }
+    ros::shutdown(); 
+    return 0;
+}
+
+void visEnv(const char *file_path_small, const ViewPlan &vp){
     // 在Rviz中添加待测物体与平台模型
-	cout<<"开始添加场景模型："<<endl;
+    cout << "开始添加场景模型：" << endl;
     moveit_msgs::CollisionObject obj;
-    obj.header.frame_id="base_link";
-    obj.id="test_turning_bin_07";
+    obj.header.frame_id = "base_link";
+    obj.id = "test_turning_bin_07";
     // 平台
     moveit_msgs::CollisionObject table;
-    table.header.frame_id="base_link";
-    table.id="table";
-    
+    table.header.frame_id = "base_link";
+    table.id = "table";
+
     // 导入待测物体STL网格模型
     shape_msgs::Mesh model_mesh;
     shapes::Mesh* mesh_ptr=shapes::createMeshFromResource(file_path_small);
-    if(mesh_ptr==NULL){
-        cout<<"模型导入错误！"<<endl;
+    if(mesh_ptr == NULL){
+        cout << "模型导入错误！" << endl;
     }
     shapes::ShapeMsg model_mesh_msg;
-    shapes::constructMsgFromShape(mesh_ptr,model_mesh_msg);
-    model_mesh=boost::get<shape_msgs::Mesh>(model_mesh_msg); 
+    shapes::constructMsgFromShape(mesh_ptr, model_mesh_msg);
+    model_mesh = boost::get<shape_msgs::Mesh>(model_mesh_msg);
 
     // 设置平台的外形属性
     shape_msgs::SolidPrimitive primitive;
@@ -87,9 +147,9 @@ int main(int argc, char **argv)
     cout<<"成功添加物体"<<endl;
 
     //发布消息
-    ros::Publisher planning_scene_diff_publisher = node_handle.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
-    ros::WallDuration sleep_t(0.5);
-    while (planning_scene_diff_publisher.getNumSubscribers() < 1)
+    // ros::Publisher planning_scene_diff_publisher = node_handle.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
+    ros::WallDuration sleep_t(0.3);
+    while (env_vis_pub.getNumSubscribers() < 1)
     {
         sleep_t.sleep();
     }
@@ -98,41 +158,181 @@ int main(int argc, char **argv)
     planning_scene.world.collision_objects.push_back(obj);
     planning_scene.world.collision_objects.push_back(table);
     planning_scene.is_diff = true;
-    planning_scene_diff_publisher.publish(planning_scene);
+    env_vis_pub.publish(planning_scene);
+}
+
+void visCandidateViewPoint(const vector<ViewPoint> cand_view_point, const ViewPlan &vp){
+    visualization_msgs::Marker points;
+    int id = 0;
+    points.header.frame_id    = "base_link";
+    points.header.stamp       = ros::Time::now();
+    points.ns                 = "candidate_vp";
+    points.action             = visualization_msgs::Marker::ADD;
+    points.pose.orientation.w = 1.0;
+    points.pose.orientation.x = 0.0;
+    points.pose.orientation.y = 0.0;
+    points.pose.orientation.z = 0.0;
+    points.id                 = id;
+    points.type               = visualization_msgs::Marker::SPHERE_LIST;
+    
+    points.scale.x = 0.02;
+    points.scale.y = 0.02;
+    points.scale.z = 0.02;
+    points.color.a = 0.9;
+    points.color.r = 0.0;
+    points.color.g = 0.5;
+    points.color.b = 1.0;
+
+    for (int i = 0; i < cand_view_point.size(); ++i){
+        geometry_msgs::Point p;
+        p.x = cand_view_point[i].position.m_floats[0] / 1000 + vp.getModelPositionX();
+        p.y = cand_view_point[i].position.m_floats[1] / 1000;
+        p.z = cand_view_point[i].position.m_floats[2] / 1000 + vp.getModelPositionZ();
+
+        points.points.push_back(p);
     }
 
-    // 计算视点，规划并执行机器人轨迹
-    vector<ViewPoint> candViewPoint = vp.generateViewPoint(file_path, sampleNum, coverage_rate);   // 候选视点
-    RKGA scp_solver(pop, pop_elite, pop_mutant, rhoe, coverage_rate, candViewPoint, vp.g, vp.visibility_matrix);
-    vector<ViewPoint> best_view_point = scp_solver.solveRKGA(maxGen); // 最优视点
+    view_point_vis_pub.publish(points);
+}
 
-    cout<<"共获得"<<best_view_point.size()<<"个最佳视点，开始规划机器人运动轨迹："<<endl;
+void visBestViewPoint(const vector<ViewPoint> best_view_point, const ViewPlan &vp){
+    visualization_msgs::Marker points, line_list;
+    int id = 1;
+    points.header.frame_id    = line_list.header.frame_id    = "base_link";
+    points.header.stamp       = line_list.header.stamp       = ros::Time::now();
+    points.ns                 = line_list.ns                 = "best_vp";
+    points.action             = line_list.action             = visualization_msgs::Marker::ADD;
+    points.pose.orientation.w = line_list.pose.orientation.w = 1.0;
+    points.pose.orientation.x = line_list.pose.orientation.x = 0.0;
+    points.pose.orientation.y = line_list.pose.orientation.y = 0.0;
+    points.pose.orientation.z = line_list.pose.orientation.z = 0.0;
+    points.id                 = line_list.id                 = id;
 
-    for (int i = 0; i < best_view_point.size(); i++)
-    {
-        geometry_msgs::Pose target_pose1;
-        target_pose1.orientation.w = best_view_point[i].quaternion.w(); 
-        target_pose1.orientation.x = best_view_point[i].quaternion.x();
-        target_pose1.orientation.y = best_view_point[i].quaternion.y();
-        target_pose1.orientation.z = best_view_point[i].quaternion.z();
+    points.type    = visualization_msgs::Marker::SPHERE_LIST;
+    line_list.type = visualization_msgs::Marker::LINE_STRIP;
+    
+    points.scale.x = 0.05;
+    points.scale.y = 0.05;
+    points.scale.z = 0.05;
+    points.color.a = 1.0;
+    points.color.r = 0.3;
+    points.color.g = 0.0;
+    points.color.b = 1.0;
 
-        target_pose1.position.x = best_view_point[i].robot_position.m_floats[0];
-        target_pose1.position.y = best_view_point[i].robot_position.m_floats[1];
-        target_pose1.position.z = best_view_point[i].robot_position.m_floats[2];
-        group.setPoseTarget(target_pose1);
+    line_list.scale.x = 0.03;
+    line_list.scale.y = 0.03;
+    line_list.scale.z = 0.03;
+    line_list.color.a = 0.5;
+    line_list.color.r = 0.3;
+    line_list.color.g = 0.0;
+    line_list.color.b = 0.8;
 
-        cout << i << " (" << target_pose1.position.x << ", " << target_pose1.position.y << ", " << target_pose1.position.z << ")" << best_view_point[i].num << endl;
+    line_list.points.clear();
 
-        // 进行运动规划，计算机器人移动到目标的运动轨迹，此时只是计算出轨迹，并不会控制机械臂运动
-        moveit::planning_interface::MoveGroupInterface::Plan my_plan;
-        moveit::planning_interface::MoveItErrorCode success = group.plan(my_plan);
+    for (int i = 0; i < best_view_point.size(); ++i){
+        geometry_msgs::Point p;
+        p.x = best_view_point[i].position.m_floats[0] / 1000 + vp.getModelPositionX();
+        p.y = best_view_point[i].position.m_floats[1] / 1000;
+        p.z = best_view_point[i].position.m_floats[2] / 1000 + vp.getModelPositionZ();
 
-        ROS_INFO("Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
+        points.points.push_back(p);
 
-        //让机械臂按照规划的轨迹开始运动。
-        if (success)
-            group.execute(my_plan);
+        if(i < (best_view_point.size() - 1)){
+            geometry_msgs::Point p_line;
+            p_line = p;
+            line_list.points.push_back(p_line);
+            p_line.x = best_view_point[i + 1].position.m_floats[0] / 1000 + vp.getModelPositionX();
+            p_line.y = best_view_point[i + 1].position.m_floats[1] / 1000;
+            p_line.z = best_view_point[i + 1].position.m_floats[2] / 1000 + vp.getModelPositionZ();
+            line_list.points.push_back(p_line);
+        }
     }
-    ros::shutdown(); 
-    return 0;
+    view_point_vis_pub.publish(points);
+    sleep(0.5);
+    view_point_vis_pub.publish(line_list);
+    // sleep(0.5);
+
+    visualization_msgs::Marker dir;
+    id = 2;
+    dir.header.frame_id    = "base_link";
+    dir.header.stamp       = ros::Time::now();
+    dir.ns                 = "best_vp_dir";
+    dir.action             = visualization_msgs::Marker::ADD;
+    dir.pose.orientation.w = 1.0;
+    dir.id                 = id;
+    dir.type               = visualization_msgs::Marker::ARROW;
+    
+    dir.color.a = 0.9;
+    dir.color.r = 0.3;
+    dir.color.g = 0.0;
+    dir.color.b = 1.0;
+
+    for (int i = 0; i < best_view_point.size(); ++i){
+        dir.scale.x = 0.01;
+        dir.scale.y = 0.02;
+        dir.scale.z = 0;
+        dir.points.clear();
+        geometry_msgs::Point p2;
+        p2.x = 0.0;
+        p2.y = 0.0;
+        p2.z = 0.0;
+        dir.points.push_back(p2);
+        p2.x = 0.5 * best_view_point[i].direction.m_floats[0];
+        p2.y = 0.5 * best_view_point[i].direction.m_floats[1];
+        p2.z = 0.5 * best_view_point[i].direction.m_floats[2];
+        dir.points.push_back(p2);
+
+        dir.pose.position.x = best_view_point[i].position.m_floats[0] / 1000 + vp.getModelPositionX();
+        dir.pose.position.y = best_view_point[i].position.m_floats[1] / 1000;
+        dir.pose.position.z = best_view_point[i].position.m_floats[2] / 1000 + vp.getModelPositionZ();
+        
+        view_point_vis_pub.publish(dir);
+        dir.id++;
+        sleep(0.5);
+    }
+}
+
+void visTraj(const vector<trajectory_msgs::JointTrajectoryPoint> traj_point, int id){
+    visualization_msgs::Marker line_list;
+
+    line_list.header.frame_id    = "base_link";
+    line_list.header.stamp       = ros::Time::now();
+    line_list.ns                 = "robot_traj";
+    line_list.action             = visualization_msgs::Marker::ADD;
+    line_list.pose.orientation.w = 1.0;
+    line_list.pose.orientation.x = 0.0;
+    line_list.pose.orientation.y = 0.0;
+    line_list.pose.orientation.z = 0.0;
+    line_list.id                 = id;
+
+    line_list.type = visualization_msgs::Marker::SPHERE_LIST;
+    
+    line_list.scale.x = 0.03;
+    line_list.scale.y = 0.03;
+    line_list.scale.z = 0.03;
+    line_list.color.a = 0.7;
+    line_list.color.r = 0.3;
+    line_list.color.g = 0.3;
+    line_list.color.b = 0.6;
+
+    line_list.points.clear();
+
+    for (int i = 0; i < traj_point.size(); ++i){
+        geometry_msgs::Point p;
+        p.x = traj_point[i].positions[0];
+        p.y = traj_point[i].positions[1];
+        p.z = traj_point[i].positions[500];
+        line_list.points.push_back(p);
+
+        // if(i < (traj_point.size() - 1)){
+        //     geometry_msgs::Point p_line;
+        //     p_line = p;
+        //     line_list.points.push_back(p_line);
+        //     p_line.x = traj_point[i + 1].positions[0];
+        //     p_line.y = traj_point[i + 1].positions[1];
+        //     p_line.z = traj_point[i + 1].positions[2];
+        //     line_list.points.push_back(p_line);
+        // }
+    }
+    traj_vis_pub.publish(line_list);
 }

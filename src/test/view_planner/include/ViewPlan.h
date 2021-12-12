@@ -32,7 +32,7 @@
 
 using namespace tf2;
 using namespace std;
-
+typedef moveit::planning_interface::MoveGroupInterface MGI;
 
 // 存储STL模型表面三角面片信息
 struct TriSurface {
@@ -54,6 +54,7 @@ public:
 	Vector3 robot_position;  // 视点位置对应的机械臂末端位置
 	Eigen::Quaterniond quaternion;  // 视点位置对应的机械臂四元数
 	vector<double> joint_state;
+	Eigen::Isometry3d end_effector_state;  // 末端状态
 	ViewPoint *next;
 	ViewPoint(int num, double cost);
 	ViewPoint();
@@ -71,50 +72,48 @@ class Graph{
 
 class ViewPlan{
 public:
-    vector<ViewPoint> generateViewPoint(const char *cfilename,int sampleNum, double coverage_rate); // 读取STL+生成候选视点
-	double getModelPositionX();
-	double getModelPositionZ();
-	double getTablePositionX();
-	double getTablePositionZ();
+    vector<ViewPoint> generateViewPoint(const char *cfilename,int sampleNum, double coverage_rate, MGI &group); // 读取STL+生成候选视点
+	double getModelPositionX() const;
+	double getModelPositionZ() const;
+	double getTablePositionX() const;
+	double getTablePositionZ() const;
 	Graph *g = new Graph();
 	vector<vector<int>> visibility_matrix;  // 可见性矩阵
 	
 private:
     // 相机参数
-	const float PI =3.1415926;
-	const double measure_dist = 650.0;  // 最佳测量距离(单位：mm)
-    const double minFOD = measure_dist - 200.0;  // 前景深(单位：mm) minFOD = measure_dist - 200
-	const double maxFOD = measure_dist + 200.0;  // 后景深(单位：mm) maxFOD = measure_dist + 400
-    //int rangeFOD = maxFOD - minFOD;  // 测量范围
-	const double minFOV = 0.52359877;  // 视野(弧度) 水平视角30度，垂直视角25度  minFOV = 30/180*PI = 0.52359877
-	const double view_angle_range = 1.309;  // 测量视角范围 view_angle_range = 75/180*PI = 1.309
+	const float PI                = 3.1415926;
+	const double measure_dist     = 650.0;                 // 最佳测量距离(单位：mm)
+    const double minFOD           = measure_dist - 200.0;  // 前景深(单位：mm) minFOD = measure_dist - 200
+	const double maxFOD           = measure_dist + 200.0;  // 后景深(单位：mm) maxFOD = measure_dist + 400
+    //int rangeFOD                = maxFOD - minFOD;       // 测量范围
+	const double minFOV           = 0.52359877;            // 视野(弧度) 水平视角30度，垂直视角25度  minFOV = 30/180*PI = 0.52359877
+	const double view_angle_range = 1.309;                 // 测量视角范围 view_angle_range = 75/180*PI = 1.309
 	// 仿真场景距离参数
-	const double model_position_x = 0.8;  // 待测模型在x轴上的位置（单位：m）  
-	const double model_position_z = 0.62;  // 待测模型在z轴上的位置（单位：m）  
-	const double table_position_x = model_position_x - 0.05;  // 平台在x轴上的位置（单位：m）  
+	const double model_position_x = 0.8;                   // 待测模型在x轴上的位置（单位：m）  
+	const double model_position_z = 0.62;                  // 待测模型在z轴上的位置（单位：m）  
+	const double table_position_x = model_position_x - 0.05;      // 平台在x轴上的位置（单位：m）  
 	const double table_position_z = (model_position_z - 0.07)/2;  // 平台在z轴上的位置（单位：m） z = (转向节中心高度 - 转向节下半部分高度0.07)/2 
     
 	//int numTriangles = 0;  // 面片数量
 	//int sampleNum;  // 视点采样数量
 
-	vector<TriSurface> readFile(const char *cfilename);  // 读取STL文件
-    vector<TriSurface> readASCII(const char *cfilename);  // 读取ASCII格式STL
+	vector<TriSurface> readFile(const char *cfilename);    // 读取STL文件
+    vector<TriSurface> readASCII(const char *cfilename);   // 读取ASCII格式STL
 	vector<TriSurface> readBinary(const char *cfilename);  // 读取二进制格式STL
 	
-    void sampleViewPoint(const vector<TriSurface> &model, int sampleNum, int already_sampled, vector<ViewPoint> &candidate_view_point, const vector<pair<double, int>> &RK_index, int &rand_sample_num);  // 生成候选视点
+    void sampleViewPoint(const vector<TriSurface> &model, int sampleNum, int already_sampled, vector<ViewPoint> &candidate_view_point, const vector<pair<double, int>> &RK_index, int &rand_sample_num, MGI &group);  // 生成候选视点
 	void setRandomKey(int size, vector<pair<double, int>>& RK_index);  // 给每个面片设置随机Key值
-    void sortRK(vector<pair<double,int>>& RK_index);  // 将Key从小到大排序
+    void sortRK(vector<pair<double,int>>& RK_index);                   // 将Key从小到大排序
 	bool sampleEnough(const vector<TriSurface> &model, int candidate_num, int sample_num, double coverage_rate);  // 判断是否已经生成足够视点 sampleEnough(模型, 已采集的视点, 每次采样数)
-	bool getJointState(ViewPoint &viewpoint, robot_model_loader::RobotModelLoader robot_model_loader);  // 计算机器人在视点位置处的轴配置数据
-    bool isCovered(Vector3 orig, Vector3 position, const TriSurface &TriSurface);  // 检测是否被遮挡
-	int checkVisibility(const ViewPoint &view_point, const vector<TriSurface> &model, int i);  // 检测可见性，并绘制可见性矩阵
-	bool checkCollision(const ViewPoint &view_point, robot_model_loader::RobotModelLoader robot_model_loader);  // 检测视点位置处碰撞
-	void setGraph(vector<ViewPoint> candidate_view_point, ViewPoint candidate);  // 绘制图
+	bool getJointState(ViewPoint &viewpoint, robot_model_loader::RobotModelLoader robot_model_loader);            // 计算机器人在视点位置处的轴配置数据
+    bool isCovered(Vector3 orig, Vector3 position, const TriSurface &TriSurface);                                 // 检测是否被遮挡
+	int checkVisibility(const ViewPoint &view_point, const vector<TriSurface> &model, int i);                     // 检测可见性，并绘制可见性矩阵
+	bool checkCollision(const ViewPoint &view_point, robot_model_loader::RobotModelLoader robot_model_loader);    // 检测视点位置处碰撞
+	void setGraph(vector<ViewPoint> candidate_view_point, ViewPoint candidate, MGI &group, robot_model_loader::RobotModelLoader robot_model_loader);                       // 绘制图
 
 	int cpyint(const char*& p);
 	float cpyfloat(const char*& p);
-
-
 
 };
 

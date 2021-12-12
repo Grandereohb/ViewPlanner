@@ -5,7 +5,7 @@
 using namespace std;
 using namespace tf2;
 
-vector<ViewPoint> ViewPlan::generateViewPoint(const char *cfilename, int sampleNum, double coverage_rate){
+vector<ViewPoint> ViewPlan::generateViewPoint(const char *cfilename, int sampleNum, double coverage_rate, MGI &group){
     vector<TriSurface> model = readFile(cfilename); // 读取STL模型点云
 
     vector<ViewPoint> candidate_view_point;
@@ -17,7 +17,7 @@ vector<ViewPoint> ViewPlan::generateViewPoint(const char *cfilename, int sampleN
 
 	while(!sampleEnough(model, candidate_view_point.size(), sampleNum, coverage_rate) && (rand_sample_num < model.size())){
 		int already_sampled = candidate_view_point.size();
-		sampleViewPoint(model, sampleNum, already_sampled, candidate_view_point, RK_index, rand_sample_num);  // 采样生成候选视点
+		sampleViewPoint(model, sampleNum, already_sampled, candidate_view_point, RK_index, rand_sample_num, group);  // 采样生成候选视点
 	}
 	//g->print();
 	//best_view_point = solveRKGA(candidate_view_point, maxPop, maxGen);
@@ -183,7 +183,7 @@ vector<TriSurface> ViewPlan::readBinary(const char* buffer) {
 	return TriSurfaces;
 }
 
-void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, int already_sampled, vector<ViewPoint> &candidate_view_point, const vector<pair<double, int>> &RK_index, int &rand_sample_num){
+void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, int already_sampled, vector<ViewPoint> &candidate_view_point, const vector<pair<double, int>> &RK_index, int &rand_sample_num, MGI &group){
     robot_model_loader::RobotModelLoader robot_model_loader("robot_description");  // 原为getJointState第一行，但在循环中无法生成随机数，所以提前声明
 	srand((unsigned)time(NULL));
 
@@ -210,7 +210,7 @@ void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, i
         
 		// 在所选面片的rangeFOD/2范围内寻找夹角小于90度的邻面片，势场法计算视点方向        
 		candidate.direction = Vector3(0,0,0);
-        for(int j=0; j<model.size();j++){
+        for(int j = 0; j < model.size(); ++j){
             double dist = (model[j].center - model[randNum].center).length();
             double theta = model[randNum].normal.angle(model[j].normal);
 			if (dist <= (maxFOD - minFOD) / 2 && theta <= PI / 2){
@@ -232,16 +232,14 @@ void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, i
 		// 生成视点图
 		candidate.num = candidate_num++;
 		if(candidate.num != 0){
-			setGraph(candidate_view_point, candidate);
+			setGraph(candidate_view_point, candidate, group, robot_model_loader);
 		}
 
         candidate.direction = candidate.direction.normalize();
 		candidate_view_point.push_back(candidate);
 		visibility_matrix.push_back(tempVisibility);
 
-		cout << "随机数为： " << randNum << endl;
-		cout << "生成第" << candidate.num << "个视点，位置为(" << candidate.position.m_floats[0] << ", " << candidate.position.m_floats[1] << ", " << candidate.position.m_floats[2] << "), ";
-		cout<<"方向为("<<candidate.direction.m_floats[0]<<", "<<candidate.direction.m_floats[1]<<", "<<candidate.direction.m_floats[2]<<")"<<endl;
+		cout << "生成第" << candidate.num << "个视点, 随机数为" << randNum << endl;
 	}
 }
 void ViewPlan::setRandomKey(int size, vector<pair<double, int>> &RK_index){
@@ -314,27 +312,65 @@ bool ViewPlan::getJointState(ViewPoint &viewpoint, robot_model_loader::RobotMode
 	viewpoint.quaternion = Eigen::Quaterniond::FromTwoVectors(vectorBefore, vectorAfter);
 	rotMatrix = viewpoint.quaternion.toRotationMatrix();
 	Eigen::Vector3d translation(viewpoint.position.m_floats[0]/1000 + model_position_x, viewpoint.position.m_floats[1]/1000, viewpoint.position.m_floats[2]/1000 + model_position_z);  // 平移矩阵(单位：m)
-	// 机器人末端到视点位置的变换矩阵T1
+	// 机器人基座到视点位置的变换矩阵T1
 	end_effector_state.rotate(rotMatrix);
 	end_effector_state.pretranslate(translation);
-	// 右相机到机械臂手眼标定结果 X1
+
+	// 手眼标定结果 X1
 	Eigen::Matrix4d rob_cam_calibration;
+	// 右相机到末端（从末端移动到右相机） 第一次标定（x为光轴）
 	rob_cam_calibration << 0.206326, 0.001152, 0.978508, 0.067869619,
 					      -0.000008, 0.999980, 0.001183,-0.139219215,
 					      -0.978482, 0.000183, 0.206310, 0.102563320,
 					       0,        0,        0,        1;
-	// 右相机到投影仪标定结果 X2
+	// 左相机到末端（从末端移动到左相机）手眼标定结果（z为光轴）
+	// rob_cam_calibration << -0.231825,  0.002388,  0.972779, 0.060808487,
+    //                        -0.972672,  0.011158, -0.231820, 0.140728791,
+    //                        -0.011499, -0.999932, -0.000279, 0.103992375,
+    //                         0.000000,  0.000000,  0.000000, 1.000000;
+	// 左相机到末端（从末端移动到左相机）手眼标定结果（x为光轴）
+	// rob_cam_calibration << -0.000279, 0.011499,  0.999932, 0.060808487,
+    //                         -0.972779, -0.231825,  0.002388, 0.140728791,
+    //                         0.231820, -0.972672,  0.011158, 0.103992375,
+    //                         0.000000,  0.000000,  0.000000, 1.000000;
+
+	// 相机到投影仪标定结果 X2
 	Eigen::Matrix4d cam_pro_calibration;
+	// 左相机到投影仪标定结果
+	// 原始左相机坐标系下标定结果（z为光轴）
 	// cam_pro_calibration << 0.9726830895886041,  -0.002346875884211844, 0.2321251804564764,  -0.1409574458184522,
 	// 				       0.003367426665242761, 0.9999863284976849,  -0.004000406901106243,-0.0001083651746352479,
 	// 				      -0.2321126184980511,   0.004672792666523019, 0.9726776944819254,  -0.02790086249003743,
 	// 				       0,                    0,                    0,                    1;
+	// 旋转至测头坐标系下的标定结果（x为光轴）
 	cam_pro_calibration <<  0.9726776944819254,  -0.2321126184980511,   0.004672792666523019,  -0.02790086249003743,
 					        0.2321251804564764,   0.9726830895886041,  -0.002346875884211844,  -0.1409574458184522,
 					       -0.004000406901106243, 0.003367426665242761, 0.9999863284976849,    -0.0001083651746352479,
 					        0,                    0,                    0,                      1;
-	// 根据手眼标定关系校正后的机器人位姿变换矩阵T2      T1 = T2 * X1 * X2‘
-	end_effector_state = end_effector_state * cam_pro_calibration * rob_cam_calibration.inverse();
+	// 右相机到投影仪标定结果
+	// 原始右相机坐标系下标定结果（z为光轴）
+	// cam_pro_calibration << 0.976166286897133,    0.005452384782800655, -0.2169554143727337,    0.1410143582539718,
+	// 				      -0.005658054933568069, 0.9999839396727248,   -0.0003268194990640644,-0.0009730115521494622,
+	// 				       0.2169501480521114,   0.001546575829542898,  0.9761814592397104,   -0.02639814021943194,
+	// 				       0,                    0,                     0,                     1;
+	// 旋转至测头坐标系下的标定结果（x为光轴）
+	// cam_pro_calibration <<  0.9761814592397104,     0.2169501480521114,   0.001546575829542898, -0.02639814021943194,
+	// 				       -0.2169554143727337,     0.976166286897133,    0.005452384782800655,  0.1410143582539718,
+	// 				       -0.0003268194990640644, -0.005658054933568069, 0.9999839396727248,   -0.0009730115521494622,
+	// 				        0,                      0,                    0,                      1;
+
+	// 投影仪到末端的变换矩阵（手动估计）
+	Eigen::Matrix4d R;
+	R << 0,  0,  1, 0.09,
+		 0,  1,  0, 0,
+		-1,  0,  0, 0.073,
+		 0,  0,  0, 1;
+	// 根据手眼标定关系校正后的机器人位姿变换矩阵T2      T1 = T2 * X1 * X2
+	// end_effector_state = end_effector_state * cam_pro_calibration.inverse() * rob_cam_calibration.inverse();
+	// end_effector_state = end_effector_state * (R * cam_pro_calibration) * rob_cam_calibration.inverse();
+	// end_effector_state = end_effector_state * rob_cam_calibration.inverse();
+	// 根据手眼标定关系校正后的机器人位姿变换矩阵T2      T1 = T2 * R
+	end_effector_state = end_effector_state * R.inverse();
 
 	rotMatrix = end_effector_state.rotation();
 	translation = end_effector_state.translation();
@@ -371,6 +407,7 @@ bool ViewPlan::getJointState(ViewPoint &viewpoint, robot_model_loader::RobotMode
 		{
 			//cout<<joint_values[i]<<" ";
 			viewpoint.joint_state.push_back(joint_values[i]);
+			viewpoint.end_effector_state = end_effector_state;
 			//ROS_INFO("Joint %s: %f", joint_names[i].c_str(), joint_values[i]);
 		}
 		//cout<<endl;
@@ -463,13 +500,46 @@ bool ViewPlan::checkCollision(const ViewPoint &view_point, robot_model_loader::R
 	//cout<<"Full collision Test: " << (c_res.collision ? "in" : "not in") << " collision" << endl;
 	return c_res.collision;
 }
-void ViewPlan::setGraph(vector<ViewPoint> candidate_view_point, ViewPoint candidate){
-	for(int i=0; i<candidate_view_point.size(); i++){
+void ViewPlan::setGraph(vector<ViewPoint> candidate_view_point, ViewPoint candidate, MGI &group, robot_model_loader::RobotModelLoader robot_model_loader){
+	const moveit::core::RobotModelPtr& kinematic_model = robot_model_loader.getModel();
+	planning_scene::PlanningScene planning_scene(kinematic_model);
+
+	for(int i = 0; i < candidate_view_point.size(); ++i){
 		// 计算六个轴的运动成本
-		double cost = 0;
-		for(int j=0; j<6; j++){
-			cost += abs(candidate.joint_state[j] - candidate_view_point[i].joint_state[j]);
+		double cost = 0.0;
+
+		robot_state::RobotState &start_state = planning_scene.getCurrentStateNonConst();
+		const robot_model::JointModelGroup* joint_model_group = start_state.getJointModelGroup("arm");
+		start_state.setJointGroupPositions(joint_model_group, candidate.joint_state);
+		group.setStartState(start_state);
+
+		// geometry_msgs::Pose target_pose;
+        // target_pose.orientation.w = candidate_view_point[i].quaternion.w(); 
+        // target_pose.orientation.x = candidate_view_point[i].quaternion.x();
+        // target_pose.orientation.y = candidate_view_point[i].quaternion.y();
+        // target_pose.orientation.z = candidate_view_point[i].quaternion.z();
+
+        // target_pose.position.x = candidate_view_point[i].robot_position.m_floats[0];
+        // target_pose.position.y = candidate_view_point[i].robot_position.m_floats[1];
+        // target_pose.position.z = candidate_view_point[i].robot_position.m_floats[2];
+        // group.setPoseTarget(target_pose);
+        group.setPoseTarget(candidate_view_point[i].end_effector_state);
+
+		moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+        moveit::planning_interface::MoveItErrorCode success = group.plan(my_plan);
+
+		if(success){
+			int size = my_plan.trajectory_.joint_trajectory.points.size();
+			cost = my_plan.trajectory_.joint_trajectory.points[size - 1].time_from_start.toSec();
 		}
+		else{
+			cost = DBL_MAX;
+		}
+
+		// for(int j = 0; j < 6; ++j){
+		// 	cost += abs(candidate.joint_state[j] - candidate_view_point[i].joint_state[j]);
+		// }
+
 		// 将新节点插入图中，并绘制边界
 		g->insertEdge(candidate_view_point[i].num, candidate.num, cost, false);
 		//cout<<"test379: cand:"<<candidate_view_point[i].num<<", edges: "<<g->edges[candidate_view_point[i].num]->num<<endl;
@@ -493,10 +563,10 @@ float ViewPlan::cpyfloat(const char*& p){
 	p += 4;
 	return cpy;
 }
-double ViewPlan::getModelPositionX(){ return model_position_x; }
-double ViewPlan::getModelPositionZ(){ return model_position_z; }
-double ViewPlan::getTablePositionX(){ return table_position_x; }
-double ViewPlan::getTablePositionZ(){ return table_position_z; }
+double ViewPlan::getModelPositionX() const { return model_position_x; }
+double ViewPlan::getModelPositionZ() const { return model_position_z; }
+double ViewPlan::getTablePositionX() const { return table_position_x; }
+double ViewPlan::getTablePositionZ() const { return table_position_z; }
 
 ViewPoint::ViewPoint(int num, double cost){
 	this->num = num;

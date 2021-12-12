@@ -90,11 +90,11 @@ void RKGA::initialize(Population& curr){
         curr.setFitness(j, cost);
     }
     curr.sortFitness();
-    cout << "93 sorted fitness: " << endl;
-    for (int i = 0; i < curr.fitness.size(); i++){
-        cout <<"("<< curr.fitness[i].first << ", " << curr.fitness[i].second<<"), ";
-    }
-    cout << endl;
+    // cout << "93 sorted fitness: " << endl;
+    // for (int i = 0; i < curr.fitness.size(); i++){
+    //     cout <<"("<< curr.fitness[i].first << ", " << curr.fitness[i].second<<"), ";
+    // }
+    // cout << endl;
 }
 void RKGA::setRandomKey(int candSize, vector<pair<double, int>> &RK_index){
     for (int i = 0; i < candSize; i++){
@@ -140,9 +140,9 @@ bool RKGA::isMostCovered(vector<ViewPoint> single){
 void RKGA::calcMotionCost(vector<ViewPoint> single, double &cost){
     // cout << "142 开始计算运动成本" << endl;
     // 起始和最终位置的运动成本为与机器人home位置的角度差
-    for (int i = 0; i < 6; i++){
-        cost += abs(single[0].joint_state[i]) + abs(single[single.size() - 1].joint_state[i]);
-    }
+    // for (int i = 0; i < 6; i++){
+    //     cost += abs(single[0].joint_state[i]) + abs(single[single.size() - 1].joint_state[i]);
+    // }
     // cout << "147 " <<cost<< endl;
     int k = 0;
     while(k < (single.size()-1)){
@@ -156,7 +156,7 @@ void RKGA::calcMotionCost(vector<ViewPoint> single, double &cost){
 
 }
 void RKGA::evolve(Population curr, Population &next){
-    cout << "进化开始：" << endl;
+    cout << "进化开始： ";
     unsigned i = 0;
     // 父母为精英，后代直接复制
     while (i < pe){
@@ -221,11 +221,7 @@ void RKGA::evolve(Population curr, Population &next){
         ++i;
     }
     next.sortFitness();
-    cout << "237 sorted fitness: " << endl;
-    for (int i = 0; i < 20; i++){
-        cout <<"("<< next.fitness[i].first << ", " << next.fitness[i].second<<"), ";
-    }
-    cout << endl;
+    cout << next.fitness[0].first << endl;
 }
 double RKGA::getBestFitness() const{
     return current->fitness[0].first;
