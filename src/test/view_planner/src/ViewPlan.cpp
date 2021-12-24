@@ -372,45 +372,40 @@ bool ViewPlan::getJointState(ViewPoint &viewpoint, robot_model_loader::RobotMode
 	// 根据手眼标定关系校正后的机器人位姿变换矩阵T2      T1 = T2 * R
 	end_effector_state = end_effector_state * R.inverse();
 
-	rotMatrix = end_effector_state.rotation();
-	translation = end_effector_state.translation();
-	for (int i = 0; i < 3; i++){
-		viewpoint.robot_position.m_floats[i] = translation[i];
-		cout << viewpoint.robot_position.m_floats[i] << " ";
-	}
-	viewpoint.quaternion = rotMatrix;
-	//ROS_INFO_STREAM("Translation: \n" << end_effector_state.translation() << "\n");
-	//ROS_INFO_STREAM("Rotation: \n" << end_effector_state.rotation() << "\n");
-
 	// 我们现在可以为机器人求解逆运动学 (IK)。要解决 IK，我们需要以下内容：
 	// 1.机械臂末端的所需姿势（默认情况下，这是“arm”链中的最后一个链接）：我们在上述步骤中计算的 end_effector_state。
 	// 2.超时时间：0.1 秒
 	double timeout = 0.1;
 	int n = 0;
-	Eigen::AngleAxisd v(PI / 90, Eigen::Vector3d(0,0,1));
-	Eigen::Matrix3d rotationMatrix = v.matrix();  // 绕光轴旋转20度的旋转矩阵
-	Eigen::Vector3d translation2(0, 0, 0);
-	Eigen::Isometry3d rotation = Eigen::Isometry3d::Identity();
+	bool found_ik = kinematic_state->setFromIK(joint_model_group, end_effector_state, timeout);
+	// 如果没找到IK解，则绕光轴旋转一定角度重新求解
+	Eigen::AngleAxisd v(PI / 90, Eigen::Vector3d(0,0,1));        // 旋转角度v
+	Eigen::Matrix3d rotationMatrix = v.matrix();                 // 绕光轴旋转20度的旋转矩阵
+	Eigen::Vector3d translation2(0, 0, 0);                       // 平移矩阵，0
+	Eigen::Isometry3d rotation = Eigen::Isometry3d::Identity();  // 变换矩阵
 	rotation.rotate(rotationMatrix);
 	rotation.pretranslate(translation2);
-	bool found_ik = kinematic_state->setFromIK(joint_model_group, end_effector_state, timeout);
 	while(!found_ik){
-		end_effector_state = end_effector_state * rob_cam_calibration * rotation * rob_cam_calibration.inverse();
+		end_effector_state = end_effector_state * R * rotation * R.inverse();
 		found_ik = kinematic_state->setFromIK(joint_model_group, end_effector_state, timeout);
+		// 旋转一周为止
 		if(++n >= 180)
 			break;
 	}
+	// 有IK解则记录该位置的轴位置 / 视点位姿 / 机器人末端位姿
 	if (found_ik){
 		kinematic_state->copyJointGroupPositions(joint_model_group, joint_values);
-		//cout<<"视点的轴配置参数为：";
-		for (std::size_t i = 0; i < joint_names.size(); ++i)
-		{
-			//cout<<joint_values[i]<<" ";
+		for (std::size_t i = 0; i < joint_names.size(); ++i){
 			viewpoint.joint_state.push_back(joint_values[i]);
-			viewpoint.end_effector_state = end_effector_state;
-			//ROS_INFO("Joint %s: %f", joint_names[i].c_str(), joint_values[i]);
 		}
-		//cout<<endl;
+		viewpoint.end_effector_state = end_effector_state;
+		rotMatrix = end_effector_state.rotation();
+		translation = end_effector_state.translation();
+		for (int i = 0; i < 3; i++){
+			viewpoint.robot_position.m_floats[i] = translation[i];
+			// cout << viewpoint.robot_position.m_floats[i] << " ";
+		}
+		viewpoint.quaternion = rotMatrix;
 		return 1;
 	}
 	else{
@@ -501,32 +496,46 @@ bool ViewPlan::checkCollision(const ViewPoint &view_point, robot_model_loader::R
 	return c_res.collision;
 }
 void ViewPlan::setGraph(vector<ViewPoint> candidate_view_point, ViewPoint candidate, MGI &group, robot_model_loader::RobotModelLoader robot_model_loader){
+	// 该函数负责计算新视点与已有视点之间的运动成本
 	const moveit::core::RobotModelPtr& kinematic_model = robot_model_loader.getModel();
 	planning_scene::PlanningScene planning_scene(kinematic_model);
+	robot_state::RobotState &start_state = planning_scene.getCurrentStateNonConst();
+	const robot_model::JointModelGroup* joint_model_group = start_state.getJointModelGroup("arm");
 
+	// 以运动时间为运动成本
 	for(int i = 0; i < candidate_view_point.size(); ++i){
-		// 计算六个轴的运动成本
 		double cost = 0.0;
 
-		robot_state::RobotState &start_state = planning_scene.getCurrentStateNonConst();
-		const robot_model::JointModelGroup* joint_model_group = start_state.getJointModelGroup("arm");
+		// 以candidate_view_point[i]为起点，candidate为终点规划轨迹，以视点位置的机器人轴关节角度为起始点与目标点状态
+		start_state.setJointGroupPositions(joint_model_group, candidate_view_point[i].joint_state);
+		group.setStartState(start_state);
+        group.setJointValueTarget(candidate.joint_state);
+
+		// 规划视点之间的运动轨迹
+		moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+    	moveit::planning_interface::MoveItErrorCode success = group.plan(my_plan);
+
+		// 若存在轨迹，则以轨迹运动时间为两视点之间的运动成本；反之则设置运动成本为无限大
+		if(success){
+			int size = my_plan.trajectory_.joint_trajectory.points.size();
+			cost = my_plan.trajectory_.joint_trajectory.points[size - 1].time_from_start.toSec();
+		}
+		else{
+			cost = DBL_MAX;
+		}
+
+		moveit_msgs::RobotTrajectory traj = my_plan.trajectory_;
+
+		// 将新节点插入图中，并绘制边界
+		g->insertEdge(candidate_view_point[i].num, candidate.num, cost, traj, true);
+
+		// -----------------------------------------------------------------------------------------
+		// 以candidate为起点，candidate_view_point[i]为终点规划轨迹
 		start_state.setJointGroupPositions(joint_model_group, candidate.joint_state);
 		group.setStartState(start_state);
+        group.setJointValueTarget(candidate_view_point[i].joint_state);
 
-		// geometry_msgs::Pose target_pose;
-        // target_pose.orientation.w = candidate_view_point[i].quaternion.w(); 
-        // target_pose.orientation.x = candidate_view_point[i].quaternion.x();
-        // target_pose.orientation.y = candidate_view_point[i].quaternion.y();
-        // target_pose.orientation.z = candidate_view_point[i].quaternion.z();
-
-        // target_pose.position.x = candidate_view_point[i].robot_position.m_floats[0];
-        // target_pose.position.y = candidate_view_point[i].robot_position.m_floats[1];
-        // target_pose.position.z = candidate_view_point[i].robot_position.m_floats[2];
-        // group.setPoseTarget(target_pose);
-        group.setPoseTarget(candidate_view_point[i].end_effector_state);
-
-		moveit::planning_interface::MoveGroupInterface::Plan my_plan;
-        moveit::planning_interface::MoveItErrorCode success = group.plan(my_plan);
+    	success = group.plan(my_plan);
 
 		if(success){
 			int size = my_plan.trajectory_.joint_trajectory.points.size();
@@ -536,14 +545,28 @@ void ViewPlan::setGraph(vector<ViewPoint> candidate_view_point, ViewPoint candid
 			cost = DBL_MAX;
 		}
 
-		// for(int j = 0; j < 6; ++j){
-		// 	cost += abs(candidate.joint_state[j] - candidate_view_point[i].joint_state[j]);
-		// }
+		traj = my_plan.trajectory_;
 
-		// 将新节点插入图中，并绘制边界
-		g->insertEdge(candidate_view_point[i].num, candidate.num, cost, false);
-		//cout<<"test379: cand:"<<candidate_view_point[i].num<<", edges: "<<g->edges[candidate_view_point[i].num]->num<<endl;
+		g->insertEdge(candidate.num, candidate_view_point[i].num, cost, traj, true);
 	}
+}
+moveit_msgs::RobotTrajectory calcMotionCost(ViewPoint candidate_view_point, ViewPoint candidate, MGI &group, planning_scene::PlanningScene &planning_scene){
+	// robot_state::RobotState &start_state = planning_scene.getCurrentStateNonConst();
+	// const robot_model::JointModelGroup* joint_model_group = start_state.getJointModelGroup("arm");
+	// start_state.setJointGroupPositions(joint_model_group, candidate.joint_state);
+		
+	// group.setStartState(start_state);
+    // group.setPoseTarget(candidate_view_point.end_effector_state);
+
+	// moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+    // moveit::planning_interface::MoveItErrorCode success = group.plan(my_plan);
+
+	// if(success){
+	// 	return my_plan.trajectory_;
+	// 	}
+	// else{
+	// 	return;
+	// }
 }
 
 int ViewPlan::cpyint(const char*& p)
@@ -568,9 +591,10 @@ double ViewPlan::getModelPositionZ() const { return model_position_z; }
 double ViewPlan::getTablePositionX() const { return table_position_x; }
 double ViewPlan::getTablePositionZ() const { return table_position_z; }
 
-ViewPoint::ViewPoint(int num, double cost){
+ViewPoint::ViewPoint(int num, double cost, moveit_msgs::RobotTrajectory traj){
 	this->num = num;
 	this->cost = cost;
+	this->traj = traj;
 	this->next = NULL;
 }
 ViewPoint::ViewPoint(){}
@@ -580,13 +604,13 @@ Graph::Graph(){
 		this->edges[i] = NULL;
 }
 Graph::~Graph(){ }
-void Graph::insertEdge(int x, int y, double cost, bool directed){
-	ViewPoint *edge = new ViewPoint(y, cost);
+void Graph::insertEdge(int x, int y, double cost, moveit_msgs::RobotTrajectory traj, bool directed){
+	ViewPoint *edge = new ViewPoint(y, cost, traj);
 	edge->next = this->edges[x];
 	this->edges[x] = edge;
 	//cout<<"已添加视点 "<<x<<" 的邻节点 "<<this->edges[x]->num<<endl;
 	if(!directed){
-		insertEdge(y, x, cost, true);
+		insertEdge(y, x, cost, traj, true);
 	}
 }
 void Graph::print(){

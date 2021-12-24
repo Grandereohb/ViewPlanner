@@ -103,6 +103,11 @@
         "typeinfo": "cpp",
         "variant": "cpp",
         "bit": "cpp",
-        "texture": "cpp"
+        "texture": "cpp",
+        "bufferobject": "cpp",
+        "image": "cpp",
+        "mixinvector": "cpp",
+        "buffered_value": "cpp",
+        "fast_back_stack": "cpp"
     }
 }

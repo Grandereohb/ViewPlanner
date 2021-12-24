@@ -44,19 +44,20 @@ struct TriSurface {
 	vector<Vector3> vertex;
 };
 
-// 存储视点位置与方向
+// 存储视点信息
 class ViewPoint {
 public:
-	int num;
-	double cost;
-	Vector3 position;  // 视点位置
-	Vector3 direction;  // 视点方向
-	Vector3 robot_position;  // 视点位置对应的机械臂末端位置
-	Eigen::Quaterniond quaternion;  // 视点位置对应的机械臂四元数
-	vector<double> joint_state;
+	int num;                               // 视点序号
+	Vector3 position;                      // 视点位置
+	Vector3 direction;                     // 视点方向
+	Vector3 robot_position;                // 视点位置对应的机械臂末端位置
+	Eigen::Quaterniond quaternion;         // 视点位置对应的机械臂四元数
+	double cost;                           // 运动成本
+	vector<double> joint_state;            // 视点位姿下六个轴的关节状态
 	Eigen::Isometry3d end_effector_state;  // 末端状态
+	moveit_msgs::RobotTrajectory traj;     // 轨迹
 	ViewPoint *next;
-	ViewPoint(int num, double cost);
+	ViewPoint(int num, double cost, moveit_msgs::RobotTrajectory traj);
 	ViewPoint();
 };
 
@@ -66,7 +67,7 @@ class Graph{
 	ViewPoint *edges[1000];
 	Graph();
 	~Graph();
-    void insertEdge(int, int, double, bool);
+    void insertEdge(int, int, double, moveit_msgs::RobotTrajectory, bool);
     void print();
 };
 
@@ -110,7 +111,8 @@ private:
     bool isCovered(Vector3 orig, Vector3 position, const TriSurface &TriSurface);                                 // 检测是否被遮挡
 	int checkVisibility(const ViewPoint &view_point, const vector<TriSurface> &model, int i);                     // 检测可见性，并绘制可见性矩阵
 	bool checkCollision(const ViewPoint &view_point, robot_model_loader::RobotModelLoader robot_model_loader);    // 检测视点位置处碰撞
-	void setGraph(vector<ViewPoint> candidate_view_point, ViewPoint candidate, MGI &group, robot_model_loader::RobotModelLoader robot_model_loader);                       // 绘制图
+	void setGraph(vector<ViewPoint> candidate_view_point, ViewPoint candidate, MGI &group, robot_model_loader::RobotModelLoader robot_model_loader);  // 绘制图
+	moveit_msgs::RobotTrajectory calcMotionCost(ViewPoint candidate_view_point, ViewPoint candidate, MGI &group, planning_scene::PlanningScene &planning_scene);
 
 	int cpyint(const char*& p);
 	float cpyfloat(const char*& p);

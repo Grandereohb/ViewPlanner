@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   # tf
   moveit_ros_planning_interface
   moveit_core
+  moveit_visual_tools
   actionlib_msgs
   actionlib
   geometric_shapes
