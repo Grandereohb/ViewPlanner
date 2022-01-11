@@ -7,11 +7,12 @@
       },
       "includePath": [
         "/opt/ros/noetic/include/**",
-        "/home/ros/abb_ws/src/abb_driver/include/**",
-        "/home/ros/abb_ws/src/test/test_planning/include/**",
-        "/home/ros/abb_ws/src/test/view_planner/include/**",
+        "/home/ohb/abb_ws/src/abb_driver/include/**",
+        "/home/ohb/abb_ws/src/test/test_planning/include/**",
+        "/home/ohb/abb_ws/src/test/view_planner/include/**",
+        "/home/ohb/packages/**",
         "/usr/include/**",
-        "/home/ros/abb_ws/src/industrial_trajectory_filters/include/**"
+        "/home/ohb/abb_ws/src/industrial_trajectory_filters/include/**"
       ],
       "name": "ROS"
     }

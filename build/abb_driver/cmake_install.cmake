@@ -1,8 +1,8 @@
-# Install script for directory: /home/ros/abb_ws/src/abb_driver
+# Install script for directory: /home/ohb/abb_ws/src/abb_driver
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/ros/abb_ws/install")
+  set(CMAKE_INSTALL_PREFIX "/home/ohb/abb_ws/install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -38,18 +38,18 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/ros/abb_ws/build/abb_driver/catkin_generated/installspace/abb_driver.pc")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/ohb/abb_ws/build/abb_driver/catkin_generated/installspace/abb_driver.pc")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/abb_driver/cmake" TYPE FILE FILES
-    "/home/ros/abb_ws/build/abb_driver/catkin_generated/installspace/abb_driverConfig.cmake"
-    "/home/ros/abb_ws/build/abb_driver/catkin_generated/installspace/abb_driverConfig-version.cmake"
+    "/home/ohb/abb_ws/build/abb_driver/catkin_generated/installspace/abb_driverConfig.cmake"
+    "/home/ohb/abb_ws/build/abb_driver/catkin_generated/installspace/abb_driverConfig-version.cmake"
     )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/abb_driver" TYPE FILE FILES "/home/ros/abb_ws/src/abb_driver/package.xml")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/abb_driver" TYPE FILE FILES "/home/ohb/abb_ws/src/abb_driver/package.xml")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
@@ -59,12 +59,12 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/abb_driver/robot_state"
          RPATH "")
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/abb_driver" TYPE EXECUTABLE FILES "/home/ros/abb_ws/devel/lib/abb_driver/robot_state")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/abb_driver" TYPE EXECUTABLE FILES "/home/ohb/abb_ws/devel/lib/abb_driver/robot_state")
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/abb_driver/robot_state" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/abb_driver/robot_state")
     file(RPATH_CHANGE
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/abb_driver/robot_state"
-         OLD_RPATH "/opt/ros/noetic/lib:/home/ros/abb_ws/devel/lib:"
+         OLD_RPATH "/opt/ros/noetic/lib:"
          NEW_RPATH "")
     if(CMAKE_INSTALL_DO_STRIP)
       execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/abb_driver/robot_state")
@@ -79,12 +79,12 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/abb_driver/motion_download_interface"
          RPATH "")
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/abb_driver" TYPE EXECUTABLE FILES "/home/ros/abb_ws/devel/lib/abb_driver/motion_download_interface")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/abb_driver" TYPE EXECUTABLE FILES "/home/ohb/abb_ws/devel/lib/abb_driver/motion_download_interface")
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/abb_driver/motion_download_interface" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/abb_driver/motion_download_interface")
     file(RPATH_CHANGE
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/abb_driver/motion_download_interface"
-         OLD_RPATH "/opt/ros/noetic/lib:/home/ros/abb_ws/devel/lib:"
+         OLD_RPATH "/opt/ros/noetic/lib:"
          NEW_RPATH "")
     if(CMAKE_INSTALL_DO_STRIP)
       execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/abb_driver/motion_download_interface")
@@ -93,10 +93,10 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/abb_driver/launch" TYPE DIRECTORY FILES "/home/ros/abb_ws/src/abb_driver/launch/")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/abb_driver/launch" TYPE DIRECTORY FILES "/home/ohb/abb_ws/src/abb_driver/launch/")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/abb_driver/rapid" TYPE DIRECTORY FILES "/home/ros/abb_ws/src/abb_driver/rapid/")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/abb_driver/rapid" TYPE DIRECTORY FILES "/home/ohb/abb_ws/src/abb_driver/rapid/")
 endif()
 

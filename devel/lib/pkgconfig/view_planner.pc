@@ -1,4 +1,4 @@
-prefix=/home/ros/abb_ws/devel
+prefix=/home/ohb/abb_ws/devel
 
 Name: view_planner
 Description: Description of view_planner

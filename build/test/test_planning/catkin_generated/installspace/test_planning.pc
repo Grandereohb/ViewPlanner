@@ -1,8 +1,0 @@
-prefix=/home/ros/abb_ws/install
-
-Name: test_planning
-Description: Description of test_planning
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

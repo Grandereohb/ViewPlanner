@@ -1,2 +1,0 @@
-set(ipa_kifz_viewplanning_MESSAGE_FILES "")
-set(ipa_kifz_viewplanning_SERVICE_FILES "/home/ros/abb_ws/src/rl_viewplanning/ipa_kifz_viewplanning/srv/GetAreaGain.srv")

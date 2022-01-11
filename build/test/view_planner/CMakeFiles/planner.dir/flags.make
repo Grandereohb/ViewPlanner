@@ -6,5 +6,5 @@ CXX_FLAGS =
 
 CXX_DEFINES = -DROSCONSOLE_BACKEND_LOG4CXX -DROS_BUILD_SHARED_LIBS=1 -DROS_PACKAGE_NAME=\"view_planner\"
 
-CXX_INCLUDES = -I/usr/include/eigen3 -I/home/ros/abb_ws/src/test/view_planner/include -I/opt/ros/noetic/include -I/opt/ros/noetic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp -I/usr/include/bullet 
+CXX_INCLUDES = -I/usr/include/eigen3 -I/home/ohb/abb_ws/src/test/view_planner/include -I/opt/ros/noetic/include -I/opt/ros/noetic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp -I/usr/include/bullet -I/usr/include/OGRE 
 

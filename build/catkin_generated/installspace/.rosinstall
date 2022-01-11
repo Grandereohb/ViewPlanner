@@ -1,2 +1,2 @@
 - setup-file:
-    local-name: /home/ros/abb_ws/install/setup.sh
+    local-name: /home/ohb/abb_ws/install/setup.sh

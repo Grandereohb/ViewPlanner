@@ -1,8 +1,0 @@
-prefix=/home/ros/abb_ws/install
-
-Name: industrial_robot_simulator
-Description: Description of industrial_robot_simulator
-Version: 0.7.1
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

@@ -20,6 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometric_shapes
   tf2_ros
   tf2_geometry_msgs
+  moveit_visual_tools
 )
 
 #uncomment the following 4 lines to use the Eigen library

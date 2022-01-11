@@ -23,16 +23,9 @@ vector< ViewPoint >& Population::operator()(unsigned chromosome) {
 	return population[chromosome];
 }
 
-RKGA::RKGA(int _p, double _pe, double _pm, double _rhoe, double _coverage_rate, vector<ViewPoint> _candVP, Graph *_graph, vector<vector<int>> _visibility_matrix) throw(std::range_error) :
+RKGA::RKGA(int _p, double _pe, double _pm, double _rhoe, double _coverage_rate, vector<ViewPoint> _candVP, Graph *_graph, vector<vector<int>> _visibility_matrix):
 p(_p), pe(_pe*p), pm(_pm*p), rhoe(_rhoe), coverage_rate(_coverage_rate), candVP(_candVP), graph(_graph), visibility_matrix(_visibility_matrix) {
-    // Error check:
-    using std::range_error;
-	//if(n == 0) { throw range_error("Chromosome size equals zero."); }
-	if(p == 0) { throw range_error("Population size equals zero."); }
-	if(pe == 0) { throw range_error("Elite-set size equals zero."); }
-	if(pe > p) { throw range_error("Elite-set size greater than population size (pe > p)."); }
-	if(pm > p) { throw range_error("Mutant-set size (pm) greater than population size (p)."); }
-	if(pe + pm > p) { throw range_error("elite + mutant sets greater than population size (p)."); }
+
 }
 vector<ViewPoint> RKGA::solveRKGA(int maxGen){
     unsigned long iteration = 0;  // 记录迭代次数
@@ -90,11 +83,8 @@ void RKGA::initialize(Population& curr){
         curr.setFitness(j, cost);
     }
     curr.sortFitness();
-    cout << "93 sorted fitness: " << endl;
-    for (int i = 0; i < curr.fitness.size(); i++){
-        cout <<"("<< curr.fitness[i].first << ", " << curr.fitness[i].second<<"), ";
-    }
-    cout << endl;
+    cout << "86 sorted fitness: ";
+    cout <<"("<< curr.fitness[0].first << ", " << curr.fitness[0].second<<")"<<endl;
 }
 void RKGA::setRandomKey(int candSize, vector<pair<double, int>> &RK_index){
     for (int i = 0; i < candSize; i++){
@@ -140,9 +130,9 @@ bool RKGA::isMostCovered(vector<ViewPoint> single){
 void RKGA::calcMotionCost(vector<ViewPoint> single, double &cost){
     // cout << "142 开始计算运动成本" << endl;
     // 起始和最终位置的运动成本为与机器人home位置的角度差
-    for (int i = 0; i < 6; i++){
-        cost += abs(single[0].joint_state[i]) + abs(single[single.size() - 1].joint_state[i]);
-    }
+    // for (int i = 0; i < 6; i++){
+    //     cost += abs(single[0].joint_state[i]) + abs(single[single.size() - 1].joint_state[i]);
+    // }
     // cout << "147 " <<cost<< endl;
     int k = 0;
     while(k < (single.size()-1)){
@@ -221,8 +211,8 @@ void RKGA::evolve(Population curr, Population &next){
         ++i;
     }
     next.sortFitness();
-    cout << "237 sorted fitness: " << endl;
-    for (int i = 0; i < 20; i++){
+    cout << "237 sorted fitness: ";
+    for (int i = 0; i < 5; i++){
         cout <<"("<< next.fitness[i].first << ", " << next.fitness[i].second<<"), ";
     }
     cout << endl;

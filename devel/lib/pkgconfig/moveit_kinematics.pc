@@ -1,8 +1,0 @@
-prefix=/home/ros/abb_ws/devel
-
-Name: moveit_kinematics
-Description: Description of moveit_kinematics
-Version: 1.1.6
-Cflags: -I/home/ros/abb_ws/src/moveit_kinematics/kdl_kinematics_plugin/include -I/home/ros/abb_ws/src/moveit_kinematics/lma_kinematics_plugin/include -I/home/ros/abb_ws/src/moveit_kinematics/srv_kinematics_plugin/include -I/home/ros/abb_ws/src/moveit_kinematics/cached_ik_kinematics_plugin/include -I/usr/include/eigen3
-Libs: -L${prefix}/lib 
-Requires: moveit_core pluginlib roscpp

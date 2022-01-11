@@ -1,8 +1,0 @@
-prefix=/home/ros/abb_ws/devel
-
-Name: ipa_kifz_viewplanning
-Description: Description of ipa_kifz_viewplanning
-Version: 0.0.1
-Cflags: -I/home/ros/abb_ws/devel/include -I/home/ros/abb_ws/src/rl_viewplanning/ipa_kifz_viewplanning/include
-Libs: -L${prefix}/lib 
-Requires: message_runtime

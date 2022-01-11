@@ -67,14 +67,14 @@ set(abb_driver_CONFIG_INCLUDED TRUE)
 
 # set variables for source/devel/install prefixes
 if("FALSE" STREQUAL "TRUE")
-  set(abb_driver_SOURCE_PREFIX /home/ros/abb_ws/src/abb_driver)
-  set(abb_driver_DEVEL_PREFIX /home/ros/abb_ws/devel)
+  set(abb_driver_SOURCE_PREFIX /home/ohb/abb_ws/src/abb_driver)
+  set(abb_driver_DEVEL_PREFIX /home/ohb/abb_ws/devel)
   set(abb_driver_INSTALL_PREFIX "")
   set(abb_driver_PREFIX ${abb_driver_DEVEL_PREFIX})
 else()
   set(abb_driver_SOURCE_PREFIX "")
   set(abb_driver_DEVEL_PREFIX "")
-  set(abb_driver_INSTALL_PREFIX /home/ros/abb_ws/install)
+  set(abb_driver_INSTALL_PREFIX /home/ohb/abb_ws/install)
   set(abb_driver_PREFIX ${abb_driver_INSTALL_PREFIX})
 endif()
 
@@ -154,7 +154,7 @@ foreach(library ${libraries})
     set(lib_path "")
     set(lib "${library}-NOTFOUND")
     # since the path where the library is found is returned we have to iterate over the paths manually
-    foreach(path /home/ros/abb_ws/install/lib;/home/ros/abb_ws/devel/lib;/home/ros/demo05_ws/devel/lib;/opt/ros/noetic/lib)
+    foreach(path /home/ohb/abb_ws/install/lib;/home/ohb/vp_ws/devel/lib;/opt/ros/noetic/lib)
       find_library(lib ${library}
         PATHS ${path}
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)
@@ -211,7 +211,7 @@ foreach(depend ${depends})
   _unpack_libraries_with_build_configuration(abb_driver_LIBRARIES ${abb_driver_LIBRARIES})
 
   _list_append_unique(abb_driver_LIBRARY_DIRS ${${abb_driver_dep}_LIBRARY_DIRS})
-  list(APPEND abb_driver_EXPORTED_TARGETS ${${abb_driver_dep}_EXPORTED_TARGETS})
+  _list_append_deduplicate(abb_driver_EXPORTED_TARGETS ${${abb_driver_dep}_EXPORTED_TARGETS})
 endforeach()
 
 set(pkg_cfg_extras "")

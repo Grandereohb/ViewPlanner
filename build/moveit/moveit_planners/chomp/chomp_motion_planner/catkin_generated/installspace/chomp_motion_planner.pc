@@ -1,8 +1,0 @@
-prefix=/home/ros/abb_ws/install
-
-Name: chomp_motion_planner
-Description: Description of chomp_motion_planner
-Version: 1.1.6
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib -lchomp_motion_planner
-Requires: 

@@ -1,4 +1,4 @@
-prefix=/home/ros/abb_ws/install
+prefix=/home/ohb/abb_ws/install
 
 Name: abb_driver
 Description: Description of abb_driver

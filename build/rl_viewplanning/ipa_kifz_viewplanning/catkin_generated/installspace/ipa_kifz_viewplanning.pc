@@ -1,8 +1,0 @@
-prefix=/home/ros/abb_ws/install
-
-Name: ipa_kifz_viewplanning
-Description: Description of ipa_kifz_viewplanning
-Version: 0.0.1
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib 
-Requires: message_runtime

@@ -1,8 +1,0 @@
-prefix=/home/ros/abb_ws/install
-
-Name: industrial_deprecated
-Description: Description of industrial_deprecated
-Version: 0.7.1
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

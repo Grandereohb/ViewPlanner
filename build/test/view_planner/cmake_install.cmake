@@ -1,8 +1,8 @@
-# Install script for directory: /home/ros/abb_ws/src/test/view_planner
+# Install script for directory: /home/ohb/abb_ws/src/test/view_planner
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/ros/abb_ws/install")
+  set(CMAKE_INSTALL_PREFIX "/home/ohb/abb_ws/install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -38,17 +38,17 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/ros/abb_ws/build/test/view_planner/catkin_generated/installspace/view_planner.pc")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/ohb/abb_ws/build/test/view_planner/catkin_generated/installspace/view_planner.pc")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/view_planner/cmake" TYPE FILE FILES
-    "/home/ros/abb_ws/build/test/view_planner/catkin_generated/installspace/view_plannerConfig.cmake"
-    "/home/ros/abb_ws/build/test/view_planner/catkin_generated/installspace/view_plannerConfig-version.cmake"
+    "/home/ohb/abb_ws/build/test/view_planner/catkin_generated/installspace/view_plannerConfig.cmake"
+    "/home/ohb/abb_ws/build/test/view_planner/catkin_generated/installspace/view_plannerConfig-version.cmake"
     )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/view_planner" TYPE FILE FILES "/home/ros/abb_ws/src/test/view_planner/package.xml")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/view_planner" TYPE FILE FILES "/home/ohb/abb_ws/src/test/view_planner/package.xml")
 endif()
 

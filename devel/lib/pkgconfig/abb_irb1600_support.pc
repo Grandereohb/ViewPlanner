@@ -1,4 +1,4 @@
-prefix=/home/ros/abb_ws/devel
+prefix=/home/ohb/abb_ws/devel
 
 Name: abb_irb1600_support
 Description: Description of abb_irb1600_support
