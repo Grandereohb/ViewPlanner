@@ -225,8 +225,10 @@ void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, i
 		}
 
 		// 计算视点的可见性矩阵
-		for(int j = 0; j < model.size(); j++){
-			tempVisibility.push_back(checkVisibility(candidate, model, j));
+		for(int j = 0; j < model.size(); ++j){
+			int n = checkVisibility(candidate, model, j);
+			candidate.vis_area += n;
+			tempVisibility.push_back(n);
 		}
 
 		// 生成视点图
@@ -597,10 +599,10 @@ ViewPoint::ViewPoint(int num, double cost, moveit_msgs::RobotTrajectory traj){
 	this->traj = traj;
 	this->next = NULL;
 }
-ViewPoint::ViewPoint(){}
+ViewPoint::ViewPoint() : vis_area(0) {}
 
 Graph::Graph(){
-	for(int i=0;i<1000;i++)
+	for (int i = 0; i < 1000; ++i)
 		this->edges[i] = NULL;
 }
 Graph::~Graph(){ }
@@ -614,7 +616,7 @@ void Graph::insertEdge(int x, int y, double cost, moveit_msgs::RobotTrajectory t
 	}
 }
 void Graph::print(){
-	for(int v = 0; v < 1000; v ++){
+	for(int v = 0; v < 1000; ++v){
         if(this->edges[v] != NULL){
             cout << "视点 " << v << " 有以下邻节点: " << endl;
             ViewPoint *curr = this->edges[v];

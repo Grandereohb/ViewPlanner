@@ -1,5 +1,6 @@
 #include "ViewPlan.h"
 #include "RKGA.h"
+#include "MCST.h"
 #include <ros/ros.h>
 #include <cstring>
 #include <vector>
@@ -20,7 +21,7 @@ int main(int argc, char **argv)
     const char* file_path       = "/home/ros/abb_ws/src/test/view_planner/model/model1123_5k.stl";  // 用于视点生成的模型文件路径
     const char* file_path_small = "package://view_planner/model/model1123_5k_small.stl";            // 用于构建场景的模型文件路径
 
-    int sampleNum        = 20;    // 采样候选视点个数
+    int sampleNum        = 40;    // 采样候选视点个数
     double coverage_rate = 0.98;   // 要求的采样覆盖率
 
     // RKGA参数
@@ -62,8 +63,15 @@ int main(int argc, char **argv)
     visCandidateViewPoint(cand_view_point, vp);  // 候选视点可视化
     
     // 筛选最优视点并进行测量路径规划
+    // 随机密钥遗传算法求解
     RKGA scp_solver(pop, pop_elite, pop_mutant, rhoe, coverage_rate, cand_view_point, vp.g, vp.visibility_matrix);
     vector<ViewPoint> best_view_point = scp_solver.solveRKGA(maxGen); // 最优视点
+
+    // 马尔科夫决策过程+蒙特卡洛法求解
+    MCST mcst_solver(coverage_rate, cand_view_point, vp.g, vp.visibility_matrix); 
+    vector<ViewPoint> best_view_point = mcst_solver.solveMCST(); // 最优视点
+
+
     visBestViewPoint(best_view_point, vp);                            // 最佳视点与运动路径可视化
 
     // 规划机器人运动轨迹并控制机器人运动
@@ -77,7 +85,7 @@ int main(int argc, char **argv)
             moveit::planning_interface::MoveGroupInterface::Plan my_plan;
             moveit::planning_interface::MoveItErrorCode success = group.plan(my_plan);
             ROS_INFO("Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
-            visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group, rvt::BLUE);
+            visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
             visual_tools.trigger();
 
             //让机械臂按照规划的轨迹开始运动。
@@ -173,7 +181,7 @@ void visEnv(const char *file_path_small, const ViewPlan &vp){
     table_pose.orientation.x = 0;
     table_pose.orientation.y = 0;
     table_pose.orientation.z = 0;
-    table_pose.position.x = vp.getModelPositionX();
+    table_pose.position.x = vp.getTablePositionX();
     table_pose.position.y = 0;
     table_pose.position.z = primitive.dimensions[2] / 2;
 

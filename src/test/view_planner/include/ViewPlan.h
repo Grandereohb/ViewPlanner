@@ -50,7 +50,8 @@ public:
 	int num;                               // 视点序号
 	Vector3 position;                      // 视点位置
 	Vector3 direction;                     // 视点方向
-	Vector3 robot_position;                // 视点位置对应的机械臂末端位置
+	int vis_area;					       // 视点可见面积
+	Vector3 robot_position;				   // 视点位置对应的机械臂末端位置
 	Eigen::Quaterniond quaternion;         // 视点位置对应的机械臂四元数
 	double cost;                           // 运动成本
 	vector<double> joint_state;            // 视点位姿下六个轴的关节状态
@@ -86,15 +87,15 @@ private:
 	const float PI                = 3.1415926;
 	const double measure_dist     = 650.0;                 // 最佳测量距离(单位：mm)
     const double minFOD           = measure_dist - 200.0;  // 前景深(单位：mm) minFOD = measure_dist - 200
-	const double maxFOD           = measure_dist + 200.0;  // 后景深(单位：mm) maxFOD = measure_dist + 400
+	const double maxFOD           = measure_dist + 150.0;  // 后景深(单位：mm) maxFOD = measure_dist + 400
     //int rangeFOD                = maxFOD - minFOD;       // 测量范围
 	const double minFOV           = 0.52359877;            // 视野(弧度) 水平视角30度，垂直视角25度  minFOV = 30/180*PI = 0.52359877
-	const double view_angle_range = 1.309;                 // 测量视角范围 view_angle_range = 75/180*PI = 1.309
+	const double view_angle_range = 1.047;                 // 测量视角范围 view_angle_range = 60/180*PI = 1.047
 	// 仿真场景距离参数
-	const double model_position_x = 0.8;                   // 待测模型在x轴上的位置（单位：m）  
+	const double model_position_x = 0.7;                   // 待测模型在x轴上的位置（单位：m）  
 	const double model_position_z = 0.62;                  // 待测模型在z轴上的位置（单位：m）  
-	const double table_position_x = model_position_x - 0.05;      // 平台在x轴上的位置（单位：m）  
-	const double table_position_z = (model_position_z - 0.07)/2;  // 平台在z轴上的位置（单位：m） z = (转向节中心高度 - 转向节下半部分高度0.07)/2 
+	const double table_position_x = model_position_x;      // 平台在x轴上的位置（单位：m）  
+	const double table_position_z = model_position_z / 2;  // 平台在z轴上的位置（单位：m）
     
 	//int numTriangles = 0;  // 面片数量
 	//int sampleNum;  // 视点采样数量
