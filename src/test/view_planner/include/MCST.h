@@ -24,9 +24,12 @@ private:
 
     int selectStartIndex(const vector<ViewPoint> &candidates);
     TreeNode treePolicy(TreeNode &root, vector<ViewPoint> &select_vp);
-    double simulation(const TreeNode &node, vector<ViewPoint> &select_vp);
+    double simulation(TreeNode &node, vector<ViewPoint> &select_vp);
     bool isMostCovered(const vector<ViewPoint> &select_vp);
-    Action greedyRollout(const TreeNode &node, vector<ViewPoint> &select_vp);
+    Action greedyRollout(const TreeNode &node, vector<ViewPoint> &select_vp, double &once_cost);
+    // int updateByModel(TreeNode &node, Action a, const vector<ViewPoint> &candidates);
+    double getTravelCost(int start, int end);
+    void backPropagation(TreeNode &node, double cost);
 };
 
 class TreeNode{
@@ -42,6 +45,9 @@ public:
     bool eraseChild(int id);
     TreeNode *randomChild();
     TreeNode *bestChild();
+    void addVisitNum();
+    void addCost(double once_cost);
+    void checkMinCost(double once_cost);
 
 private:
     // 可按需求修改参数
@@ -53,7 +59,7 @@ private:
     double min_cost;              // 该节点的最小cost
     int depth;
 
-    vector<TreeNode> children;   // 当前的子节点
+    vector<TreeNode> children;    // 当前的子节点
     vector<Action> actions;       // 当前状态所有可能采取的动作
 };
 

@@ -21,7 +21,17 @@ vector<ViewPoint> MCST::solveMCST(){
         TreeNode node = treePolicy(root, select_vp);
         select_vp.push_back(node.state.getVP());
         double cost = simulation(node, select_vp);
+        backPropagation(node, cost);
     }
+
+    vector<ViewPoint> res;
+    TreeNode *cur = &root;
+    while(cur){
+        res.push_back(cur->state.getVP());
+        cur = cur->bestChild();
+    }
+    delete cur;
+    return res;
 }
 int MCST::selectStartIndex(const vector<ViewPoint> &candidates){
     if(candidates.size() == 0){
@@ -54,16 +64,20 @@ TreeNode MCST::treePolicy(TreeNode &root, vector<ViewPoint> &select_vp){
     }
     return *node;
 }
-double MCST::simulation(const TreeNode &node, vector<ViewPoint> &select_vp){
+double MCST::simulation(TreeNode &node, vector<ViewPoint> &select_vp){
     double cost = 0;
     do{
-        Action action = greedyRollout(node, select_vp);
+        double once_cost = 0;
+        Action action = greedyRollout(node, select_vp, once_cost);
+        node.state.applyAction(action, candidates);
+        cost += once_cost;
     } while (!isMostCovered(select_vp));
+    return cost;
 }
 bool MCST::isMostCovered(const vector<ViewPoint> &select_vp){
     vector<vector<int>> tempVM;
-    for(int i = 0; i < candidates.size(); i++){
-        tempVM.push_back(visibility_matrix[candidates[i].num]);
+    for(int i = 0; i < select_vp.size(); i++){
+        tempVM.push_back(visibility_matrix[select_vp[i].num]);
     }
     double visible_num = 0;
     for (int i = 0; i < tempVM[0].size(); i++){
@@ -75,7 +89,6 @@ bool MCST::isMostCovered(const vector<ViewPoint> &select_vp){
         }
         visible_num += visible_tmp / 2;
 	}
-    // cout << "132 visible num: " << visible_num<<" / "<< coverage_rate * tempVM[0].size() << endl;
     if (visible_num >= coverage_rate * tempVM[0].size())
     {
         return 1;
@@ -83,15 +96,14 @@ bool MCST::isMostCovered(const vector<ViewPoint> &select_vp){
     else
         return 0;
 }
-Action MCST::greedyRollout(const TreeNode &node, vector<ViewPoint> &select_vp){
+Action MCST::greedyRollout(const TreeNode &node, vector<ViewPoint> &select_vp, double &once_cost){
     vector<int> uncovered_patch;
     vector<int> select_vp_index;
     for (int i = 0; i < select_vp.size(); ++i){
         select_vp_index.push_back(select_vp[i].num);
     }
     sort(select_vp_index.begin(), select_vp_index.end());
-    for (int i = 0; i < visibility_matrix[0].size(); ++i)
-    {
+    for (int i = 0; i < visibility_matrix[0].size(); ++i){
         bool flag = false;
         for (int j = 0; j < select_vp.size(); ++j){
             if (visibility_matrix[select_vp[j].num][i] == 1){
@@ -101,7 +113,7 @@ Action MCST::greedyRollout(const TreeNode &node, vector<ViewPoint> &select_vp){
         }
         if (flag == false)
             uncovered_patch.push_back(i);
-        }
+    }
     int vp_index = 0;
     double max_value = DBL_MIN;
     int max_index = 0;
@@ -114,25 +126,43 @@ Action MCST::greedyRollout(const TreeNode &node, vector<ViewPoint> &select_vp){
         for (int j = 0; j < uncovered_patch.size(); ++j){
             delta_coverage += visibility_matrix[i][uncovered_patch[j]];
         }
-        ViewPoint *curr = graph->edges[node.state.getNum()];
-        while (curr->num != i){
-            curr = curr->next;
-        }
-        double travel_cost = curr->cost;
+        double travel_cost = getTravelCost(node.state.getNum(), i);
         double value = delta_coverage / travel_cost;
         if(value > max_value){
             max_value = value;
             max_index = i;
+            once_cost = travel_cost;
         }
-        Action next_action(max_index);
-        return next_action;
     }
+    Action next_action(max_index);
+    return next_action;
 }
-
+// int MCST::updateByModel(TreeNode &node, Action a, const vector<ViewPoint> &candidates){
+//     node.state.applyAction(a, candidates);
+// }
+double MCST::getTravelCost(int start, int end){
+    ViewPoint *curr = graph->edges[start];
+    while (curr->num != end){
+        curr = curr->next;
+    }
+    delete curr;
+    return curr->cost;
+}
+void MCST::backPropagation(TreeNode &node, double cost){
+    TreeNode *cur = &node;
+    while(cur->parent){
+        cur->addVisitNum();
+        cur->addCost(cost);
+        cur->checkMinCost(cost);
+        cost += getTravelCost(cur->parent->state.getNum(), cur->state.getNum());
+        cur = cur->parent;
+    }
+    delete cur;
+}
 
 // ---------------------------------------------
 TreeNode::TreeNode(const State &state_, TreeNode *parent_ = NULL) : state(state_), action(), parent(parent_),
-                                                                    num_visits(0), cost(0), min_cost(0), depth(parent ? parent->depth + 1 : 0) {
+                                                                    num_visits(0), cost(0), min_cost(DBL_MAX), depth(parent ? parent->depth + 1 : 0) {
     action.id = state.getNum();
 }
 bool TreeNode::initializeNode(const vector<ViewPoint> &candidates){
@@ -158,10 +188,17 @@ int TreeNode::isFullyExpanded(){
     return -1;
 }
 TreeNode TreeNode::expand(int id){
-    children[id].num_visits++;
-    children[id].children = children;
-    children[id].eraseChild(id);
+    // children[id].num_visits++;
     children[id].parent = this;
+
+    for (int i = 0; i < children.size(); ++i){
+        if(i == id)
+            continue;
+        TreeNode node(children[i].state, &children[id]);
+        children[id].children.push_back(node);
+    }
+    // children[id].children = children;
+    // children[id].eraseChild(id);
     return children[id];
 }
 bool TreeNode::eraseChild(int id){
@@ -191,4 +228,13 @@ TreeNode *TreeNode::bestChild(){
         }
     }
     return &children[min_index];
+}
+void TreeNode::addVisitNum(){
+    ++num_visits;
+}
+void TreeNode::addCost(double once_cost){
+    cost += once_cost;
+}
+void TreeNode::checkMinCost(double once_cost){
+    min_cost = min(min_cost, once_cost);
 }

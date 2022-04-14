@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 
     // 马尔科夫决策过程+蒙特卡洛法求解
     MCST mcst_solver(coverage_rate, cand_view_point, vp.g, vp.visibility_matrix); 
-    vector<ViewPoint> best_view_point = mcst_solver.solveMCST(); // 最优视点
+    // vector<ViewPoint> best_view_point = mcst_solver.solveMCST(); // 最优视点
 
 
     visBestViewPoint(best_view_point, vp);                            // 最佳视点与运动路径可视化
