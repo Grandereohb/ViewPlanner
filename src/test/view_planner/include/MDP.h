@@ -4,8 +4,8 @@
 
 struct Action{
     int id;  // 下一个视点状态id
-    Action(int id_) { id = id_; }
-    Action();
+    Action(int id_) : id(id_){};
+    Action() : id(0){};
 };
 
 class State{

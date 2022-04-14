@@ -64,13 +64,12 @@ int main(int argc, char **argv)
     
     // 筛选最优视点并进行测量路径规划
     // 随机密钥遗传算法求解
-    RKGA scp_solver(pop, pop_elite, pop_mutant, rhoe, coverage_rate, cand_view_point, vp.g, vp.visibility_matrix);
-    vector<ViewPoint> best_view_point = scp_solver.solveRKGA(maxGen); // 最优视点
+    // RKGA scp_solver(pop, pop_elite, pop_mutant, rhoe, coverage_rate, cand_view_point, vp.g, vp.visibility_matrix);
+    // vector<ViewPoint> best_view_point = scp_solver.solveRKGA(maxGen); // 最优视点
 
     // 马尔科夫决策过程+蒙特卡洛法求解
     MCST mcst_solver(coverage_rate, cand_view_point, vp.g, vp.visibility_matrix); 
-    // vector<ViewPoint> best_view_point = mcst_solver.solveMCST(); // 最优视点
-
+    vector<ViewPoint> best_view_point = mcst_solver.solveMCST();      // 最优视点
 
     visBestViewPoint(best_view_point, vp);                            // 最佳视点与运动路径可视化
 

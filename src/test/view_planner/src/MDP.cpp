@@ -1,8 +1,9 @@
 #include "MDP.h"
 
 using namespace std;
-State::State(ViewPoint view_point_): view_point(view_point_) {}
 
+State::State(ViewPoint view_point_): view_point(view_point_) {}
+State::~State(){}
 bool State::applyAction(const Action& action, vector<ViewPoint> candidates){
     if(action.id >= candidates.size() || action.id < 0){
         cout << "action执行失败：无法找到下一个状态位置" << endl;

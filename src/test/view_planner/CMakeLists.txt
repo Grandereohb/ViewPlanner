@@ -159,6 +159,8 @@ add_library(ViewPlan
     # include/ViewPoint.h
     src/ViewPlan.cpp
     src/RKGA.cpp
+    src/MCST.cpp
+    src/MDP.cpp
 )
 # add_library(RKGA
 #     # include/RKGA.h

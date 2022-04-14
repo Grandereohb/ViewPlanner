@@ -6,10 +6,11 @@ MCST::MCST(double coverage_rate_, vector<ViewPoint> candidates_, Graph *graph_, 
 coverage_rate(coverage_rate_), candidates(candidates_), graph(graph_), visibility_matrix(visibility_matrix_) {}
 
 vector<ViewPoint> MCST::solveMCST(){
+    vector<ViewPoint> res;
     int start_index = selectStartIndex(candidates);
     if(start_index == -1){
         cout << "候选视点集为空，无法寻找初始视点！" << endl;
-        return;
+        return res;
     }
     State state(candidates[start_index]);
     TreeNode root(state);
@@ -24,7 +25,6 @@ vector<ViewPoint> MCST::solveMCST(){
         backPropagation(node, cost);
     }
 
-    vector<ViewPoint> res;
     TreeNode *cur = &root;
     while(cur){
         res.push_back(cur->state.getVP());
@@ -161,8 +161,12 @@ void MCST::backPropagation(TreeNode &node, double cost){
 }
 
 // ---------------------------------------------
-TreeNode::TreeNode(const State &state_, TreeNode *parent_ = NULL) : state(state_), action(), parent(parent_),
-                                                                    num_visits(0), cost(0), min_cost(DBL_MAX), depth(parent ? parent->depth + 1 : 0) {
+TreeNode::TreeNode(const State &state_, TreeNode *parent_) : state(state_), parent(parent_),
+                                                             num_visits(0), cost(0), min_cost(DBL_MAX), depth(parent ? parent->depth + 1 : 0) {
+    action.id = state.getNum();
+}
+TreeNode::TreeNode(const State &state_) : state(state_), parent(nullptr),
+                                          num_visits(0), cost(0), min_cost(DBL_MAX), depth(parent ? parent->depth + 1 : 0) {
     action.id = state.getNum();
 }
 bool TreeNode::initializeNode(const vector<ViewPoint> &candidates){
@@ -201,9 +205,9 @@ TreeNode TreeNode::expand(int id){
     // children[id].eraseChild(id);
     return children[id];
 }
-bool TreeNode::eraseChild(int id){
-    children.erase(children.begin() + id);
-}
+// bool TreeNode::eraseChild(int id){
+//     children.erase(children.begin() + id);
+// }
 TreeNode *TreeNode::randomChild(){
     vector<int> visited_child_index;
     for (int i = 0; i < children.size(); ++i){
