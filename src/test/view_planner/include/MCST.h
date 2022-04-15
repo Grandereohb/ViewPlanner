@@ -12,7 +12,7 @@ public:
     TreeNode(const State &state, TreeNode *parent);
     TreeNode(const State &state);
     bool initializeNode(const vector<ViewPoint> &candidates);
-    TreeNode expand(int id);
+    TreeNode *expand(int id);
     int isFullyExpanded();
     // bool eraseChild(int id);
     TreeNode *randomChild();
@@ -29,7 +29,7 @@ private:
     double cost;                  // 该节点的cost
     double min_cost;              // 该节点的最小cost
     int depth;
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
     vector<TreeNode> children;    // 当前的子节点
     vector<Action> actions;       // 当前状态所有可能采取的动作
 };
@@ -45,7 +45,7 @@ private:
     // 可按需求修改参数
     const int max_iteration = 200;
     const double epsilon1 = 50;
-    const double epsilon2 = 50;
+    const double epsilon2 = 60;
 
     // 不可修改参数
     double coverage_rate;
@@ -54,13 +54,13 @@ private:
     vector<vector<int>> visibility_matrix;
 
     int selectStartIndex(const vector<ViewPoint> &candidates);
-    TreeNode treePolicy(TreeNode &root, vector<ViewPoint> &select_vp);
-    double simulation(TreeNode &node, vector<ViewPoint> &select_vp);
+    TreeNode *treePolicy(TreeNode &root, vector<ViewPoint> &select_vp);
+    double simulation(TreeNode *node, vector<ViewPoint> &select_vp);
     bool isMostCovered(const vector<ViewPoint> &select_vp);
-    Action greedyRollout(const TreeNode &node, vector<ViewPoint> &select_vp, double &once_cost);
+    Action greedyRollout(const TreeNode *node, vector<ViewPoint> &select_vp, double &once_cost);
     // int updateByModel(TreeNode &node, Action a, const vector<ViewPoint> &candidates);
     double getTravelCost(int start, int end);
-    void backPropagation(TreeNode &node, double cost);
+    void backPropagation(TreeNode *node, double cost);
 };
 
 #endif

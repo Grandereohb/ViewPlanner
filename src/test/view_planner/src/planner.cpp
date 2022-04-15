@@ -22,7 +22,7 @@ int main(int argc, char **argv)
     const char* file_path_small = "package://view_planner/model/model1123_5k_small.stl";            // 用于构建场景的模型文件路径
 
     int sampleNum        = 40;    // 采样候选视点个数
-    double coverage_rate = 0.98;   // 要求的采样覆盖率
+    double coverage_rate = 0.8;   // 要求的采样覆盖率
 
     // RKGA参数
     int maxGen        = 200;  // 最大进化代数

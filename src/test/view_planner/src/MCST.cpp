@@ -19,8 +19,9 @@ vector<ViewPoint> MCST::solveMCST(){
     for (int i = 0; i < max_iteration; ++i){
         vector<ViewPoint> select_vp;
         select_vp.push_back(root.state.getVP());
-        TreeNode node = treePolicy(root, select_vp);
-        select_vp.push_back(node.state.getVP());
+        TreeNode *node = treePolicy(root, select_vp);
+        // select_vp.push_back(node.state.view_point);
+        select_vp.push_back(node->state.getVP());
         double cost = simulation(node, select_vp);
         backPropagation(node, cost);
     }
@@ -47,29 +48,40 @@ int MCST::selectStartIndex(const vector<ViewPoint> &candidates){
     }
     return start_index;
 }
-TreeNode MCST::treePolicy(TreeNode &root, vector<ViewPoint> &select_vp){
-    int iteration = 50;
+TreeNode *MCST::treePolicy(TreeNode &root, vector<ViewPoint> &select_vp){
+    int iteration = 40;
     TreeNode *node = &root;
+    int time = 0;
     while (iteration--){
+        ++time;
         int expand_id = node->isFullyExpanded();
         int random_num = rand() % 100;
-        if (expand_id >= 0 && random_num < epsilon1)
+        if (time == 1 || (expand_id >= 0 && random_num < epsilon1))
             return node->expand(expand_id);
-        else if(random_num < epsilon2)
-            node = node->randomChild();
-        else
-            node = node->bestChild();
+        else if(expand_id == -1){
+            if(random_num < epsilon2)
+                node = node->bestChild();
+            else
+                node = node->randomChild();
+        } 
+        else{
+            if(random_num < epsilon2)
+                node = node->randomChild();
+            else
+                node = node->bestChild();
+        }
         if(iteration != 0)
             select_vp.push_back(node->state.getVP());
     }
-    return *node;
+    return node;
 }
-double MCST::simulation(TreeNode &node, vector<ViewPoint> &select_vp){
+double MCST::simulation(TreeNode *node, vector<ViewPoint> &select_vp){
     double cost = 0;
     do{
         double once_cost = 0;
         Action action = greedyRollout(node, select_vp, once_cost);
-        node.state.applyAction(action, candidates);
+        node->state.applyAction(action, candidates);
+        select_vp.push_back(node->state.getVP());
         cost += once_cost;
     } while (!isMostCovered(select_vp));
     return cost;
@@ -96,7 +108,7 @@ bool MCST::isMostCovered(const vector<ViewPoint> &select_vp){
     else
         return 0;
 }
-Action MCST::greedyRollout(const TreeNode &node, vector<ViewPoint> &select_vp, double &once_cost){
+Action MCST::greedyRollout(const TreeNode *node, vector<ViewPoint> &select_vp, double &once_cost){
     vector<int> uncovered_patch;
     vector<int> select_vp_index;
     for (int i = 0; i < select_vp.size(); ++i){
@@ -126,7 +138,7 @@ Action MCST::greedyRollout(const TreeNode &node, vector<ViewPoint> &select_vp, d
         for (int j = 0; j < uncovered_patch.size(); ++j){
             delta_coverage += visibility_matrix[i][uncovered_patch[j]];
         }
-        double travel_cost = getTravelCost(node.state.getNum(), i);
+        double travel_cost = getTravelCost(node->state.getNum(), i);
         double value = delta_coverage / travel_cost;
         if(value > max_value){
             max_value = value;
@@ -145,11 +157,10 @@ double MCST::getTravelCost(int start, int end){
     while (curr->num != end){
         curr = curr->next;
     }
-    delete curr;
     return curr->cost;
 }
-void MCST::backPropagation(TreeNode &node, double cost){
-    TreeNode *cur = &node;
+void MCST::backPropagation(TreeNode *node, double cost){
+    TreeNode *cur = node;
     while(cur->parent){
         cur->addVisitNum();
         cur->addCost(cost);
@@ -191,7 +202,7 @@ int TreeNode::isFullyExpanded(){
     }
     return -1;
 }
-TreeNode TreeNode::expand(int id){
+TreeNode *TreeNode::expand(int id){
     // children[id].num_visits++;
     children[id].parent = this;
 
@@ -201,9 +212,7 @@ TreeNode TreeNode::expand(int id){
         TreeNode node(children[i].state, &children[id]);
         children[id].children.push_back(node);
     }
-    // children[id].children = children;
-    // children[id].eraseChild(id);
-    return children[id];
+    return &children[id];
 }
 // bool TreeNode::eraseChild(int id){
 //     children.erase(children.begin() + id);
