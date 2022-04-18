@@ -8,29 +8,29 @@ public:
     State state;                  // 节点的状态
     Action action;                // 指向该节点状态的动作
     TreeNode *parent;             // 父节点
+    bool has_child;               // 记录有无已访问的子节点
+    vector<TreeNode> children;    // 当前的子节点
 
     TreeNode(const State &state, TreeNode *parent);
     TreeNode(const State &state);
-    bool initializeNode(const vector<ViewPoint> &candidates);
-    TreeNode *expand(int id);
-    int isFullyExpanded();
-    // bool eraseChild(int id);
-    TreeNode *randomChild();
-    TreeNode *bestChild();
-    void addVisitNum();
-    void addCost(double once_cost);
-    void checkMinCost(double once_cost);
+    ~TreeNode(){}
+
+    bool initializeNode(const vector<ViewPoint> &candidates);  // 初始化节点
+    TreeNode *expand(int id);                                  // 扩展子节点
+    int isFullyExpanded();                                     // 检查是否完全扩展
+    TreeNode *randomChild();                                   // 选择随机子节点
+    TreeNode *weightedBestChild();                             // 选择加权最佳子节点
+    TreeNode *bestChild();                                     // 选择最佳子节点
+    TreeNode *applyAction(const Action &action);               // 执行action
+    void addVisitNum();                                        // 增加节点的num_visits
+    void addCost(double once_cost);                            // 增加节点的cost
+    void updateMinCost(double once_cost);                      // 更新min_cost
 
 private:
-    // 可按需求修改参数
-
-    // 不可修改参数
     int num_visits;               // 该节点被访问的次数
     double cost;                  // 该节点的cost
     double min_cost;              // 该节点的最小cost
-    int depth;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-    vector<TreeNode> children;    // 当前的子节点
+    int depth;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
     vector<Action> actions;       // 当前状态所有可能采取的动作
 };
 
@@ -43,9 +43,9 @@ public:
 
 private:
     // 可按需求修改参数
-    const int max_iteration = 200;
-    const double epsilon1 = 50;
-    const double epsilon2 = 60;
+    const int max_iteration = 200;  // 最大迭代次数
+    const double epsilon1 = 50;     // TreePolicy参数1
+    const double epsilon2 = 60;     // TreePolicy参数2
 
     // 不可修改参数
     double coverage_rate;
@@ -53,14 +53,14 @@ private:
     Graph *graph;
     vector<vector<int>> visibility_matrix;
 
-    int selectStartIndex(const vector<ViewPoint> &candidates);
-    TreeNode *treePolicy(TreeNode &root, vector<ViewPoint> &select_vp);
-    double simulation(TreeNode *node, vector<ViewPoint> &select_vp);
-    bool isMostCovered(const vector<ViewPoint> &select_vp);
-    Action greedyRollout(const TreeNode *node, vector<ViewPoint> &select_vp, double &once_cost);
+    int selectStartIndex(const vector<ViewPoint> &candidates);                                    // 选择初始视点
+    TreeNode *treePolicy(TreeNode &root, vector<ViewPoint> &select_vp);                           // 选择与扩展搜索树
+    double simulation(TreeNode *node, vector<ViewPoint> &select_vp);                              // 模拟
+    bool isMostCovered(const vector<ViewPoint> &select_vp);                                       // 判断是否满足覆盖
+    Action greedyRollout(const TreeNode *node, vector<ViewPoint> &select_vp, double &once_cost);  // 贪心搜索
     // int updateByModel(TreeNode &node, Action a, const vector<ViewPoint> &candidates);
-    double getTravelCost(int start, int end);
-    void backPropagation(TreeNode *node, double cost);
+    double getTravelCost(int start, int end);                                                     // 计算运动成本
+    void backPropagation(TreeNode *node, double cost);                                            // 反向更新
 };
 
 #endif
