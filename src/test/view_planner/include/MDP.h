@@ -11,6 +11,7 @@ struct Action{
 class State{
 public:
     State(ViewPoint view_point_);
+    State(){}
     ~State();
 
     bool applyAction(const Action &action, vector<ViewPoint> candidates);

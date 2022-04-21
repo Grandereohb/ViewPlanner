@@ -21,8 +21,8 @@ int main(int argc, char **argv)
     const char* file_path       = "/home/ros/abb_ws/src/test/view_planner/model/model1123_5k.stl";  // 用于视点生成的模型文件路径
     const char* file_path_small = "package://view_planner/model/model1123_5k_small.stl";            // 用于构建场景的模型文件路径
 
-    int sampleNum        = 40;    // 采样候选视点个数
-    double coverage_rate = 0.9;   // 要求的采样覆盖率
+    int sampleNum        = 30;    // 采样候选视点个数
+    double coverage_rate = 0.90;   // 要求的采样覆盖率
 
     // RKGA参数
     int maxGen        = 200;  // 最大进化代数

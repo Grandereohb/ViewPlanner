@@ -13,6 +13,8 @@ public:
 
     TreeNode(const State &state, TreeNode *parent);
     TreeNode(const State &state);
+    TreeNode(const TreeNode* node);
+    // TreeNode(){}
     ~TreeNode(){}
 
     bool initializeNode(const vector<ViewPoint> &candidates);  // 初始化节点
@@ -22,9 +24,11 @@ public:
     TreeNode *weightedBestChild();                             // 选择加权最佳子节点
     TreeNode *bestChild();                                     // 选择最佳子节点
     TreeNode *applyAction(const Action &action);               // 执行action
+    double getTravelCost(int start, int end, Graph *g);        // 计算运动成本
     void addVisitNum();                                        // 增加节点的num_visits
     void addCost(double once_cost);                            // 增加节点的cost
     void updateMinCost(double once_cost);                      // 更新min_cost
+    void setUnreachable(int id);                               // 将子节点设置为无法到达
 
 private:
     int num_visits;               // 该节点被访问的次数
@@ -43,19 +47,19 @@ public:
 
 private:
     // 可按需求修改参数
-    const int max_iteration = 200;  // 最大迭代次数
+    const int max_iteration = 50000;  // 最大迭代次数
     const double epsilon1 = 50;     // TreePolicy参数1
     const double epsilon2 = 60;     // TreePolicy参数2
 
     // 不可修改参数
-    double coverage_rate;
-    vector<ViewPoint> candidates;
-    Graph *graph;
-    vector<vector<int>> visibility_matrix;
+    const double coverage_rate;
+    const vector<ViewPoint> candidates;
+    const Graph *graph;
+    const vector<vector<int>> visibility_matrix;
 
     int selectStartIndex(const vector<ViewPoint> &candidates);                                    // 选择初始视点
     TreeNode *treePolicy(TreeNode &root, vector<ViewPoint> &select_vp);                           // 选择与扩展搜索树
-    double simulation(TreeNode *node, vector<ViewPoint> &select_vp);                              // 模拟
+    double simulation(const TreeNode *node, vector<ViewPoint> &select_vp);                              // 模拟
     bool isMostCovered(const vector<ViewPoint> &select_vp);                                       // 判断是否满足覆盖
     Action greedyRollout(const TreeNode *node, vector<ViewPoint> &select_vp, double &once_cost);  // 贪心搜索
     // int updateByModel(TreeNode &node, Action a, const vector<ViewPoint> &candidates);
