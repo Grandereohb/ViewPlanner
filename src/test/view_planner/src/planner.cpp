@@ -145,6 +145,15 @@ void visEnv(const char *file_path_small, const ViewPlan &vp){
     moveit_msgs::CollisionObject table;
     table.header.frame_id = "base_link";
     table.id = "table";
+    // 墙面
+    moveit_msgs::CollisionObject wall_1;
+    wall_1.header.frame_id = "base_link";
+    wall_1.id = "wall_1";
+    
+
+    moveit_msgs::CollisionObject wall_2;
+    wall_2.header.frame_id = "base_link";
+    wall_2.id = "wall_2";
 
     // 导入待测物体STL网格模型
     shape_msgs::Mesh model_mesh;
@@ -160,10 +169,25 @@ void visEnv(const char *file_path_small, const ViewPlan &vp){
     shape_msgs::SolidPrimitive primitive;
     primitive.type = primitive.BOX;
     primitive.dimensions.resize(3);
-    primitive.dimensions[0] = 0.42;  // x
-    primitive.dimensions[1] = 0.37;  // y
+    primitive.dimensions[0] = 0.4;  // x
+    primitive.dimensions[1] = 0.3;  // y
     primitive.dimensions[2] = vp.getModelPositionZ();  // z
     // primitive.dimensions[2] = vp.getModelPositionZ() - 0.02;  //z = 转向节中心高度 - 转向节下半部分高度0.02
+
+    // 设置墙面的外形属性
+    shape_msgs::SolidPrimitive primitive_wall_1;
+    primitive_wall_1.type = primitive_wall_1.BOX;
+    primitive_wall_1.dimensions.resize(3);
+    primitive_wall_1.dimensions[0] = 0.1;
+    primitive_wall_1.dimensions[1] = 2.0;  
+    primitive_wall_1.dimensions[2] = 2.0;
+
+    shape_msgs::SolidPrimitive primitive_wall_2;
+    primitive_wall_2.type = primitive_wall_2.BOX;
+    primitive_wall_2.dimensions.resize(3);
+    primitive_wall_2.dimensions[0] = 2.0;
+    primitive_wall_2.dimensions[1] = 0.4;  
+    primitive_wall_2.dimensions[2] = 0.8;
 
     // 设置待测物体和平台位置
     geometry_msgs::Pose model_pose;
@@ -184,6 +208,41 @@ void visEnv(const char *file_path_small, const ViewPlan &vp){
     table_pose.position.y = 0;
     table_pose.position.z = primitive.dimensions[2] / 2;
 
+    geometry_msgs::Pose wall_pose;
+    wall_pose.orientation.w = 0;
+    wall_pose.orientation.x = 0;
+    wall_pose.orientation.y = 0;
+    wall_pose.orientation.z = 0;
+    wall_pose.position.x = -1.0;
+    wall_pose.position.y = 0;
+    wall_pose.position.z = primitive_wall_1.dimensions[2] / 2;
+
+    geometry_msgs::Pose wall_pose_2;
+    wall_pose_2.orientation.w = 0;
+    wall_pose_2.orientation.x = 0;
+    wall_pose_2.orientation.y = 0;
+    wall_pose_2.orientation.z = 0;
+    wall_pose_2.position.x = 0;
+    wall_pose_2.position.y = -1.0;
+    wall_pose_2.position.z = primitive_wall_2.dimensions[2] / 2;
+
+    // 设置颜色
+    vector<moveit_msgs::ObjectColor> colors;
+    moveit_msgs::ObjectColor color_0;
+    color_0.color.a = 0.6;
+    color_0.color.r = 0.5;
+    color_0.color.g = 0.5;
+    color_0.color.b = 0.5;
+    color_0.id = "wall_1";
+
+    moveit_msgs::ObjectColor color_1;
+    color_1.color.a = 0.6;
+    color_1.color.r = 0.5;
+    color_1.color.g = 0.5;
+    color_1.color.b = 0.5;
+    color_1.id = "wall_2";
+    colors.push_back(color_1);
+
     //将物体添加到场景并发布
     obj.meshes.push_back(model_mesh);
     obj.mesh_poses.push_back(model_pose);
@@ -192,6 +251,14 @@ void visEnv(const char *file_path_small, const ViewPlan &vp){
     table.primitives.push_back(primitive);
     table.primitive_poses.push_back(table_pose);
     table.operation = table.ADD;
+
+    wall_1.primitives.push_back(primitive_wall_1);
+    wall_1.primitive_poses.push_back(wall_pose);
+    wall_1.operation = wall_1.ADD;
+
+    wall_2.primitives.push_back(primitive_wall_2);
+    wall_2.primitive_poses.push_back(wall_pose_2);
+    wall_2.operation = wall_2.ADD;
 
     cout<<"成功添加物体"<<endl;
 
@@ -206,6 +273,11 @@ void visEnv(const char *file_path_small, const ViewPlan &vp){
     moveit_msgs::PlanningScene planning_scene;
     planning_scene.world.collision_objects.push_back(obj);
     planning_scene.world.collision_objects.push_back(table);
+    planning_scene.world.collision_objects.push_back(wall_1);
+    planning_scene.object_colors.push_back(color_0);
+    planning_scene.world.collision_objects.push_back(wall_2);
+    planning_scene.object_colors.push_back(color_1);
+
     planning_scene.is_diff = true;
     env_vis_pub.publish(planning_scene);
 }

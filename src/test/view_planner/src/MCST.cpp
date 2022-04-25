@@ -198,6 +198,10 @@ Action MCST::greedyRollout(const TreeNode *node, vector<ViewPoint> &select_vp, d
             once_cost = travel_cost;
         }
     }
+    if(max_index == -1){
+        cout << "202 GreedyRollout ERROR!" << endl;
+        abort();
+    }
     // 返回指向下一个状态需要执行的action
     Action next_action(max_index);
     return next_action;

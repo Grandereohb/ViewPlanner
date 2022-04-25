@@ -93,7 +93,7 @@ private:
 	const double view_angle_range = 1.047;                 // 测量视角范围 view_angle_range = 60/180*PI = 1.047
 	// 仿真场景距离参数
 	const double model_position_x = 0.7;                   // 待测模型在x轴上的位置（单位：m）  
-	const double model_position_z = 0.62;                  // 待测模型在z轴上的位置（单位：m）  
+	const double model_position_z = 0.6;                  // 待测模型在z轴上的位置（单位：m）  
 	const double table_position_x = model_position_x;      // 平台在x轴上的位置（单位：m）  
 	const double table_position_z = model_position_z / 2;  // 平台在z轴上的位置（单位：m）
     
