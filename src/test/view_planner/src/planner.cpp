@@ -273,10 +273,10 @@ void visEnv(const char *file_path_small, const ViewPlan &vp){
     moveit_msgs::PlanningScene planning_scene;
     planning_scene.world.collision_objects.push_back(obj);
     planning_scene.world.collision_objects.push_back(table);
-    planning_scene.world.collision_objects.push_back(wall_1);
-    planning_scene.object_colors.push_back(color_0);
-    planning_scene.world.collision_objects.push_back(wall_2);
-    planning_scene.object_colors.push_back(color_1);
+    // planning_scene.world.collision_objects.push_back(wall_1);
+    // planning_scene.object_colors.push_back(color_0);
+    // planning_scene.world.collision_objects.push_back(wall_2);
+    // planning_scene.object_colors.push_back(color_1);
 
     planning_scene.is_diff = true;
     env_vis_pub.publish(planning_scene);
