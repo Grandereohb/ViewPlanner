@@ -23,7 +23,7 @@ vector< ViewPoint >& Population::operator()(unsigned chromosome) {
 	return population[chromosome];
 }
 
-RKGA::RKGA(int _p, double _pe, double _pm, double _rhoe, double _coverage_rate, vector<ViewPoint> _candVP, Graph *_graph, vector<vector<int>> _visibility_matrix) :
+RKGA::RKGA(int _p, double _pe, double _pm, double _rhoe, double _coverage_rate, vector<ViewPoint> _candVP, Graph _graph, vector<vector<int>> _visibility_matrix) :
 p(_p), pe(_pe*p), pm(_pm*p), rhoe(_rhoe), coverage_rate(_coverage_rate), candVP(_candVP), graph(_graph), visibility_matrix(_visibility_matrix) {
     // // Error check:
     // using std::range_error;
@@ -144,16 +144,13 @@ void RKGA::calcMotionCost(vector<ViewPoint> single, double &cost){
     //     cost += abs(single[0].joint_state[i]) + abs(single[single.size() - 1].joint_state[i]);
     // }
     // cout << "147 " <<cost<< endl;
-    int k = 0;
-    while(k < (single.size()-1)){
-        ViewPoint *curr = graph->edges[single[k].num];
-        while (curr->num != single[k + 1].num){
-            curr = curr->next;
-        }
-        cost += curr->cost;
-        k++;
+    for (int k = 0; k < single.size() - 1; ++k){
+        // ViewPoint *curr = graph->edges[single[k].num];
+        // while (curr->num != single[k + 1].num){
+        //     curr = curr->next;
+        // }
+        cost += graph.graph[single[k].num][single[k + 1].num].cost;
     }
-
 }
 void RKGA::evolve(Population curr, Population &next){
     cout << "进化开始： ";

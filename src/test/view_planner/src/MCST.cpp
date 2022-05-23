@@ -2,7 +2,7 @@
 
 using namespace std;
 
-MCST::MCST(double coverage_rate_, vector<ViewPoint> candidates_, Graph *graph_, vector<vector<int>> visibility_matrix_):
+MCST::MCST(const double &coverage_rate_, const vector<ViewPoint> &candidates_, const vector<vector<ViewPoint>> &graph_, const vector<vector<int>> &visibility_matrix_):
 coverage_rate(coverage_rate_), candidates(candidates_), graph(graph_), visibility_matrix(visibility_matrix_) {}
 
 vector<ViewPoint> MCST::solveMCST(){
@@ -211,11 +211,11 @@ Action MCST::greedyRollout(const TreeNode *node, vector<ViewPoint> &select_vp, d
 // }
 double MCST::getTravelCost(int start, int end){
     // 遍历图，从起点和终点的边中读取cost
-    ViewPoint *curr = graph->edges[start];
-    while (curr->num != end){
-        curr = curr->next;
-    }
-    return curr->cost;
+    // ViewPoint *curr = graph->edges[start];
+    // while (curr->num != end){
+    //     curr = curr->next;
+    // }
+    return graph[start][end].cost;
 }
 void MCST::backPropagation(TreeNode *node, double cost){
     // 反向传播，更新从simulation起点到root之间每个节点的参数
@@ -351,11 +351,15 @@ TreeNode *TreeNode::applyAction(const Action &action){
 }
 double TreeNode::getTravelCost(int start, int end, Graph *g){
     // 遍历图，从起点和终点的边中读取cost
-    ViewPoint *curr = g->edges[start];
-    while (curr->num != end){
-        curr = curr->next;
+    // ViewPoint *curr = g->edges[start];
+    // while (curr->num != end){
+    //     curr = curr->next;
+    // }
+    if(start == end){
+        cout<<"MCTS getTravelCost ERROR!"<<endl;
+        abort();
     }
-    return curr->cost;
+    return g->graph[start][end].cost;
 }
 
 void TreeNode::addVisitNum(){

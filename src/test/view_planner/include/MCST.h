@@ -40,7 +40,7 @@ private:
 
 class MCST{
 public:
-    MCST(double coverage_rate_, vector<ViewPoint> candidates_, Graph *graph_, vector<vector<int>> visibility_matrix_);
+    MCST(const double &coverage_rate_, const vector<ViewPoint> &candidates_, const vector<vector<ViewPoint>> &graph_, const vector<vector<int>> &visibility_matrix_);
     // ~MSCT();
 
     vector<ViewPoint> solveMCST();
@@ -54,7 +54,7 @@ private:
     // 不可修改参数
     const double coverage_rate;
     const vector<ViewPoint> candidates;
-    const Graph *graph;
+    const vector<vector<ViewPoint>> graph;
     const vector<vector<int>> visibility_matrix;
 
     int selectStartIndex(const vector<ViewPoint> &candidates);                                    // 选择初始视点

@@ -10,6 +10,8 @@ vector<ViewPoint> ViewPlan::generateViewPoint(const char *cfilename, int sampleN
 
     vector<ViewPoint> candidate_view_point;
     vector<ViewPoint> best_view_point;
+	g = Graph();
+	trajs = vector<vector<moveit_msgs::RobotTrajectory>>(100, vector<moveit_msgs::RobotTrajectory>(100));
 	vector<pair<double, int>> RK_index;
 	setRandomKey(model.size(), RK_index);
     sortRK(RK_index);
@@ -19,8 +21,15 @@ vector<ViewPoint> ViewPlan::generateViewPoint(const char *cfilename, int sampleN
 		int already_sampled = candidate_view_point.size();
 		sampleViewPoint(model, sampleNum, already_sampled, candidate_view_point, RK_index, rand_sample_num, group);  // 采样生成候选视点
 	}
-	//g->print();
-	//best_view_point = solveRKGA(candidate_view_point, maxPop, maxGen);
+	g.graph.resize(candidate_view_point.size());
+	trajs.resize(candidate_view_point.size());
+	for (int i = 0; i < g.graph.size(); ++i){
+		g.graph[i][i] = ViewPoint();
+		g.graph[i].resize(candidate_view_point.size());
+
+		trajs[i].resize(candidate_view_point.size());
+	}
+
 	return candidate_view_point;
 }
 
@@ -214,21 +223,21 @@ void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, i
 		int randNum = RK_index[rand_sample_num].second;
 		++rand_sample_num;
 		// 生成视点位置
-		candidate.position = model[randNum].center + model[randNum].normal.normalized() * measure_dist; // 沿面片法线方向延伸最佳测量距离，生成候选视点
+		// candidate.position = model[randNum].center + model[randNum].normal.normalized() * measure_dist; // 沿面片法线方向延伸最佳测量距离，生成候选视点
 		// cxf
-		// float randNum_1 = (float)rand() / RAND_MAX * 0.3;
-		// float randNum_2 = (float)rand() / RAND_MAX * 0.7 + 0.3;
-		// float randNum_3 = (float)rand() / RAND_MAX;
-		// if(candidate_num < 0.3 * sampleNum) {
-		// 	candidate.position.m_floats[0] = center_x + measure_dist * cos(randNum_1 * PI/2) * cos(randNum_3 * 2*PI);
-		// 	candidate.position.m_floats[1] = center_y + measure_dist * cos(randNum_1 * PI/2) * sin(randNum_3 * 2*PI);
-		// 	candidate.position.m_floats[2] = center_z + measure_dist * sin(randNum_1 * PI/2);
-		// }
-		// else {
-		// 	candidate.position.m_floats[0] = center_x + measure_dist * cos(randNum_2 * PI/2) * cos(randNum_3 * 2*PI);
-		// 	candidate.position.m_floats[1] = center_y + measure_dist * cos(randNum_2 * PI/2) * sin(randNum_3 * 2*PI);
-		// 	candidate.position.m_floats[2] = center_z + measure_dist * sin(randNum_2 * PI/2);
-		// }
+		float randNum_1 = (float)rand() / RAND_MAX * 0.3;
+		float randNum_2 = (float)rand() / RAND_MAX * 0.7 + 0.3;
+		float randNum_3 = (float)rand() / RAND_MAX;
+		if(candidate_num < 0.3 * sampleNum) {
+			candidate.position.m_floats[0] = center_x + measure_dist * cos(randNum_1 * PI/2) * cos(randNum_3 * 2*PI);
+			candidate.position.m_floats[1] = center_y + measure_dist * cos(randNum_1 * PI/2) * sin(randNum_3 * 2*PI);
+			candidate.position.m_floats[2] = center_z + measure_dist * sin(randNum_1 * PI/2);
+		}
+		else {
+			candidate.position.m_floats[0] = center_x + measure_dist * cos(randNum_2 * PI/2) * cos(randNum_3 * 2*PI);
+			candidate.position.m_floats[1] = center_y + measure_dist * cos(randNum_2 * PI/2) * sin(randNum_3 * 2*PI);
+			candidate.position.m_floats[2] = center_z + measure_dist * sin(randNum_2 * PI/2);
+		}
 
 		// 生成视点的z过低，重新生成
 		if(candidate.position.m_floats[2] < -300){
@@ -238,22 +247,22 @@ void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, i
         
 		// 在所选面片的rangeFOD/2范围内寻找夹角小于90度的邻面片，势场法计算视点方向        
 		candidate.direction = Vector3(0,0,0);
-        for(int j = 0; j < model.size(); ++j){
-            double dist = (model[j].center - model[randNum].center).length();
-            double theta = model[randNum].normal.angle(model[j].normal);
-			if (dist <= (maxFOD - minFOD) / 2 && theta <= PI / 2){
-				candidate.direction += model[j].area * (model[j].center - candidate.position) / (model[j].center - candidate.position).length();  // 视点方向 = sum（邻面片方向*面积/距视点的距离）
-			}
-		}
-		// xcf
-		// Vector3 model_center(center_x,center_y,center_z);
         // for(int j = 0; j < model.size(); ++j){
-        //     double dist = (model[j].center - candidate.position).length();
-        //     double theta = (candidate.position - model_center).angle(model[j].normal);
-		// 	if (dist <= maxFOD && dist >=minFOD && theta <= PI / 3){
+        //     double dist = (model[j].center - model[randNum].center).length();
+        //     double theta = model[randNum].normal.angle(model[j].normal);
+		// 	if (dist <= (maxFOD - minFOD) / 2 && theta <= PI / 2){
 		// 		candidate.direction += model[j].area * (model[j].center - candidate.position) / (model[j].center - candidate.position).length();  // 视点方向 = sum（邻面片方向*面积/距视点的距离）
 		// 	}
 		// }
+		// xcf
+		Vector3 model_center(center_x,center_y,center_z);
+        for(int j = 0; j < model.size(); ++j){
+            double dist = (model[j].center - candidate.position).length();
+            double theta = (candidate.position - model_center).angle(model[j].normal);
+			if (dist <= maxFOD && dist >=minFOD && theta <= PI / 3){
+				candidate.direction += model[j].area * (model[j].center - candidate.position) / (model[j].center - candidate.position).length();  // 视点方向 = sum（邻面片方向*面积/距视点的距离）
+			}
+		}
 
 		// 计算视点的机器人轴配置参数和碰撞检测，舍弃无法求解IK或发生碰撞的候选视点
 		if(!getJointState(candidate, robot_model_loader) || checkCollision(candidate, robot_model_loader)){
@@ -404,6 +413,12 @@ bool ViewPlan::getJointState(ViewPoint &viewpoint, robot_model_loader::RobotMode
 		 0,  1,  0, 0,
 		-1,  0,  0, 0.073,
 		 0,  0,  0, 1;
+	// 视点矫正矩阵o1到o2
+	// Eigen::Matrix4d T;
+	// T << 0.88420963, -0.15563251,  0.44041094,  -0.21563197,
+	// 	 0.15284006,  0.98735571,  0.042056009, -0.28902084,
+	// 	-0.4413875,   0.030126061, 0.89681613,   0.32228275,
+	// 	 0,           0,           0,            1;
 	// 根据手眼标定关系校正后的机器人位姿变换矩阵T2      T1 = T2 * X1 * X2
 	// end_effector_state = end_effector_state * cam_pro_calibration.inverse() * rob_cam_calibration.inverse();
 	// end_effector_state = end_effector_state * (R * cam_pro_calibration) * rob_cam_calibration.inverse();
@@ -566,7 +581,9 @@ void ViewPlan::setGraph(vector<ViewPoint> candidate_view_point, ViewPoint candid
 		moveit_msgs::RobotTrajectory traj = my_plan.trajectory_;
 
 		// 将新节点插入图中，并绘制边界
-		g->insertEdge(candidate_view_point[i].num, candidate.num, cost, traj, true);
+		// g->insertEdge(candidate_view_point[i].num, candidate.num, cost, traj, true);
+		g.insertGraph(candidate_view_point[i].num, candidate.num, cost, traj);
+		trajs[candidate_view_point[i].num][candidate.num] = traj;
 
 		// -----------------------------------------------------------------------------------------
 		// 以candidate为起点，candidate_view_point[i]为终点规划轨迹
@@ -586,7 +603,9 @@ void ViewPlan::setGraph(vector<ViewPoint> candidate_view_point, ViewPoint candid
 
 		traj = my_plan.trajectory_;
 
-		g->insertEdge(candidate.num, candidate_view_point[i].num, cost, traj, true);
+		// g->insertEdge(candidate.num, candidate_view_point[i].num, cost, traj, true);
+		g.insertGraph(candidate.num, candidate_view_point[i].num, cost, traj);
+		trajs[candidate.num][candidate_view_point[i].num] = traj;
 	}
 }
 moveit_msgs::RobotTrajectory calcMotionCost(ViewPoint candidate_view_point, ViewPoint candidate, MGI &group, planning_scene::PlanningScene &planning_scene){
@@ -630,37 +649,41 @@ double ViewPlan::getModelPositionZ() const { return model_position_z; }
 double ViewPlan::getTablePositionX() const { return table_position_x; }
 double ViewPlan::getTablePositionZ() const { return table_position_z; }
 
-ViewPoint::ViewPoint(int num, double cost, moveit_msgs::RobotTrajectory traj){
+ViewPoint::ViewPoint(int num, double cost){
 	this->num = num;
 	this->cost = cost;
-	this->traj = traj;
-	this->next = NULL;
 }
+ViewPoint::ViewPoint(int num_, int vis_area_, vector<double> joint_state_): num(num_), vis_area(vis_area_), joint_state(joint_state_){}
 ViewPoint::ViewPoint() : vis_area(0) {}
 
 Graph::Graph(){
-	for (int i = 0; i < 1000; ++i)
-		this->edges[i] = NULL;
+	// for (int i = 0; i < 1000; ++i)
+	// 	this->edges[i] = NULL;
+	graph = vector<vector<ViewPoint>>(100, vector<ViewPoint>(100));
 }
 Graph::~Graph(){ }
 void Graph::insertEdge(int x, int y, double cost, moveit_msgs::RobotTrajectory traj, bool directed){
-	ViewPoint *edge = new ViewPoint(y, cost, traj);
-	edge->next = this->edges[x];
-	this->edges[x] = edge;
-	//cout<<"已添加视点 "<<x<<" 的邻节点 "<<this->edges[x]->num<<endl;
-	if(!directed){
-		insertEdge(y, x, cost, traj, true);
-	}
+	// ViewPoint *edge = new ViewPoint(y, cost, traj);
+	// edge->next = this->edges[x];
+	// this->edges[x] = edge;
+	// //cout<<"已添加视点 "<<x<<" 的邻节点 "<<this->edges[x]->num<<endl;
+	// if(!directed){
+	// 	insertEdge(y, x, cost, traj, true);
+	// }
+}
+void Graph::insertGraph(int from, int to, double cost, moveit_msgs::RobotTrajectory traj){
+	ViewPoint tmp(to, cost);
+	graph[from][to] = tmp;
 }
 void Graph::print(){
-	for(int v = 0; v < 1000; ++v){
-        if(this->edges[v] != NULL){
-            cout << "视点 " << v << " 有以下邻节点: " << endl;
-            ViewPoint *curr = this->edges[v];
-            while(curr != NULL){
-                cout << "num: " << curr->num << ", cost: " << curr->cost << endl;
-                curr = curr->next;
-            }
-        }
-    }
+	// for(int v = 0; v < 1000; ++v){
+    //     if(this->edges[v] != NULL){
+    //         cout << "视点 " << v << " 有以下邻节点: " << endl;
+    //         ViewPoint *curr = this->edges[v];
+    //         while(curr != NULL){
+    //             cout << "num: " << curr->num << ", cost: " << curr->cost << endl;
+    //             curr = curr->next;
+    //         }
+    //     }
+    // }
 }

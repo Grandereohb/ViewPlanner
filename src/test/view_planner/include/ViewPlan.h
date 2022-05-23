@@ -56,20 +56,24 @@ public:
 	double cost;                           // 运动成本
 	vector<double> joint_state;            // 视点位姿下六个轴的关节状态
 	Eigen::Isometry3d end_effector_state;  // 末端状态
-	moveit_msgs::RobotTrajectory traj;     // 轨迹
-	ViewPoint *next;
-	ViewPoint(int num, double cost, moveit_msgs::RobotTrajectory traj);
+	// moveit_msgs::RobotTrajectory traj;     // 轨迹
+	// ViewPoint *next;
+	// ViewPoint(int num, double cost, moveit_msgs::RobotTrajectory traj);
+	ViewPoint(int num, double cost);
+	ViewPoint(int num, int vis_area, vector<double> joint_state);
 	ViewPoint();
 };
 
 // 创建图，存储视点
 class Graph{
 	public:
-	ViewPoint *edges[1000];
+	// ViewPoint *edges[1000];
+	vector<vector<ViewPoint>> graph;
 	Graph();
 	~Graph();
     void insertEdge(int, int, double, moveit_msgs::RobotTrajectory, bool);
-    void print();
+	void insertGraph(int, int, double, moveit_msgs::RobotTrajectory);
+	void print();
 };
 
 class ViewPlan{
@@ -79,8 +83,9 @@ public:
 	double getModelPositionZ() const;
 	double getTablePositionX() const;
 	double getTablePositionZ() const;
-	Graph *g = new Graph();
+	Graph g;
 	vector<vector<int>> visibility_matrix;  // 可见性矩阵
+	vector<vector<moveit_msgs::RobotTrajectory>> trajs;  // 可见性矩阵
 	
 private:
     // 相机参数

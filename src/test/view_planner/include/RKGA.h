@@ -25,7 +25,7 @@ private:
 
 class RKGA{
 public:
-    RKGA(int p, double pe, double pm, double rhoe, double coverage_rate, vector<ViewPoint> candVP, Graph *graph, vector<vector<int>> visibility_matrix);
+    RKGA(int p, double pe, double pm, double rhoe, double coverage_rate, vector<ViewPoint> candVP, Graph graph, vector<vector<int>> visibility_matrix);
     ~RKGA();
 
 	vector<ViewPoint> solveRKGA(int maxGen);  // RKGA求解最优视点和测量路径
@@ -36,7 +36,7 @@ private:
 	const double pm;	// 每一代种群中正常交叉繁衍的个体比例
     const double rhoe;	// 遗传自精英父母的比例
     const double coverage_rate;
-    const Graph *graph;
+    const Graph graph;
     const vector<ViewPoint> candVP;
     const vector<vector<int>> visibility_matrix;
     const double minCost = 10;
