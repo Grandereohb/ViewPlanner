@@ -6,6 +6,16 @@
 
 #IncludeRegexTransform: 
 
+/home/ohb/abb_ws/src/test/view_planner/include/MCST.h
+ViewPlan.h
+/home/ohb/abb_ws/src/test/view_planner/include/ViewPlan.h
+MDP.h
+/home/ohb/abb_ws/src/test/view_planner/include/MDP.h
+
+/home/ohb/abb_ws/src/test/view_planner/include/MDP.h
+ViewPlan.h
+/home/ohb/abb_ws/src/test/view_planner/include/ViewPlan.h
+
 /home/ohb/abb_ws/src/test/view_planner/include/RKGA.h
 ViewPlan.h
 /home/ohb/abb_ws/src/test/view_planner/include/ViewPlan.h
@@ -65,6 +75,8 @@ ViewPlan.h
 /home/ohb/abb_ws/src/test/view_planner/src/ViewPlan.h
 RKGA.h
 /home/ohb/abb_ws/src/test/view_planner/src/RKGA.h
+MCST.h
+/home/ohb/abb_ws/src/test/view_planner/src/MCST.h
 ros/ros.h
 -
 cstring

@@ -6,10 +6,6 @@
 
 #IncludeRegexTransform: 
 
-/home/ohb/abb_ws/src/test/view_planner/include/RKGA.h
-ViewPlan.h
-/home/ohb/abb_ws/src/test/view_planner/include/ViewPlan.h
-
 /home/ohb/abb_ws/src/test/view_planner/include/ViewPlan.h
 vector
 -
@@ -59,10 +55,6 @@ Eigen/Dense
 -
 eigen_conversions/eigen_msg.h
 -
-
-/home/ohb/abb_ws/src/test/view_planner/src/RKGA.cpp
-RKGA.h
-/home/ohb/abb_ws/src/test/view_planner/src/RKGA.h
 
 /home/ohb/abb_ws/src/test/view_planner/src/ViewPlan.cpp
 ViewPlan.h

@@ -23,9 +23,16 @@ vector< ViewPoint >& Population::operator()(unsigned chromosome) {
 	return population[chromosome];
 }
 
-RKGA::RKGA(int _p, double _pe, double _pm, double _rhoe, double _coverage_rate, vector<ViewPoint> _candVP, Graph *_graph, vector<vector<int>> _visibility_matrix):
+RKGA::RKGA(int _p, double _pe, double _pm, double _rhoe, double _coverage_rate, vector<ViewPoint> _candVP, Graph _graph, vector<vector<int>> _visibility_matrix) :
 p(_p), pe(_pe*p), pm(_pm*p), rhoe(_rhoe), coverage_rate(_coverage_rate), candVP(_candVP), graph(_graph), visibility_matrix(_visibility_matrix) {
-
+    // // Error check:
+    // using std::range_error;
+	// //if(n == 0) { throw range_error("Chromosome size equals zero."); }
+	// if(p == 0) { throw range_error("Population size equals zero."); }
+	// if(pe == 0) { throw range_error("Elite-set size equals zero."); }
+	// if(pe > p) { throw range_error("Elite-set size greater than population size (pe > p)."); }
+	// if(pm > p) { throw range_error("Mutant-set size (pm) greater than population size (p)."); }
+	// if(pe + pm > p) { throw range_error("elite + mutant sets greater than population size (p)."); }
 }
 vector<ViewPoint> RKGA::solveRKGA(int maxGen){
     unsigned long iteration = 0;  // 记录迭代次数
@@ -83,8 +90,11 @@ void RKGA::initialize(Population& curr){
         curr.setFitness(j, cost);
     }
     curr.sortFitness();
-    cout << "86 sorted fitness: ";
-    cout <<"("<< curr.fitness[0].first << ", " << curr.fitness[0].second<<")"<<endl;
+    // cout << "93 sorted fitness: " << endl;
+    // for (int i = 0; i < curr.fitness.size(); i++){
+    //     cout <<"("<< curr.fitness[i].first << ", " << curr.fitness[i].second<<"), ";
+    // }
+    // cout << endl;
 }
 void RKGA::setRandomKey(int candSize, vector<pair<double, int>> &RK_index){
     for (int i = 0; i < candSize; i++){
@@ -114,10 +124,10 @@ bool RKGA::isMostCovered(vector<ViewPoint> single){
         double visible_tmp = 0;
         for (int j = 0; j < tempVM.size(); j++){
             visible_tmp += tempVM[j][i];
-			if(visible_tmp == 1)  // 建议设为2
+			if(visible_tmp == 2)  // 建议设为2
 				break;
         }
-        visible_num += visible_tmp;
+        visible_num += visible_tmp / 2;
 	}
     // cout << "132 visible num: " << visible_num<<" / "<< coverage_rate * tempVM[0].size() << endl;
     if (visible_num >= coverage_rate * tempVM[0].size())
@@ -134,19 +144,16 @@ void RKGA::calcMotionCost(vector<ViewPoint> single, double &cost){
     //     cost += abs(single[0].joint_state[i]) + abs(single[single.size() - 1].joint_state[i]);
     // }
     // cout << "147 " <<cost<< endl;
-    int k = 0;
-    while(k < (single.size()-1)){
-        ViewPoint *curr = graph->edges[single[k].num];
-        while (curr->num != single[k + 1].num){
-            curr = curr->next;
-        }
-        cost += curr->cost;
-        k++;
+    for (int k = 0; k < single.size() - 1; ++k){
+        // ViewPoint *curr = graph->edges[single[k].num];
+        // while (curr->num != single[k + 1].num){
+        //     curr = curr->next;
+        // }
+        cost += graph.graph[single[k].num][single[k + 1].num].cost;
     }
-
 }
 void RKGA::evolve(Population curr, Population &next){
-    cout << "进化开始：" << endl;
+    cout << "进化开始： ";
     unsigned i = 0;
     // 父母为精英，后代直接复制
     while (i < pe){
@@ -211,11 +218,7 @@ void RKGA::evolve(Population curr, Population &next){
         ++i;
     }
     next.sortFitness();
-    cout << "237 sorted fitness: ";
-    for (int i = 0; i < 5; i++){
-        cout <<"("<< next.fitness[i].first << ", " << next.fitness[i].second<<"), ";
-    }
-    cout << endl;
+    cout << next.fitness[0].first << endl;
 }
 double RKGA::getBestFitness() const{
     return current->fitness[0].first;

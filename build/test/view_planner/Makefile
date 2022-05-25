@@ -542,6 +542,60 @@ planner/fast:
 	cd /home/ohb/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/planner.dir/build.make test/view_planner/CMakeFiles/planner.dir/build
 .PHONY : planner/fast
 
+src/MCST.o: src/MCST.cpp.o
+
+.PHONY : src/MCST.o
+
+# target to build an object file
+src/MCST.cpp.o:
+	cd /home/ohb/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/ViewPlan.dir/build.make test/view_planner/CMakeFiles/ViewPlan.dir/src/MCST.cpp.o
+.PHONY : src/MCST.cpp.o
+
+src/MCST.i: src/MCST.cpp.i
+
+.PHONY : src/MCST.i
+
+# target to preprocess a source file
+src/MCST.cpp.i:
+	cd /home/ohb/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/ViewPlan.dir/build.make test/view_planner/CMakeFiles/ViewPlan.dir/src/MCST.cpp.i
+.PHONY : src/MCST.cpp.i
+
+src/MCST.s: src/MCST.cpp.s
+
+.PHONY : src/MCST.s
+
+# target to generate assembly for a file
+src/MCST.cpp.s:
+	cd /home/ohb/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/ViewPlan.dir/build.make test/view_planner/CMakeFiles/ViewPlan.dir/src/MCST.cpp.s
+.PHONY : src/MCST.cpp.s
+
+src/MDP.o: src/MDP.cpp.o
+
+.PHONY : src/MDP.o
+
+# target to build an object file
+src/MDP.cpp.o:
+	cd /home/ohb/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/ViewPlan.dir/build.make test/view_planner/CMakeFiles/ViewPlan.dir/src/MDP.cpp.o
+.PHONY : src/MDP.cpp.o
+
+src/MDP.i: src/MDP.cpp.i
+
+.PHONY : src/MDP.i
+
+# target to preprocess a source file
+src/MDP.cpp.i:
+	cd /home/ohb/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/ViewPlan.dir/build.make test/view_planner/CMakeFiles/ViewPlan.dir/src/MDP.cpp.i
+.PHONY : src/MDP.cpp.i
+
+src/MDP.s: src/MDP.cpp.s
+
+.PHONY : src/MDP.s
+
+# target to generate assembly for a file
+src/MDP.cpp.s:
+	cd /home/ohb/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/ViewPlan.dir/build.make test/view_planner/CMakeFiles/ViewPlan.dir/src/MDP.cpp.s
+.PHONY : src/MDP.cpp.s
+
 src/RKGA.o: src/RKGA.cpp.o
 
 .PHONY : src/RKGA.o
@@ -661,6 +715,12 @@ help:
 	@echo "... ViewPlan"
 	@echo "... planner"
 	@echo "... list_install_components"
+	@echo "... src/MCST.o"
+	@echo "... src/MCST.i"
+	@echo "... src/MCST.s"
+	@echo "... src/MDP.o"
+	@echo "... src/MDP.i"
+	@echo "... src/MDP.s"
 	@echo "... src/RKGA.o"
 	@echo "... src/RKGA.i"
 	@echo "... src/RKGA.s"
