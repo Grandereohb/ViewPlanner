@@ -1,5 +1,6 @@
 #include "ViewPlan.h"
 #include "RKGA.h"
+#include "MCST.h"
 #include <ros/ros.h>
 #include <cstring>
 #include <vector>
@@ -18,7 +19,7 @@
 
 #define   MYPORT    12345
 #define   BUF_SIZE  1024
-char* SERVER_IP ="211.67.18.80";
+char* SERVER_IP ="169.254.104.207";
 using namespace std;
 
 
@@ -27,17 +28,30 @@ ros::Publisher env_vis_pub, view_point_vis_pub, traj_vis_pub;
 void visEnv(const char *file_path_small, const ViewPlan &vp);
 void visCandidateViewPoint(const vector<ViewPoint> cand_view_point, const ViewPlan &vp);
 void visBestViewPoint(const vector<ViewPoint> best_view_point, const ViewPlan &vp);
-void visTraj(const vector<trajectory_msgs::JointTrajectoryPoint> traj_point, int id);
-
+void writeData(const char *viewpoint_file, const vector<ViewPoint> &cand_view_point, const vector<vector<ViewPoint>> &graph, const vector<vector<int>> &visibility_matrix);
+void writeData(const char *viewpoint_file, const vector<vector<moveit_msgs::RobotTrajectory>> trajs);
+void readData(const char *viewpoint_file, vector<ViewPoint> &cand_view_point, vector<vector<ViewPoint>> &graph, vector<vector<int>> &visibility_matrix);
+void readData(const char *viewpoint_file, vector<vector<moveit_msgs::RobotTrajectory>> &trajs);
 
 int main(int argc, char **argv)
 {
     // 使用前请根据需求修改以下参数 
-    const char* file_path = "/home/ohb/abb_ws/src/test/view_planner/model/model1123_5k.stl";  // 用于视点生成的模型文件路径
-    const char* file_path_small = "package://view_planner/model/model1123_5k_small.stl";  // 用于构建场景的模型文件路径
+    const char* file_path = "/home/ohb/abb_ws/src/test/view_planner/model/0523/man_5186.stl";  // 用于视点生成的模型文件路径
+    const char* file_path_small = "package://view_planner/model/0523/man_5186_small.stl";  // 用于构建场景的模型文件路径
+    const char* viewpoint_file  = "/home/ohb/abb_ws/src/test/view_planner/data/candidates.dat";     // 存储候选视点信息的文件名
+    const char* bestvp_file  = "/home/ohb/abb_ws/src/test/view_planner/data/best_vps.dat";     // 存储候选视点信息的文件名
+    const char* trajectory_file  = "/home/ohb/abb_ws/src/test/view_planner/data/trajs.dat";         // 存储候选视点信息的文件名
     
-    int sampleNum        = 20;  // 采样次数;
-    double coverage_rate = 0.95;  // 采样覆盖率
+    bool reuse_cand;             // true即重用已存储的候选视点，false即重新生成候选视点
+    cout << "输入: 1 即重用已存储的候选视点，0 即重新生成候选视点" << endl;
+    cin >> reuse_cand;
+
+    int optm_type;
+    cout << "输入: 1 即 RKGA，0 即 MCTS" << endl;
+    cin >> optm_type;
+
+    int sampleNum        = 40;  // 采样次数;
+    double coverage_rate = 0.60;  // 采样覆盖率
 
     // RKGA参数
     int maxGen        = 200;  // 最大进化代数
@@ -83,7 +97,6 @@ int main(int argc, char **argv)
     char revbuffer[1024];
     char* sendbuffer="SingleMsg";
 
-
     moveit::planning_interface::MoveGroupInterface group("arm");
     const moveit::core::JointModelGroup* joint_model_group = group.getCurrentState()->getJointModelGroup("arm");
     group.allowReplanning(true);            //当运动规划失败后，允许重新规划
@@ -95,19 +108,46 @@ int main(int argc, char **argv)
 
     visEnv(file_path_small, vp);
     
-    // 计算视点，规划并执行机器人轨迹
-    vector<ViewPoint> cand_view_point = vp.generateViewPoint(file_path, sampleNum, coverage_rate, group);   // 候选视点
+    // 计算候选视点
+    // reuse_cand = true: 直接读取已存储的候选视点和轨迹文件
+    // reuse_cand = false: 调用函数生成新的候选视点与轨迹，写入并覆盖文件
+    vector<ViewPoint> cand_view_point;
+    if (reuse_cand){
+        readData(viewpoint_file, cand_view_point, vp.g.graph, vp.visibility_matrix);
+        readData(trajectory_file, vp.trajs);
+    }
+    else{
+        cand_view_point = vp.generateViewPoint(file_path, sampleNum, coverage_rate, group); // 候选视点
+        writeData(viewpoint_file, cand_view_point, vp.g.graph, vp.visibility_matrix);
+        writeData(trajectory_file, vp.trajs);
+    }
     visCandidateViewPoint(cand_view_point, vp);
     
-    RKGA scp_solver(pop, pop_elite, pop_mutant, rhoe, coverage_rate, cand_view_point, vp.g, vp.visibility_matrix);
-    vector<ViewPoint> best_view_point = scp_solver.solveRKGA(maxGen); // 最优视点
+    // 筛选最优视点并进行测量路径规划
+    // optm_type = 1: RKGA
+    // optm_type = 1: MCTS
+    vector<ViewPoint> best_view_point;
+    if (optm_type == 0){
+        // 随机密钥遗传算法求解
+        RKGA scp_solver(pop, pop_elite, pop_mutant, rhoe, coverage_rate, cand_view_point, vp.g, vp.visibility_matrix);
+        best_view_point = scp_solver.solveRKGA(maxGen); // 最优视点
+    }
+    else{
+        // 马尔科夫决策过程 + 蒙特卡洛法求解
+        MCST mcst_solver(coverage_rate, cand_view_point, vp.g.graph, vp.visibility_matrix);
+        best_view_point = mcst_solver.solveMCST();
+    }
+    writeData(bestvp_file, best_view_point);
+
+    // 复用存储的最优视点
+    // readData(bestvp_file, best_view_point);
+
     visBestViewPoint(best_view_point, vp);
 
     cout<<"共获得"<<best_view_point.size()<<"个最佳视点，开始规划机器人运动轨迹："<<endl;
     group.setStartStateToCurrentState();    // 将机器人的初始状态设置为当前状态
 
-    for (int i = 0; i < best_view_point.size(); i++)
-    {
+    for (int i = 0; i < best_view_point.size(); i++){
         if(i == 0){
             group.setJointValueTarget(best_view_point[i].joint_state);
             moveit::planning_interface::MoveGroupInterface::Plan my_plan;
@@ -121,23 +161,17 @@ int main(int argc, char **argv)
                 group.execute(my_plan.trajectory_);
                 send(socket_cli, sendbuffer,(int)strlen(sendbuffer),0);
                 printf("发送单次测量指令，开始采集图片\n");
-                recv(socket_cli,revbuffer,sizeof(revbuffer),0);
-                printf("server message:%s\n",revbuffer);
+                // recv(socket_cli,revbuffer,sizeof(revbuffer),0);
+                // printf("server message:%s\n",revbuffer);
+                sleep(2);
+                cout << "sleep over" << endl;
             }
             continue;
         }
 
-        cout << i << " (" << best_view_point[i].robot_position.m_floats[0] << "," 
-                          << best_view_point[i].robot_position.m_floats[1] << "," 
-                          << best_view_point[i].robot_position.m_floats[2] << ")" 
-                          << best_view_point[i].num << endl;
-
+        // 从视点图中搜索获取预先计算好的前一个视点到当前视点的运动轨迹，直接调用
         moveit_msgs::RobotTrajectory traj;
-        ViewPoint *curr = vp.g->edges[best_view_point[i-1].num];
-        while (curr->num != best_view_point[i].num){
-            curr = curr->next;
-        }
-        traj = curr->traj;
+        traj = vp.trajs[best_view_point[i - 1].num][best_view_point[i].num];
         
         // visual_tools.publishTrajectoryLine(traj, joint_model_group);
         // visual_tools.trigger();
@@ -147,21 +181,11 @@ int main(int argc, char **argv)
         cout << traj.joint_trajectory.points[size - 1].time_from_start.toSec() << ", " << size << endl;
 
         //让机械臂按照规划的轨迹开始运动。
-        string revbuf_string = revbuffer;
-        cout<<revbuf_string<<endl;
-        if(revbuf_string=="SingleScanSuccess"){
-            group.execute(traj);
-            send(socket_cli,sendbuffer,(int)strlen(sendbuffer),0);
-            printf("发送单次测量指令，开始采集图片\n");
-            memset(revbuffer,'\0',sizeof(revbuffer));
-            recv(socket_cli,revbuffer,sizeof(revbuffer),0);
-            printf("server message:%s\n",revbuffer);
-        }
-        else{
-            cout<<"recvbuf none"<<endl;
-            return -1;
-        } 
-
+        group.execute(traj);
+        send(socket_cli,sendbuffer,(int)strlen(sendbuffer),0);
+        printf("发送单次测量指令，开始采集图片\n");
+        sleep(2);
+        cout << "sleep over" << endl;
         
     }
     close(socket_cli);
@@ -194,8 +218,8 @@ void visEnv(const char *file_path_small, const ViewPlan &vp){
     shape_msgs::SolidPrimitive primitive;
     primitive.type = primitive.BOX;
     primitive.dimensions.resize(3);
-    primitive.dimensions[0] = 0.5;  // x
-    primitive.dimensions[1] = 0.5;  // y
+    primitive.dimensions[0] = 0.4;  // x
+    primitive.dimensions[1] = 0.4;  // y
     primitive.dimensions[2] = vp.getModelPositionZ() + 0.04;  // z
     // primitive.dimensions[2] = vp.getModelPositionZ() - 0.02;  //z = 转向节中心高度 - 转向节下半部分高度0.02
 
@@ -375,47 +399,232 @@ void visBestViewPoint(const vector<ViewPoint> best_view_point, const ViewPlan &v
     }
 }
 
-void visTraj(const vector<trajectory_msgs::JointTrajectoryPoint> traj_point, int id){
-    visualization_msgs::Marker line_list;
+void writeData(const char *viewpoint_file, const vector<ViewPoint> &cand_view_point, const vector<vector<ViewPoint>> &graph, const vector<vector<int>> &visibility_matrix){
+    // 用于存储视点生成步骤生成的候选视点集，视点图和可见性矩阵
+    // 文件内容格式为：int 候选视点数， 候选视点， int 视点图行， int 视点图列， 视点图， int 可见性矩阵行， int 可见性矩阵列， 可见性矩阵
 
-    line_list.header.frame_id    = "base_link";
-    line_list.header.stamp       = ros::Time::now();
-    line_list.ns                 = "robot_traj";
-    line_list.action             = visualization_msgs::Marker::ADD;
-    line_list.pose.orientation.w = 1.0;
-    line_list.pose.orientation.x = 0.0;
-    line_list.pose.orientation.y = 0.0;
-    line_list.pose.orientation.z = 0.0;
-    line_list.id                 = id;
-
-    line_list.type = visualization_msgs::Marker::SPHERE_LIST;
-    
-    line_list.scale.x = 0.03;
-    line_list.scale.y = 0.03;
-    line_list.scale.z = 0.03;
-    line_list.color.a = 0.7;
-    line_list.color.r = 0.3;
-    line_list.color.g = 0.3;
-    line_list.color.b = 0.6;
-
-    line_list.points.clear();
-
-    for (int i = 0; i < traj_point.size(); ++i){
-        geometry_msgs::Point p;
-        p.x = traj_point[i].positions[0];
-        p.y = traj_point[i].positions[1];
-        p.z = traj_point[i].positions[500];
-        line_list.points.push_back(p);
-
-        // if(i < (traj_point.size() - 1)){
-        //     geometry_msgs::Point p_line;
-        //     p_line = p;
-        //     line_list.points.push_back(p_line);
-        //     p_line.x = traj_point[i + 1].positions[0];
-        //     p_line.y = traj_point[i + 1].positions[1];
-        //     p_line.z = traj_point[i + 1].positions[2];
-        //     line_list.points.push_back(p_line);
-        // }
+    ofstream fout(viewpoint_file, ios_base::binary);
+    // ofstream fout(viewpoint_file, ios_base::out | ios_base::app | ios_base::binary);
+    if(!fout.is_open()){
+        cerr << "open error:\n";
+        exit(EXIT_FAILURE);
     }
-    traj_vis_pub.publish(line_list);
+    int m, n;
+    // 写入候选视点数据
+    n = cand_view_point.size();
+    fout.write((char *)&n, sizeof(n));
+    for(int i = 0; i < n; ++i){
+        fout.write((char *)(&cand_view_point[i].num), sizeof(int));
+        fout.write((char *)(&cand_view_point[i].vis_area), sizeof(int));
+        for(int j = 0; j < 6; ++j)
+            fout.write((char *)(&cand_view_point[i].joint_state[j]), sizeof(double));
+        for (int j = 0; j < 3; ++j){
+            fout.write((char *)(&cand_view_point[i].position.m_floats[j]), sizeof(double));
+            fout.write((char *)(&cand_view_point[i].direction.m_floats[j]), sizeof(double));
+        }
+    }
+
+    // 写入视点图数据
+    m = graph.size(), n = graph[0].size();
+    fout.write((char *)&m, sizeof(m));
+    fout.write((char *)&n, sizeof(n));  
+    for (int i = 0; i < m; ++i){
+        for(int j = 0; j < n; ++j)
+            fout.write((char *)(&graph[i][j]), sizeof(graph[i][j]));
+    }
+    int a = sizeof(ViewPoint), b = sizeof(graph[0][1]);
+
+    // 写入可见性矩阵数据
+    m = visibility_matrix.size(), n = visibility_matrix[0].size();
+    fout.write((char *)&m, sizeof(m));
+    fout.write((char *)&n, sizeof(n));
+    for (int i = 0; i < m; ++i){
+        for(int j = 0; j < n; ++j)
+            fout.write((char *)(&visibility_matrix[i][j]), sizeof(visibility_matrix[i][j]));
+    }
+
+    fout.close();
 }
+void writeData(const char *viewpoint_file, const vector<ViewPoint> &best_view_point){
+    // 用于存储最佳视点
+
+    ofstream fout(viewpoint_file, ios_base::binary);
+    // ofstream fout(viewpoint_file, ios_base::out | ios_base::app | ios_base::binary);
+    if(!fout.is_open()){
+        cerr << "open error:\n";
+        exit(EXIT_FAILURE);
+    }
+    int m, n;
+    // 写入候选视点数据
+    n = best_view_point.size();
+    fout.write((char *)&n, sizeof(n));
+    for(int i = 0; i < n; ++i){
+        fout.write((char *)(&best_view_point[i].num), sizeof(int));
+        fout.write((char *)(&best_view_point[i].vis_area), sizeof(int));
+        for(int j = 0; j < 6; ++j)
+            fout.write((char *)(&best_view_point[i].joint_state[j]), sizeof(double));
+        for (int j = 0; j < 3; ++j){
+            fout.write((char *)(&best_view_point[i].position.m_floats[j]), sizeof(double));
+            fout.write((char *)(&best_view_point[i].direction.m_floats[j]), sizeof(double));
+        }
+    }
+
+    fout.close();
+}
+void writeData(const char *viewpoint_file, const vector<vector<moveit_msgs::RobotTrajectory>> trajs){
+    ofstream fout(viewpoint_file, ios_base::binary);
+    if(!fout.is_open()){
+        cerr << "open error:\n";
+        exit(EXIT_FAILURE);
+    }
+    int m = trajs.size(), n = trajs[0].size();
+    fout.write((char *)&m, sizeof(m));
+    fout.write((char *)&n, sizeof(n));
+
+    for (int i = 0; i < m; ++i){
+        for(int j = 0; j < n; ++j){
+            int num_p = trajs[i][j].joint_trajectory.points.size();
+            fout.write((char *)&num_p, sizeof(int));
+            for (int ip = 0; ip < num_p; ++ip){
+                for (int k = 0; k < 6; ++k){
+                    double p = trajs[i][j].joint_trajectory.points[ip].positions[k];
+                    double v = trajs[i][j].joint_trajectory.points[ip].velocities[k];
+                    double a = trajs[i][j].joint_trajectory.points[ip].accelerations[k];
+                    fout.write((char *)&p, sizeof(double));
+                    fout.write((char *)&v, sizeof(double));
+                    fout.write((char *)&a, sizeof(double));
+                }
+                double time = trajs[i][j].joint_trajectory.points[ip].time_from_start.toSec();
+                fout.write((char *)&time, sizeof(double));
+            }
+        }
+    }
+    fout.close();
+}
+
+void readData(const char *viewpoint_file, vector<ViewPoint> &cand_view_point, vector<vector<ViewPoint>> &graph, vector<vector<int>> &visibility_matrix){
+    ifstream fin;
+    fin.open(viewpoint_file, ios_base::in | ios_base::binary);
+    if(!fin){
+		cout << "读取文件失败" <<endl;
+		return;
+	}
+    if(fin.is_open()){
+        int m, n;
+        // 读取候选视点
+        fin.read((char *)&n, sizeof(int));
+        cand_view_point.resize(n);
+        for(int i = 0; i < n; ++i){
+            fin.read((char *)(&cand_view_point[i].num), sizeof(int));
+            fin.read((char *)(&cand_view_point[i].vis_area), sizeof(int));
+            cand_view_point[i].joint_state.resize(6);
+            for (int j = 0; j < 6; ++j)
+                fin.read((char *)(&cand_view_point[i].joint_state[j]), sizeof(double));
+            for (int j = 0; j < 3; ++j){
+                fin.read((char *)(&cand_view_point[i].position.m_floats[j]), sizeof(double));
+                fin.read((char *)(&cand_view_point[i].direction.m_floats[j]), sizeof(double));
+            }
+        }
+
+        // 读取视点图
+        fin.read((char *)&m, sizeof(int));
+        fin.read((char *)&n, sizeof(int));
+        graph.resize(m);
+        for (int i = 0; i < m; ++i){
+            graph[i].resize(n);
+            for (int j = 0; j < n; ++j)
+                fin.read((char *)(&graph[i][j]), sizeof(ViewPoint));
+        }
+
+        // 读取可见性矩阵
+        fin.read((char *)&m, sizeof(int));
+        fin.read((char *)&n, sizeof(int));
+        visibility_matrix.resize(m);
+        for (int i = 0; i < m; ++i){
+            visibility_matrix[i].resize(n);
+            for (int j = 0; j < n; ++j)
+                fin.read((char *)(&visibility_matrix[i][j]), sizeof(int));
+        }
+
+        fin.close();
+    }
+}
+void readData(const char *viewpoint_file, vector<ViewPoint> &best_view_point){
+    ifstream fin;
+    fin.open(viewpoint_file, ios_base::in | ios_base::binary);
+    if(!fin){
+		cout << "读取文件失败" <<endl;
+		return;
+	}
+    if(fin.is_open()){
+        int m, n;
+        // 读取候选视点
+        fin.read((char *)&n, sizeof(int));
+        best_view_point.resize(n);
+        for(int i = 0; i < n; ++i){
+            fin.read((char *)(&best_view_point[i].num), sizeof(int));
+            fin.read((char *)(&best_view_point[i].vis_area), sizeof(int));
+            best_view_point[i].joint_state.resize(6);
+            for (int j = 0; j < 6; ++j)
+                fin.read((char *)(&best_view_point[i].joint_state[j]), sizeof(double));
+            for (int j = 0; j < 3; ++j){
+                fin.read((char *)(&best_view_point[i].position.m_floats[j]), sizeof(double));
+                fin.read((char *)(&best_view_point[i].direction.m_floats[j]), sizeof(double));
+            }
+        }
+
+        fin.close();
+    }
+}
+void readData(const char *viewpoint_file, vector<vector<moveit_msgs::RobotTrajectory>> &trajs){
+    ifstream fin;
+    fin.open(viewpoint_file, ios_base::in | ios_base::binary);
+    if(!fin){
+		cout << "读取文件失败" <<endl;
+		return;
+	}
+    if(fin.is_open()){
+        int m, n;
+        fin.read((char *)&m, sizeof(int));
+        fin.read((char *)&n, sizeof(int));
+
+        trajs.resize(m);
+        for (int i = 0; i < m; ++i){
+            trajs[i].resize(n);
+            for (int j = 0; j < n; ++j){
+                trajs[i][j].joint_trajectory.header.frame_id = "base_link";
+                trajs[i][j].joint_trajectory.joint_names = {"joint_1","joint_2","joint_3","joint_4","joint_5","joint_6"};
+
+                int num_p = 0;
+                fin.read((char *)&num_p, sizeof(int));
+                trajs[i][j].joint_trajectory.points.resize(num_p);
+                for (int ip = 0; ip < num_p; ++ip){
+                    trajs[i][j].joint_trajectory.points[ip].positions.resize(6);
+                    trajs[i][j].joint_trajectory.points[ip].velocities.resize(6);
+                    trajs[i][j].joint_trajectory.points[ip].accelerations.resize(6);
+                    for (int k = 0; k < 6; ++k){
+                        double p, v, a;
+                        fin.read((char *)&p, sizeof(double));
+                        fin.read((char *)&v, sizeof(double));
+                        fin.read((char *)&a, sizeof(double));
+                        trajs[i][j].joint_trajectory.points[ip].positions[k] = p;
+                        trajs[i][j].joint_trajectory.points[ip].velocities[k] = v;
+                        trajs[i][j].joint_trajectory.points[ip].accelerations[k] = a;
+                    }
+                    double time;
+                    fin.read((char *)&time, sizeof(double));
+                    trajs[i][j].joint_trajectory.points[ip].time_from_start = ros::Duration().fromSec(time);
+                }
+            }
+        }
+
+        fin.close();
+    }
+}
+
+
+
+
+
+
+
