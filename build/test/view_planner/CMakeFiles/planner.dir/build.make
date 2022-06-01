@@ -131,9 +131,10 @@ planner_EXTERNAL_OBJECTS =
 /home/ohb/abb_ws/devel/lib/view_planner/planner: /opt/ros/noetic/lib/libmoveit_utils.so
 /home/ohb/abb_ws/devel/lib/view_planner/planner: /opt/ros/noetic/lib/libmoveit_test_utils.so
 /home/ohb/abb_ws/devel/lib/view_planner/planner: /usr/lib/x86_64-linux-gnu/libboost_iostreams.so.1.71.0
-/home/ohb/abb_ws/devel/lib/view_planner/planner: /opt/ros/noetic/lib/x86_64-linux-gnu/libfcl.so
+/home/ohb/abb_ws/devel/lib/view_planner/planner: /opt/ros/noetic/lib/x86_64-linux-gnu/libfcl.so.0.6.1
 /home/ohb/abb_ws/devel/lib/view_planner/planner: /usr/lib/x86_64-linux-gnu/libccd.so
 /home/ohb/abb_ws/devel/lib/view_planner/planner: /usr/lib/x86_64-linux-gnu/libm.so
+/home/ohb/abb_ws/devel/lib/view_planner/planner: /opt/ros/noetic/lib/liboctomap.so.1.9.8
 /home/ohb/abb_ws/devel/lib/view_planner/planner: /usr/lib/x86_64-linux-gnu/libBulletSoftBody.so
 /home/ohb/abb_ws/devel/lib/view_planner/planner: /usr/lib/x86_64-linux-gnu/libBulletDynamics.so
 /home/ohb/abb_ws/devel/lib/view_planner/planner: /usr/lib/x86_64-linux-gnu/libBulletCollision.so

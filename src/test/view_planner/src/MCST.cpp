@@ -65,7 +65,8 @@ TreeNode *MCST::treePolicy(TreeNode &root, vector<ViewPoint> &select_vp){
         int expand_id = node->isFullyExpanded(); 
 
         // 如果所有子节点均未被访问，或者存在未被访问的子节点且小于epsilon1 greedy，则扩展子节点 
-        if (!node->has_child || (expand_id >= 0 && random_num < epsilon1)){
+        if (!node->has_child || expand_id >= 0){
+        // if (!node->has_child || (expand_id >= 0 && random_num < epsilon1)){
             if(getTravelCost(node->state.getNum(), node->children[expand_id].state.getNum()) < 1000){
                 node->has_child = true;
                 return node->expand(expand_id);
@@ -78,20 +79,23 @@ TreeNode *MCST::treePolicy(TreeNode &root, vector<ViewPoint> &select_vp){
         }
 
         TreeNode *child_node;
-        // 不存在未被访问的子节点，直接选择下一个节点
-        if(expand_id == -1){
-            if(random_num < epsilon2)
-                child_node = node->weightedBestChild();
-            else
-                child_node = node->randomChild();
-        } 
-        // 存在访问与未被访问过的节点，且大于epsilon1 greedy
-        else{
-            if(random_num < epsilon2)
-                child_node = node->randomChild();
-            else
-                child_node = node->weightedBestChild();
-        }
+        // // 不存在未被访问的子节点，直接选择下一个节点
+        // if(expand_id == -1){
+        //     if(random_num < epsilon2)
+        //         child_node = node->weightedBestChild();
+        //     else
+        //         child_node = node->randomChild();
+        // } 
+        // // 存在访问与未被访问过的节点，且大于epsilon1 greedy
+        // else{
+        //     if(random_num < epsilon2)
+        //         child_node = node->randomChild();
+        //     else
+        //         child_node = node->weightedBestChild();
+        // }
+
+        child_node = node->weightedBestChild();
+
         // 检查父节点与子节点之间能否到达
         if(getTravelCost(node->state.getNum(), child_node->state.getNum()) > 1000){
             ++iteration;

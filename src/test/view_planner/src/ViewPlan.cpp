@@ -127,7 +127,7 @@ vector<TriSurface> ViewPlan::readASCII(const char* buffer) {
 
 		surface.flag = false;
 		// 删去模型底部无法测量的面片
-		if(surface.center.m_floats[2] > 10 || surface.normal.m_floats[2] > 0){
+		if(surface.center.m_floats[2] > 5){
 			TriSurfaces.push_back(surface);
 		}
 
@@ -184,7 +184,7 @@ vector<TriSurface> ViewPlan::readBinary(const char* buffer) {
 		//cout << surface.center.y << " ";
 		
 		surface.flag = false;
-		if(surface.center.m_floats[2] > 5 || surface.normal.m_floats[2] > 0){
+		if(surface.center.m_floats[2] > 5){
 			TriSurfaces.push_back(surface);
 		}
 
@@ -201,18 +201,18 @@ void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, i
     cout<<"开始生成候选视点："<<endl;
 	int candidate_num = already_sampled;
 
-	// 模型中心计算
+	// // 模型中心计算
 	double x_sum = 0;
 	double y_sum = 0;
 	double z_sum = 0;
 	for (int i = 0; i < model.size(); i++) {
-		x_sum += model[i].center.m_floats[0];
-		y_sum += model[i].center.m_floats[1];
+		// x_sum += model[i].center.m_floats[0];
+		// y_sum += model[i].center.m_floats[1];
 		z_sum += model[i].center.m_floats[2];
 	}
-	double center_x = x_sum / model.size();
-	double center_y = y_sum / model.size();
-	double center_z = z_sum / model.size();
+	double center_x = model_position_x;
+	double center_y = 0;
+	double center_z = model_position_z + 0.04;
     
 	while((candidate_view_point.size() - already_sampled) < sampleNum){
 		ViewPoint candidate;
@@ -221,7 +221,6 @@ void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, i
 			cout << "随机采样数超过模型面片数！" <<model.size()<< endl;
 			break;
 		}
-		// cout << "207 rsn=" << rand_sample_num << endl;
 		int randNum = RK_index[rand_sample_num].second;
 		++rand_sample_num;
 		// 生成视点位置
@@ -229,10 +228,10 @@ void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, i
 		// candidate.position = model[randNum].center + model[randNum].normal.normalized() * measure_dist; // 沿面片法线方向延伸最佳测量距离，生成候选视点
 
 		// xcf
-		float randNum_1 = (float)rand() / RAND_MAX * 0.35;
-		float randNum_2 = (float)rand() / RAND_MAX * 0.65 + 0.35;
+		float randNum_1 = (float)rand() / RAND_MAX * 0.4;
+		float randNum_2 = (float)rand() / RAND_MAX * 0.6 + 0.4;
 		float randNum_3 = (float)rand() / RAND_MAX;
-		if(candidate_num < 0.35 * sampleNum) {
+		if(candidate_num < 0.4 * sampleNum) {
 			candidate.position.m_floats[0] = center_x + measure_dist * cos(randNum_1 * PI/2) * cos(randNum_3 * 2*PI);
 			candidate.position.m_floats[1] = center_y + measure_dist * cos(randNum_1 * PI/2) * sin(randNum_3 * 2*PI);
 			candidate.position.m_floats[2] = center_z + measure_dist * sin(randNum_1 * PI/2);
@@ -261,14 +260,17 @@ void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, i
 		// }
 
 		// xcf
+		// 加权求和生成视点方向
 		Vector3 model_center(center_x,center_y,center_z);
-        for(int j = 0; j < model.size(); ++j){
-            double dist = (model[j].center - candidate.position).length();
-            double theta = (candidate.position - model_center).angle(model[j].normal);
-			if (dist <= maxFOD && dist >=minFOD && theta <= PI / 3){
-				candidate.direction += model[j].area * (model[j].center - candidate.position) / (model[j].center - candidate.position).length();  // 视点方向 = sum（邻面片方向*面积/距视点的距离）
-			}
-		}
+        // for(int j = 0; j < model.size(); ++j){
+        //     double dist = (model[j].center - candidate.position).length();
+        //     double theta = (candidate.position - model_center).angle(model[j].normal);
+		// 	if (dist <= maxFOD && dist >=minFOD && theta <= PI / 3){
+		// 		candidate.direction += model[j].area * (model[j].center - candidate.position) / (model[j].center - candidate.position).length();  // 视点方向 = sum（邻面片方向*面积/距视点的距离）
+		// 	}
+		// }
+		// 以模型中心为视点方向
+		candidate.direction = (model_center - candidate.position).normalized();
 
 		// 计算视点的机器人轴配置参数和碰撞检测，舍弃无法求解IK或发生碰撞的候选视点
 		if(!getJointState(candidate, robot_model_loader) || checkCollision(candidate, robot_model_loader)){

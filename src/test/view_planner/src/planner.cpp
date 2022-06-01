@@ -13,9 +13,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-// #include <moveit_visual_tools/moveit_visual_tools.h>
-// #include <moveit_msgs/DisplayRobotState.h>
-// #include <moveit_msgs/DisplayTrajectory.h>
+#include <moveit_visual_tools/moveit_visual_tools.h>
+#include <moveit_msgs/DisplayRobotState.h>
+#include <moveit_msgs/DisplayTrajectory.h>
 
 #define   MYPORT    12345
 #define   BUF_SIZE  1024
@@ -29,35 +29,37 @@ void visEnv(const char *file_path_small, const ViewPlan &vp);
 void visCandidateViewPoint(const vector<ViewPoint> cand_view_point, const ViewPlan &vp);
 void visBestViewPoint(const vector<ViewPoint> best_view_point, const ViewPlan &vp);
 void writeData(const char *viewpoint_file, const vector<ViewPoint> &cand_view_point, const vector<vector<ViewPoint>> &graph, const vector<vector<int>> &visibility_matrix);
+void writeData(const char *viewpoint_file, const vector<ViewPoint> &best_view_point);
 void writeData(const char *viewpoint_file, const vector<vector<moveit_msgs::RobotTrajectory>> trajs);
 void readData(const char *viewpoint_file, vector<ViewPoint> &cand_view_point, vector<vector<ViewPoint>> &graph, vector<vector<int>> &visibility_matrix);
+void readData(const char *viewpoint_file, vector<ViewPoint> &best_view_point);
 void readData(const char *viewpoint_file, vector<vector<moveit_msgs::RobotTrajectory>> &trajs);
 
 int main(int argc, char **argv)
 {
     // 使用前请根据需求修改以下参数 
-    const char* file_path = "/home/ohb/abb_ws/src/test/view_planner/model/0523/man_5186.stl";  // 用于视点生成的模型文件路径
-    const char* file_path_small = "package://view_planner/model/0523/man_5186_small.stl";  // 用于构建场景的模型文件路径
-    const char* viewpoint_file  = "/home/ohb/abb_ws/src/test/view_planner/data/candidates.dat";     // 存储候选视点信息的文件名
-    const char* bestvp_file  = "/home/ohb/abb_ws/src/test/view_planner/data/best_vps.dat";     // 存储候选视点信息的文件名
-    const char* trajectory_file  = "/home/ohb/abb_ws/src/test/view_planner/data/trajs.dat";         // 存储候选视点信息的文件名
+    const char* file_path        = "/home/ohb/abb_ws/src/test/view_planner/model/0523/man_5186.stl";  // 用于视点生成的模型文件路径
+    const char* file_path_small  = "package://view_planner/model/0523/man_5186_small.stl";            // 用于构建场景的模型文件路径
+    const char* viewpoint_file   = "/home/ohb/abb_ws/src/test/view_planner/data/candidates.dat";      // 存储候选视点信息的文件名
+    const char* bestvp_file      = "/home/ohb/abb_ws/src/test/view_planner/data/best_vps.dat";        // 存储候选视点信息的文件名
+    const char* trajectory_file  = "/home/ohb/abb_ws/src/test/view_planner/data/trajs.dat";           // 存储候选视点信息的文件名
     
     bool reuse_cand;             // true即重用已存储的候选视点，false即重新生成候选视点
-    cout << "输入: 1 即重用已存储的候选视点，0 即重新生成候选视点" << endl;
+    cout << "输入: 1 即重用已存储的候选视点, 0 即重新生成候选视点" << endl;
     cin >> reuse_cand;
 
     int optm_type;
-    cout << "输入: 1 即 RKGA，0 即 MCTS" << endl;
+    cout << "输入: 0 即 RKGA, 1 即 MCTS" << endl;
     cin >> optm_type;
 
     int sampleNum        = 40;  // 采样次数;
-    double coverage_rate = 0.60;  // 采样覆盖率
+    double coverage_rate = 0.70;  // 采样覆盖率
 
     // RKGA参数
-    int maxGen        = 200;  // 最大进化代数
-    int pop           = 200;  // 每代个体样本数
-    double pop_elite  = 0.1;  // 每代种群中的精英个体比例
-    double pop_mutant = 0.3;  // 每代种群中变异的个体比例
+    int maxGen        = 250;  // 最大进化代数
+    int pop           = 300;  // 每代个体样本数
+    double pop_elite  = 0.05;  // 每代种群中的精英个体比例
+    double pop_mutant = 0.4;  // 每代种群中变异的个体比例
     double rhoe       = 70;   // probability that an offspring inherits the allele of its elite parent
 
     ros::init(argc, argv, "planner");
@@ -68,9 +70,9 @@ int main(int argc, char **argv)
     env_vis_pub        = node_handle.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
     view_point_vis_pub = node_handle.advertise<visualization_msgs::Marker>("vis_view_point", 1);
 
-    // namespace rvt = rviz_visual_tools;
-    // moveit_visual_tools::MoveItVisualTools visual_tools("base_link", "vis_traj");
-    // visual_tools.deleteAllMarkers();
+    namespace rvt = rviz_visual_tools;
+    moveit_visual_tools::MoveItVisualTools visual_tools("base_link", "vis_traj");
+    visual_tools.deleteAllMarkers();
 
 	
 	// 创建一个socket *服务器端和客户端IP4地址信息
@@ -124,7 +126,7 @@ int main(int argc, char **argv)
     visCandidateViewPoint(cand_view_point, vp);
     
     // 筛选最优视点并进行测量路径规划
-    // optm_type = 1: RKGA
+    // optm_type = 0: RKGA
     // optm_type = 1: MCTS
     vector<ViewPoint> best_view_point;
     if (optm_type == 0){
@@ -153,16 +155,14 @@ int main(int argc, char **argv)
             moveit::planning_interface::MoveGroupInterface::Plan my_plan;
             moveit::planning_interface::MoveItErrorCode success = group.plan(my_plan);
             ROS_INFO("Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
-            // visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group, rvt::BLUE);
-            // visual_tools.trigger();
+            visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
+            visual_tools.trigger();
 
             //让机械臂按照规划的轨迹开始运动。
             if (success){
                 group.execute(my_plan.trajectory_);
                 send(socket_cli, sendbuffer,(int)strlen(sendbuffer),0);
                 printf("发送单次测量指令，开始采集图片\n");
-                // recv(socket_cli,revbuffer,sizeof(revbuffer),0);
-                // printf("server message:%s\n",revbuffer);
                 sleep(2);
                 cout << "sleep over" << endl;
             }
@@ -173,8 +173,8 @@ int main(int argc, char **argv)
         moveit_msgs::RobotTrajectory traj;
         traj = vp.trajs[best_view_point[i - 1].num][best_view_point[i].num];
         
-        // visual_tools.publishTrajectoryLine(traj, joint_model_group);
-        // visual_tools.trigger();
+        visual_tools.publishTrajectoryLine(traj, joint_model_group);
+        visual_tools.trigger();
 
         cout << "第" << i << "条轨迹时间：";
         int size = traj.joint_trajectory.points.size();
@@ -203,6 +203,15 @@ void visEnv(const char *file_path_small, const ViewPlan &vp){
     moveit_msgs::CollisionObject table;
     table.header.frame_id = "base_link";
     table.id = "table";
+    // 墙面
+    moveit_msgs::CollisionObject wall_1;
+    wall_1.header.frame_id = "base_link";
+    wall_1.id = "wall_1";
+    
+
+    moveit_msgs::CollisionObject wall_2;
+    wall_2.header.frame_id = "base_link";
+    wall_2.id = "wall_2";
 
     // 导入待测物体STL网格模型
     shape_msgs::Mesh model_mesh;
@@ -219,9 +228,24 @@ void visEnv(const char *file_path_small, const ViewPlan &vp){
     primitive.type = primitive.BOX;
     primitive.dimensions.resize(3);
     primitive.dimensions[0] = 0.4;  // x
-    primitive.dimensions[1] = 0.4;  // y
-    primitive.dimensions[2] = vp.getModelPositionZ() + 0.04;  // z
+    primitive.dimensions[1] = 0.3;  // y
+    primitive.dimensions[2] = vp.getModelPositionZ();  // z
     // primitive.dimensions[2] = vp.getModelPositionZ() - 0.02;  //z = 转向节中心高度 - 转向节下半部分高度0.02
+
+    // 设置墙面的外形属性
+    shape_msgs::SolidPrimitive primitive_wall_1;
+    primitive_wall_1.type = primitive_wall_1.BOX;
+    primitive_wall_1.dimensions.resize(3);
+    primitive_wall_1.dimensions[0] = 0.1;
+    primitive_wall_1.dimensions[1] = 2.0;  
+    primitive_wall_1.dimensions[2] = 2.0;
+
+    shape_msgs::SolidPrimitive primitive_wall_2;
+    primitive_wall_2.type = primitive_wall_2.BOX;
+    primitive_wall_2.dimensions.resize(3);
+    primitive_wall_2.dimensions[0] = 2.0;
+    primitive_wall_2.dimensions[1] = 0.4;  
+    primitive_wall_2.dimensions[2] = 0.8;
 
     // 设置待测物体和平台位置
     geometry_msgs::Pose model_pose;
@@ -238,9 +262,44 @@ void visEnv(const char *file_path_small, const ViewPlan &vp){
     table_pose.orientation.x = 0;
     table_pose.orientation.y = 0;
     table_pose.orientation.z = 0;
-    table_pose.position.x = vp.getModelPositionX();
+    table_pose.position.x = vp.getTablePositionX();
     table_pose.position.y = 0;
-    table_pose.position.z = primitive.dimensions[2] / 2;  // 高度=0.2/2
+    table_pose.position.z = primitive.dimensions[2] / 2;
+
+    geometry_msgs::Pose wall_pose;
+    wall_pose.orientation.w = 0;
+    wall_pose.orientation.x = 0;
+    wall_pose.orientation.y = 0;
+    wall_pose.orientation.z = 0;
+    wall_pose.position.x = -1.0;
+    wall_pose.position.y = 0;
+    wall_pose.position.z = primitive_wall_1.dimensions[2] / 2;
+
+    geometry_msgs::Pose wall_pose_2;
+    wall_pose_2.orientation.w = 0;
+    wall_pose_2.orientation.x = 0;
+    wall_pose_2.orientation.y = 0;
+    wall_pose_2.orientation.z = 0;
+    wall_pose_2.position.x = 0;
+    wall_pose_2.position.y = -1.0;
+    wall_pose_2.position.z = primitive_wall_2.dimensions[2] / 2;
+
+    // 设置颜色
+    vector<moveit_msgs::ObjectColor> colors;
+    moveit_msgs::ObjectColor color_0;
+    color_0.color.a = 0.6;
+    color_0.color.r = 0.5;
+    color_0.color.g = 0.5;
+    color_0.color.b = 0.5;
+    color_0.id = "wall_1";
+
+    moveit_msgs::ObjectColor color_1;
+    color_1.color.a = 0.6;
+    color_1.color.r = 0.5;
+    color_1.color.g = 0.5;
+    color_1.color.b = 0.5;
+    color_1.id = "wall_2";
+    colors.push_back(color_1);
 
     //将物体添加到场景并发布
     obj.meshes.push_back(model_mesh);
@@ -250,6 +309,14 @@ void visEnv(const char *file_path_small, const ViewPlan &vp){
     table.primitives.push_back(primitive);
     table.primitive_poses.push_back(table_pose);
     table.operation = table.ADD;
+
+    wall_1.primitives.push_back(primitive_wall_1);
+    wall_1.primitive_poses.push_back(wall_pose);
+    wall_1.operation = wall_1.ADD;
+
+    wall_2.primitives.push_back(primitive_wall_2);
+    wall_2.primitive_poses.push_back(wall_pose_2);
+    wall_2.operation = wall_2.ADD;
 
     cout<<"成功添加物体"<<endl;
 
@@ -264,6 +331,11 @@ void visEnv(const char *file_path_small, const ViewPlan &vp){
     moveit_msgs::PlanningScene planning_scene;
     planning_scene.world.collision_objects.push_back(obj);
     planning_scene.world.collision_objects.push_back(table);
+    planning_scene.world.collision_objects.push_back(wall_1);
+    planning_scene.object_colors.push_back(color_0);
+    planning_scene.world.collision_objects.push_back(wall_2);
+    planning_scene.object_colors.push_back(color_1);
+
     planning_scene.is_diff = true;
     env_vis_pub.publish(planning_scene);
 }

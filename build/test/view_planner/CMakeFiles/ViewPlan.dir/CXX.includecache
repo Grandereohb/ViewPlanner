@@ -6,6 +6,16 @@
 
 #IncludeRegexTransform: 
 
+/home/ohb/abb_ws/src/test/view_planner/include/MCST.h
+ViewPlan.h
+/home/ohb/abb_ws/src/test/view_planner/include/ViewPlan.h
+MDP.h
+/home/ohb/abb_ws/src/test/view_planner/include/MDP.h
+
+/home/ohb/abb_ws/src/test/view_planner/include/MDP.h
+ViewPlan.h
+/home/ohb/abb_ws/src/test/view_planner/include/ViewPlan.h
+
 /home/ohb/abb_ws/src/test/view_planner/include/ViewPlan.h
 vector
 -
@@ -56,13 +66,9 @@ Eigen/Dense
 eigen_conversions/eigen_msg.h
 -
 
-/home/ohb/abb_ws/src/test/view_planner/src/ViewPlan.cpp
-ViewPlan.h
-/home/ohb/abb_ws/src/test/view_planner/src/ViewPlan.h
-time.h
--
-stdlib.h
--
+/home/ohb/abb_ws/src/test/view_planner/src/MCST.cpp
+MCST.h
+/home/ohb/abb_ws/src/test/view_planner/src/MCST.h
 
 /opt/ros/noetic/include/actionlib/action_definition.h
 
@@ -797,6 +803,8 @@ boost/function.hpp
 -
 string
 -
+moveit/moveit_kinematics_base_export.h
+-
 
 /opt/ros/noetic/include/moveit/kinematics_plugin_loader/kinematics_plugin_loader.h
 boost/function.hpp
@@ -820,6 +828,8 @@ memory
 moveit/macros/class_forward.h
 -
 moveit/robot_state/robot_state.h
+-
+moveit/utils/moveit_error_code.h
 -
 moveit_msgs/RobotTrajectory.h
 -
@@ -851,6 +861,10 @@ utility
 -
 tf2_ros/buffer.h
 -
+
+/opt/ros/noetic/include/moveit/moveit_kinematics_base_export.h
+
+/opt/ros/noetic/include/moveit/moveit_planning_scene_export.h
 
 /opt/ros/noetic/include/moveit/planning_scene/planning_scene.h
 moveit/robot_model/robot_model.h
@@ -890,6 +904,8 @@ boost/function.hpp
 boost/concept_check.hpp
 -
 memory
+-
+moveit/moveit_planning_scene_export.h
 -
 
 /opt/ros/noetic/include/moveit/planning_scene_interface/planning_scene_interface.h
@@ -1065,6 +1081,8 @@ moveit_msgs/RobotState.h
 -
 deque
 -
+memory
+-
 
 /opt/ros/noetic/include/moveit/transforms/transforms.h
 geometry_msgs/TransformStamped.h
@@ -1074,6 +1092,10 @@ Eigen/Geometry
 boost/noncopyable.hpp
 -
 moveit/macros/class_forward.h
+-
+
+/opt/ros/noetic/include/moveit/utils/moveit_error_code.h
+moveit_msgs/MoveItErrorCodes.h
 -
 
 /opt/ros/noetic/include/moveit_msgs/AllowedCollisionEntry.h
