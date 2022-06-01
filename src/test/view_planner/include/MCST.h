@@ -47,7 +47,7 @@ public:
 
 private:
     // 可按需求修改参数
-    const int max_iteration = 50000;  // 最大迭代次数
+    const int max_iteration = 45000;  // 最大迭代次数
     const double epsilon1 = 50;     // TreePolicy参数1
     const double epsilon2 = 60;     // TreePolicy参数2
 
