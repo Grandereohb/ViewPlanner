@@ -40,16 +40,20 @@ private:
 
 class MCST{
 public:
-    MCST(const double &coverage_rate_, const vector<ViewPoint> &candidates_, const vector<vector<ViewPoint>> &graph_, const vector<vector<int>> &visibility_matrix_);
-    // ~MSCT();
+ MCST(const double& coverage_rate_,
+      const vector<ViewPoint>& candidates_,
+      const vector<vector<ViewPoint>>& graph_,
+      const vector<vector<int>>& visibility_matrix_,
+      ros::NodeHandle nh);
+ // ~MSCT();
 
-    vector<ViewPoint> solveMCST();
+ vector<ViewPoint> solveMCST();
 
 private:
     // 可按需求修改参数
-    const int max_iteration = 45000;  // 最大迭代次数
-    const double epsilon1 = 50;     // TreePolicy参数1
-    const double epsilon2 = 60;     // TreePolicy参数2
+    int max_iteration = 45000;  // 最大迭代次数
+    double epsilon1 = 50;     // TreePolicy参数1
+    double epsilon2 = 60;     // TreePolicy参数2
 
     // 不可修改参数
     const double coverage_rate;

@@ -2,8 +2,19 @@
 
 using namespace std;
 
-MCST::MCST(const double &coverage_rate_, const vector<ViewPoint> &candidates_, const vector<vector<ViewPoint>> &graph_, const vector<vector<int>> &visibility_matrix_):
-coverage_rate(coverage_rate_), candidates(candidates_), graph(graph_), visibility_matrix(visibility_matrix_) {}
+MCST::MCST(const double& coverage_rate_,
+           const vector<ViewPoint>& candidates_,
+           const vector<vector<ViewPoint>>& graph_,
+           const vector<vector<int>>& visibility_matrix_,
+           ros::NodeHandle nh)
+    : coverage_rate(coverage_rate_),
+      candidates(candidates_),
+      graph(graph_),
+      visibility_matrix(visibility_matrix_) {
+    nh.getParam("max_iter", max_iteration);
+    nh.getParam("epsilon1", epsilon1);
+    nh.getParam("epsilon2", epsilon2);
+}
 
 vector<ViewPoint> MCST::solveMCST(){
     vector<ViewPoint> res;

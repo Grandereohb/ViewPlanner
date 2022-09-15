@@ -12,6 +12,38 @@
         respawn="false" output="screen">
     <rosparam command="load"
               file="$(find abb_irb1600_10_145_moveit_config)/config/kinematics.yaml"/>
+    <!-- 输入与输出文件 -->
+    <param name="file_path"       value="/home/ros/abb_ws/src/test/view_planner/model/0523/man_5186.stl"/>
+    <param name="file_path_small" value="package://view_planner/model/0523/man_5186_small.stl"/>
+    <param name="viewpoint_file"  value="/home/ros/abb_ws/src/test/view_planner/data/0601/1629/candidates.dat"/>
+    <param name="trajectory_file" value="/home/ros/abb_ws/src/test/view_planner/data/0601/1629/trajs.dat"/>
+    <param name="bestvp_file"     value="/home/ros/abb_ws/src/test/view_planner/data/0601/1629/best_vps.dat"/>
+
+    <!-- 采样参数 -->
+    <param name="sample_num"    value="40"/>
+    <param name="coverage_rate" value="0.6"/>
+
+    <!-- RKGA参数 -->
+    <param name="max_gen"    value="400"/>
+    <param name="pop"        value="200"/>
+    <param name="pop_elite"  value="0.1"/>
+    <param name="pop_mutant" value="0.3"/>
+    <param name="rhoe"       value="70"/>
+
+    <!-- MCTS参数 -->
+    <param name="max_iter"  value="45000"/>
+    <param name="epsilon1"  value="50"/>
+    <param name="epsilon2"  value="60"/>
+
+    <!-- 是否重用与优化方法 -->
+    <!-- 1 即 重用已存储的最佳视点，0 即 重新生成最佳视点 -->
+    <param name="reuse_best" value="1"/>
+    <!-- 1 即 重用已存储的候选视点，0 即 重新生成候选视点 -->
+    <param name="reuse"      value="1"/>
+    <!-- 1 即 MCTS, 0 即 RKGA -->
+    <param name="optm_type"  value="0"/>
+
+    
   </node>
     <!-- <include file="$(find view_planner)/launch/joint_state.launch" /> -->
     <!-- <node name="planner" pkg="view_planner" type="planner" /> -->
