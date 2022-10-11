@@ -1,2 +1,0 @@
-abb_config/abb_irb1600_support:abb_driver:abb_irb1600_10_145_ikfast_arm_plugin:irb1600_10_145_moveit_config:test/view_planner
--DCATKIN_DEVEL_PREFIX=/home/ohb/abb_ws/devel -DCMAKE_INSTALL_PREFIX=/home/ohb/abb_ws/install -G Unix Makefiles
