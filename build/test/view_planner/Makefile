@@ -92,6 +92,16 @@ install/fast: preinstall/fast
 	/usr/bin/cmake -P cmake_install.cmake
 .PHONY : install/fast
 
+# Special rule for the target list_install_components
+list_install_components:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
+.PHONY : list_install_components
+
+# Special rule for the target list_install_components
+list_install_components/fast: list_install_components
+
+.PHONY : list_install_components/fast
+
 # Special rule for the target test
 test:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running tests..."
@@ -125,16 +135,6 @@ rebuild_cache/fast: rebuild_cache
 
 .PHONY : rebuild_cache/fast
 
-# Special rule for the target list_install_components
-list_install_components:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
-.PHONY : list_install_components
-
-# Special rule for the target list_install_components
-list_install_components/fast: list_install_components
-
-.PHONY : list_install_components/fast
-
 # The main all target
 all: cmake_check_build_system
 	cd /home/ohb/abb_ws/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/ohb/abb_ws/build/CMakeFiles /home/ohb/abb_ws/build/test/view_planner/CMakeFiles/progress.marks
@@ -166,6 +166,21 @@ preinstall/fast:
 depend:
 	cd /home/ohb/abb_ws/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
+
+# Convenience name for target.
+test/view_planner/CMakeFiles/ViewAngleTest.dir/rule:
+	cd /home/ohb/abb_ws/build && $(MAKE) -f CMakeFiles/Makefile2 test/view_planner/CMakeFiles/ViewAngleTest.dir/rule
+.PHONY : test/view_planner/CMakeFiles/ViewAngleTest.dir/rule
+
+# Convenience name for target.
+ViewAngleTest: test/view_planner/CMakeFiles/ViewAngleTest.dir/rule
+
+.PHONY : ViewAngleTest
+
+# fast build rule for target.
+ViewAngleTest/fast:
+	cd /home/ohb/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/ViewAngleTest.dir/build.make test/view_planner/CMakeFiles/ViewAngleTest.dir/build
+.PHONY : ViewAngleTest/fast
 
 # Convenience name for target.
 test/view_planner/CMakeFiles/dynamic_reconfigure_generate_messages_py.dir/rule:
@@ -623,6 +638,33 @@ src/RKGA.cpp.s:
 	cd /home/ohb/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/ViewPlan.dir/build.make test/view_planner/CMakeFiles/ViewPlan.dir/src/RKGA.cpp.s
 .PHONY : src/RKGA.cpp.s
 
+src/ViewAngleTest.o: src/ViewAngleTest.cpp.o
+
+.PHONY : src/ViewAngleTest.o
+
+# target to build an object file
+src/ViewAngleTest.cpp.o:
+	cd /home/ohb/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/ViewAngleTest.dir/build.make test/view_planner/CMakeFiles/ViewAngleTest.dir/src/ViewAngleTest.cpp.o
+.PHONY : src/ViewAngleTest.cpp.o
+
+src/ViewAngleTest.i: src/ViewAngleTest.cpp.i
+
+.PHONY : src/ViewAngleTest.i
+
+# target to preprocess a source file
+src/ViewAngleTest.cpp.i:
+	cd /home/ohb/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/ViewAngleTest.dir/build.make test/view_planner/CMakeFiles/ViewAngleTest.dir/src/ViewAngleTest.cpp.i
+.PHONY : src/ViewAngleTest.cpp.i
+
+src/ViewAngleTest.s: src/ViewAngleTest.cpp.s
+
+.PHONY : src/ViewAngleTest.s
+
+# target to generate assembly for a file
+src/ViewAngleTest.cpp.s:
+	cd /home/ohb/abb_ws/build && $(MAKE) -f test/view_planner/CMakeFiles/ViewAngleTest.dir/build.make test/view_planner/CMakeFiles/ViewAngleTest.dir/src/ViewAngleTest.cpp.s
+.PHONY : src/ViewAngleTest.cpp.s
+
 src/ViewPlan.o: src/ViewPlan.cpp.o
 
 .PHONY : src/ViewPlan.o
@@ -686,6 +728,8 @@ help:
 	@echo "... install/strip"
 	@echo "... install/local"
 	@echo "... install"
+	@echo "... list_install_components"
+	@echo "... ViewAngleTest"
 	@echo "... dynamic_reconfigure_generate_messages_py"
 	@echo "... dynamic_reconfigure_gencfg"
 	@echo "... dynamic_reconfigure_generate_messages_eus"
@@ -714,7 +758,6 @@ help:
 	@echo "... graph_msgs_generate_messages_cpp"
 	@echo "... ViewPlan"
 	@echo "... planner"
-	@echo "... list_install_components"
 	@echo "... src/MCST.o"
 	@echo "... src/MCST.i"
 	@echo "... src/MCST.s"
@@ -724,6 +767,9 @@ help:
 	@echo "... src/RKGA.o"
 	@echo "... src/RKGA.i"
 	@echo "... src/RKGA.s"
+	@echo "... src/ViewAngleTest.o"
+	@echo "... src/ViewAngleTest.i"
+	@echo "... src/ViewAngleTest.s"
 	@echo "... src/ViewPlan.o"
 	@echo "... src/ViewPlan.i"
 	@echo "... src/ViewPlan.s"

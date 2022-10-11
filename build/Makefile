@@ -1468,6 +1468,19 @@ tf2_msgs_generate_messages_nodejs/fast:
 .PHONY : tf2_msgs_generate_messages_nodejs/fast
 
 #=============================================================================
+# Target rules for targets named ViewAngleTest
+
+# Build rule for target.
+ViewAngleTest: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 ViewAngleTest
+.PHONY : ViewAngleTest
+
+# fast build rule for target.
+ViewAngleTest/fast:
+	$(MAKE) -f test/view_planner/CMakeFiles/ViewAngleTest.dir/build.make test/view_planner/CMakeFiles/ViewAngleTest.dir/build
+.PHONY : ViewAngleTest/fast
+
+#=============================================================================
 # Target rules for targets named dynamic_reconfigure_generate_messages_py
 
 # Build rule for target.
@@ -1905,6 +1918,7 @@ help:
 	@echo "... octomap_msgs_generate_messages_lisp"
 	@echo "... octomap_msgs_generate_messages_nodejs"
 	@echo "... tf2_msgs_generate_messages_nodejs"
+	@echo "... ViewAngleTest"
 	@echo "... dynamic_reconfigure_generate_messages_py"
 	@echo "... dynamic_reconfigure_gencfg"
 	@echo "... dynamic_reconfigure_generate_messages_eus"
