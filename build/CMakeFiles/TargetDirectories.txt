@@ -157,6 +157,8 @@
 /home/ohb/abb_ws/build/test/view_planner/CMakeFiles/install/strip.dir
 /home/ohb/abb_ws/build/test/view_planner/CMakeFiles/install/local.dir
 /home/ohb/abb_ws/build/test/view_planner/CMakeFiles/install.dir
+/home/ohb/abb_ws/build/test/view_planner/CMakeFiles/list_install_components.dir
+/home/ohb/abb_ws/build/test/view_planner/CMakeFiles/ViewAngleTest.dir
 /home/ohb/abb_ws/build/test/view_planner/CMakeFiles/dynamic_reconfigure_generate_messages_py.dir
 /home/ohb/abb_ws/build/test/view_planner/CMakeFiles/dynamic_reconfigure_gencfg.dir
 /home/ohb/abb_ws/build/test/view_planner/CMakeFiles/dynamic_reconfigure_generate_messages_eus.dir
@@ -185,4 +187,3 @@
 /home/ohb/abb_ws/build/test/view_planner/CMakeFiles/graph_msgs_generate_messages_cpp.dir
 /home/ohb/abb_ws/build/test/view_planner/CMakeFiles/ViewPlan.dir
 /home/ohb/abb_ws/build/test/view_planner/CMakeFiles/planner.dir
-/home/ohb/abb_ws/build/test/view_planner/CMakeFiles/list_install_components.dir

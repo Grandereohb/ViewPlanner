@@ -308,6 +308,7 @@ irb1600_10_145_moveit_config/clean: irb1600_10_145_moveit_config/CMakeFiles/_cat
 # Directory level rules for directory test/view_planner
 
 # Recursive "all" directory target.
+test/view_planner/all: test/view_planner/CMakeFiles/ViewAngleTest.dir/all
 test/view_planner/all: test/view_planner/CMakeFiles/ViewPlan.dir/all
 test/view_planner/all: test/view_planner/CMakeFiles/planner.dir/all
 
@@ -319,6 +320,7 @@ test/view_planner/preinstall:
 .PHONY : test/view_planner/preinstall
 
 # Recursive "clean" directory target.
+test/view_planner/clean: test/view_planner/CMakeFiles/ViewAngleTest.dir/clean
 test/view_planner/clean: test/view_planner/CMakeFiles/dynamic_reconfigure_generate_messages_py.dir/clean
 test/view_planner/clean: test/view_planner/CMakeFiles/dynamic_reconfigure_gencfg.dir/clean
 test/view_planner/clean: test/view_planner/CMakeFiles/dynamic_reconfigure_generate_messages_eus.dir/clean
@@ -490,7 +492,7 @@ gtest/googlemock/CMakeFiles/gmock_main.dir/all: gtest/googlemock/CMakeFiles/gmoc
 gtest/googlemock/CMakeFiles/gmock_main.dir/all: gtest/googletest/CMakeFiles/gtest.dir/all
 	$(MAKE) -f gtest/googlemock/CMakeFiles/gmock_main.dir/build.make gtest/googlemock/CMakeFiles/gmock_main.dir/depend
 	$(MAKE) -f gtest/googlemock/CMakeFiles/gmock_main.dir/build.make gtest/googlemock/CMakeFiles/gmock_main.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ohb/abb_ws/build/CMakeFiles --progress-num=16,17 "Built target gmock_main"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ohb/abb_ws/build/CMakeFiles --progress-num=18,19 "Built target gmock_main"
 .PHONY : gtest/googlemock/CMakeFiles/gmock_main.dir/all
 
 # Build rule for subdir invocation for target.
@@ -517,7 +519,7 @@ gtest/googlemock/CMakeFiles/gmock_main.dir/clean:
 gtest/googlemock/CMakeFiles/gmock.dir/all: gtest/googletest/CMakeFiles/gtest.dir/all
 	$(MAKE) -f gtest/googlemock/CMakeFiles/gmock.dir/build.make gtest/googlemock/CMakeFiles/gmock.dir/depend
 	$(MAKE) -f gtest/googlemock/CMakeFiles/gmock.dir/build.make gtest/googlemock/CMakeFiles/gmock.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ohb/abb_ws/build/CMakeFiles --progress-num=14,15 "Built target gmock"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ohb/abb_ws/build/CMakeFiles --progress-num=16,17 "Built target gmock"
 .PHONY : gtest/googlemock/CMakeFiles/gmock.dir/all
 
 # Build rule for subdir invocation for target.
@@ -544,7 +546,7 @@ gtest/googlemock/CMakeFiles/gmock.dir/clean:
 gtest/googletest/CMakeFiles/gtest_main.dir/all: gtest/googletest/CMakeFiles/gtest.dir/all
 	$(MAKE) -f gtest/googletest/CMakeFiles/gtest_main.dir/build.make gtest/googletest/CMakeFiles/gtest_main.dir/depend
 	$(MAKE) -f gtest/googletest/CMakeFiles/gtest_main.dir/build.make gtest/googletest/CMakeFiles/gtest_main.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ohb/abb_ws/build/CMakeFiles --progress-num=20,21 "Built target gtest_main"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ohb/abb_ws/build/CMakeFiles --progress-num=22,23 "Built target gtest_main"
 .PHONY : gtest/googletest/CMakeFiles/gtest_main.dir/all
 
 # Build rule for subdir invocation for target.
@@ -571,7 +573,7 @@ gtest/googletest/CMakeFiles/gtest_main.dir/clean:
 gtest/googletest/CMakeFiles/gtest.dir/all:
 	$(MAKE) -f gtest/googletest/CMakeFiles/gtest.dir/build.make gtest/googletest/CMakeFiles/gtest.dir/depend
 	$(MAKE) -f gtest/googletest/CMakeFiles/gtest.dir/build.make gtest/googletest/CMakeFiles/gtest.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ohb/abb_ws/build/CMakeFiles --progress-num=18,19 "Built target gtest"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ohb/abb_ws/build/CMakeFiles --progress-num=20,21 "Built target gtest"
 .PHONY : gtest/googletest/CMakeFiles/gtest.dir/all
 
 # Build rule for subdir invocation for target.
@@ -815,7 +817,7 @@ abb_config/abb_irb1600_support/CMakeFiles/_run_tests_abb_irb1600_support_roslaun
 abb_driver/CMakeFiles/abb_driver_motion_download_interface.dir/all:
 	$(MAKE) -f abb_driver/CMakeFiles/abb_driver_motion_download_interface.dir/build.make abb_driver/CMakeFiles/abb_driver_motion_download_interface.dir/depend
 	$(MAKE) -f abb_driver/CMakeFiles/abb_driver_motion_download_interface.dir/build.make abb_driver/CMakeFiles/abb_driver_motion_download_interface.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ohb/abb_ws/build/CMakeFiles --progress-num=6,7,8 "Built target abb_driver_motion_download_interface"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ohb/abb_ws/build/CMakeFiles --progress-num=8,9,10 "Built target abb_driver_motion_download_interface"
 .PHONY : abb_driver/CMakeFiles/abb_driver_motion_download_interface.dir/all
 
 # Build rule for subdir invocation for target.
@@ -842,7 +844,7 @@ abb_driver/CMakeFiles/abb_driver_motion_download_interface.dir/clean:
 abb_driver/CMakeFiles/abb_driver_robot_state.dir/all:
 	$(MAKE) -f abb_driver/CMakeFiles/abb_driver_robot_state.dir/build.make abb_driver/CMakeFiles/abb_driver_robot_state.dir/depend
 	$(MAKE) -f abb_driver/CMakeFiles/abb_driver_robot_state.dir/build.make abb_driver/CMakeFiles/abb_driver_robot_state.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ohb/abb_ws/build/CMakeFiles --progress-num=9,10,11 "Built target abb_driver_robot_state"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ohb/abb_ws/build/CMakeFiles --progress-num=11,12,13 "Built target abb_driver_robot_state"
 .PHONY : abb_driver/CMakeFiles/abb_driver_robot_state.dir/all
 
 # Build rule for subdir invocation for target.
@@ -2948,7 +2950,7 @@ abb_irb1600_10_145_ikfast_arm_plugin/CMakeFiles/object_recognition_msgs_generate
 abb_irb1600_10_145_ikfast_arm_plugin/CMakeFiles/abb_irb1600_10_145_arm_moveit_ikfast_plugin.dir/all:
 	$(MAKE) -f abb_irb1600_10_145_ikfast_arm_plugin/CMakeFiles/abb_irb1600_10_145_arm_moveit_ikfast_plugin.dir/build.make abb_irb1600_10_145_ikfast_arm_plugin/CMakeFiles/abb_irb1600_10_145_arm_moveit_ikfast_plugin.dir/depend
 	$(MAKE) -f abb_irb1600_10_145_ikfast_arm_plugin/CMakeFiles/abb_irb1600_10_145_arm_moveit_ikfast_plugin.dir/build.make abb_irb1600_10_145_ikfast_arm_plugin/CMakeFiles/abb_irb1600_10_145_arm_moveit_ikfast_plugin.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ohb/abb_ws/build/CMakeFiles --progress-num=12,13 "Built target abb_irb1600_10_145_arm_moveit_ikfast_plugin"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ohb/abb_ws/build/CMakeFiles --progress-num=14,15 "Built target abb_irb1600_10_145_arm_moveit_ikfast_plugin"
 .PHONY : abb_irb1600_10_145_ikfast_arm_plugin/CMakeFiles/abb_irb1600_10_145_arm_moveit_ikfast_plugin.dir/all
 
 # Build rule for subdir invocation for target.
@@ -3048,6 +3050,33 @@ tf2_msgs_generate_messages_nodejs: abb_irb1600_10_145_ikfast_arm_plugin/CMakeFil
 abb_irb1600_10_145_ikfast_arm_plugin/CMakeFiles/tf2_msgs_generate_messages_nodejs.dir/clean:
 	$(MAKE) -f abb_irb1600_10_145_ikfast_arm_plugin/CMakeFiles/tf2_msgs_generate_messages_nodejs.dir/build.make abb_irb1600_10_145_ikfast_arm_plugin/CMakeFiles/tf2_msgs_generate_messages_nodejs.dir/clean
 .PHONY : abb_irb1600_10_145_ikfast_arm_plugin/CMakeFiles/tf2_msgs_generate_messages_nodejs.dir/clean
+
+#=============================================================================
+# Target rules for target test/view_planner/CMakeFiles/ViewAngleTest.dir
+
+# All Build rule for target.
+test/view_planner/CMakeFiles/ViewAngleTest.dir/all: test/view_planner/CMakeFiles/ViewPlan.dir/all
+	$(MAKE) -f test/view_planner/CMakeFiles/ViewAngleTest.dir/build.make test/view_planner/CMakeFiles/ViewAngleTest.dir/depend
+	$(MAKE) -f test/view_planner/CMakeFiles/ViewAngleTest.dir/build.make test/view_planner/CMakeFiles/ViewAngleTest.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ohb/abb_ws/build/CMakeFiles --progress-num=1,2 "Built target ViewAngleTest"
+.PHONY : test/view_planner/CMakeFiles/ViewAngleTest.dir/all
+
+# Build rule for subdir invocation for target.
+test/view_planner/CMakeFiles/ViewAngleTest.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/ohb/abb_ws/build/CMakeFiles 7
+	$(MAKE) -f CMakeFiles/Makefile2 test/view_planner/CMakeFiles/ViewAngleTest.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/ohb/abb_ws/build/CMakeFiles 0
+.PHONY : test/view_planner/CMakeFiles/ViewAngleTest.dir/rule
+
+# Convenience name for target.
+ViewAngleTest: test/view_planner/CMakeFiles/ViewAngleTest.dir/rule
+
+.PHONY : ViewAngleTest
+
+# clean rule for target.
+test/view_planner/CMakeFiles/ViewAngleTest.dir/clean:
+	$(MAKE) -f test/view_planner/CMakeFiles/ViewAngleTest.dir/build.make test/view_planner/CMakeFiles/ViewAngleTest.dir/clean
+.PHONY : test/view_planner/CMakeFiles/ViewAngleTest.dir/clean
 
 #=============================================================================
 # Target rules for target test/view_planner/CMakeFiles/dynamic_reconfigure_generate_messages_py.dir
@@ -3677,7 +3706,7 @@ test/view_planner/CMakeFiles/graph_msgs_generate_messages_cpp.dir/clean:
 test/view_planner/CMakeFiles/ViewPlan.dir/all:
 	$(MAKE) -f test/view_planner/CMakeFiles/ViewPlan.dir/build.make test/view_planner/CMakeFiles/ViewPlan.dir/depend
 	$(MAKE) -f test/view_planner/CMakeFiles/ViewPlan.dir/build.make test/view_planner/CMakeFiles/ViewPlan.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ohb/abb_ws/build/CMakeFiles --progress-num=1,2,3,4,5 "Built target ViewPlan"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ohb/abb_ws/build/CMakeFiles --progress-num=3,4,5,6,7 "Built target ViewPlan"
 .PHONY : test/view_planner/CMakeFiles/ViewPlan.dir/all
 
 # Build rule for subdir invocation for target.
@@ -3704,7 +3733,7 @@ test/view_planner/CMakeFiles/ViewPlan.dir/clean:
 test/view_planner/CMakeFiles/planner.dir/all: test/view_planner/CMakeFiles/ViewPlan.dir/all
 	$(MAKE) -f test/view_planner/CMakeFiles/planner.dir/build.make test/view_planner/CMakeFiles/planner.dir/depend
 	$(MAKE) -f test/view_planner/CMakeFiles/planner.dir/build.make test/view_planner/CMakeFiles/planner.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ohb/abb_ws/build/CMakeFiles --progress-num=22,23 "Built target planner"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ohb/abb_ws/build/CMakeFiles --progress-num=24,25 "Built target planner"
 .PHONY : test/view_planner/CMakeFiles/planner.dir/all
 
 # Build rule for subdir invocation for target.

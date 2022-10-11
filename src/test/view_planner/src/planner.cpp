@@ -28,52 +28,76 @@ ros::Publisher env_vis_pub, view_point_vis_pub, traj_vis_pub;
 void visEnv(const char *file_path_small, const ViewPlan &vp);
 void visCandidateViewPoint(const vector<ViewPoint> cand_view_point, const ViewPlan &vp);
 void visBestViewPoint(const vector<ViewPoint> best_view_point, const ViewPlan &vp);
-void writeData(const char *viewpoint_file, const vector<ViewPoint> &cand_view_point, const vector<vector<ViewPoint>> &graph, const vector<vector<int>> &visibility_matrix);
-void writeData(const char *viewpoint_file, const vector<ViewPoint> &best_view_point);
+void writeData(const char* viewpoint_file,
+               const vector<ViewPoint>& cand_view_point,
+               const vector<vector<ViewPoint>>& graph,
+               const vector<vector<int>>& visibility_matrix);
+void writeData(const char* viewpoint_file,
+               const vector<ViewPoint>& best_view_point);
 void writeData(const char *viewpoint_file, const vector<vector<moveit_msgs::RobotTrajectory>> trajs);
-void readData(const char *viewpoint_file, vector<ViewPoint> &cand_view_point, vector<vector<ViewPoint>> &graph, vector<vector<int>> &visibility_matrix);
-void readData(const char *viewpoint_file, vector<ViewPoint> &best_view_point);
+void readData(const char* viewpoint_file,
+              vector<ViewPoint>& cand_view_point,
+              vector<vector<ViewPoint>>& graph,
+              vector<vector<int>>& visibility_matrix);
+void readData(const char* viewpoint_file, vector<ViewPoint>& best_view_point);
 void readData(const char *viewpoint_file, vector<vector<moveit_msgs::RobotTrajectory>> &trajs);
 
 int main(int argc, char **argv)
 {
-    // 使用前请根据需求修改以下参数 
-    const char* file_path        = "/home/ohb/abb_ws/src/test/view_planner/model/0523/man_5186.stl";  // 用于视点生成的模型文件路径
-    const char* file_path_small  = "package://view_planner/model/0523/man_5186_small.stl";            // 用于构建场景的模型文件路径
-    const char* viewpoint_file   = "/home/ohb/abb_ws/src/test/view_planner/data/candidates.dat";      // 存储候选视点信息的文件名
-    const char* bestvp_file      = "/home/ohb/abb_ws/src/test/view_planner/data/best_vps.dat";        // 存储候选视点信息的文件名
-    const char* trajectory_file  = "/home/ohb/abb_ws/src/test/view_planner/data/trajs.dat";           // 存储候选视点信息的文件名
-    
-    bool reuse_cand;             // true即重用已存储的候选视点，false即重新生成候选视点
-    cout << "输入: 1 即重用已存储的候选视点, 0 即重新生成候选视点" << endl;
-    cin >> reuse_cand;
-
-    int optm_type;
-    cout << "输入: 0 即 RKGA, 1 即 MCTS" << endl;
-    cin >> optm_type;
-
-    int sampleNum        = 40;  // 采样次数;
-    double coverage_rate = 0.70;  // 采样覆盖率
-
-    // RKGA参数
-    int maxGen        = 250;  // 最大进化代数
-    int pop           = 300;  // 每代个体样本数
-    double pop_elite  = 0.05;  // 每代种群中的精英个体比例
-    double pop_mutant = 0.4;  // 每代种群中变异的个体比例
-    double rhoe       = 70;   // probability that an offspring inherits the allele of its elite parent
-
+    // Initialize ROS
     ros::init(argc, argv, "planner");
-    ros::NodeHandle node_handle; 
+    ros::NodeHandle node_handle("~"); 
     ros::AsyncSpinner spinner(1);
     spinner.start();
 
+    // 初始化参数
+    // 输入模型与输出视点文件
+    string _file_path, _file_path_small, _viewpoint_file, _trajectory_file, _bestvp_file;
+    node_handle.getParam("file_path", _file_path);
+    node_handle.getParam("file_path_small", _file_path_small);
+    node_handle.getParam("viewpoint_file", _viewpoint_file);
+    node_handle.getParam("trajectory_file", _trajectory_file);
+    node_handle.getParam("bestvp_file", _bestvp_file);
+
+    const char* file_path = _file_path.data();               // 用于视点生成的模型文件路径
+    const char* file_path_small = _file_path_small.data();   // 用于构建场景的模型文件路径
+    const char* viewpoint_file  = _viewpoint_file.data();    // 存储候选视点信息的文件名
+    const char* trajectory_file  = _trajectory_file.data();  // 存储候选视点信息的文件名
+    const char* bestvp_file      = _bestvp_file.data();      // 存储候选视点信息的文件名
+
+    // 采样参数
+    int sampleNum        = 20;     // 采样候选视点个数
+    double coverage_rate = 0.6;    // 要求的采样覆盖率
+    node_handle.getParam("sample_num", sampleNum);
+    node_handle.getParam("coverage_rate", coverage_rate);
+
+    // RKGA参数
+    int maxGen        = 400;  // 最大进化代数
+    int pop           = 200;  // 每代个体样本数
+    double pop_elite  = 0.1;  // 每代种群中的精英个体比例
+    double pop_mutant = 0.3;  // 每代种群中变异的个体比例
+    double rhoe       = 70;   // probability that an offspring inherits the allele of its elite parent
+    node_handle.getParam("max_gen", maxGen);
+    node_handle.getParam("pop", pop);
+    node_handle.getParam("pop_elite", pop_elite);
+    node_handle.getParam("pop_mutant", pop_mutant);
+    node_handle.getParam("rhoe", rhoe);
+    
+    // 重用与优化方法选择
+    bool reuse_best;  // 是否重用最佳视点
+    bool reuse;       // 是否重用候选视点
+    int optm_type;    // 选择优化方法
+    node_handle.getParam("reuse_best", reuse_best);
+    node_handle.getParam("reuse", reuse);
+    node_handle.getParam("optm_type", optm_type);
+
+    // 可视化
     env_vis_pub        = node_handle.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
     view_point_vis_pub = node_handle.advertise<visualization_msgs::Marker>("vis_view_point", 1);
 
     namespace rvt = rviz_visual_tools;
     moveit_visual_tools::MoveItVisualTools visual_tools("base_link", "vis_traj");
     visual_tools.deleteAllMarkers();
-
 	
 	// 创建一个socket *服务器端和客户端IP4地址信息
 	int socket_cli = socket(AF_INET, SOCK_STREAM, 0);	
@@ -100,8 +124,9 @@ int main(int argc, char **argv)
     char* sendbuffer="SingleMsg";
 
     moveit::planning_interface::MoveGroupInterface group("arm");
-    const moveit::core::JointModelGroup* joint_model_group = group.getCurrentState()->getJointModelGroup("arm");
-    group.allowReplanning(true);            //当运动规划失败后，允许重新规划
+    const moveit::core::JointModelGroup* joint_model_group =
+          group.getCurrentState()->getJointModelGroup("arm");
+    group.allowReplanning(true);  //当运动规划失败后，允许重新规划
     group.setGoalJointTolerance(0.001);
     group.setGoalPositionTolerance(0.001);  //设置位置(单位：米)和姿态（单位：弧度）的允许误差
     group.setGoalOrientationTolerance(0.01);
@@ -111,15 +136,13 @@ int main(int argc, char **argv)
     visEnv(file_path_small, vp);
     
     // 计算候选视点
-    // reuse_cand = true: 直接读取已存储的候选视点和轨迹文件
-    // reuse_cand = false: 调用函数生成新的候选视点与轨迹，写入并覆盖文件
     vector<ViewPoint> cand_view_point;
-    if (reuse_cand){
+    if (reuse_best || reuse){
         readData(viewpoint_file, cand_view_point, vp.g.graph, vp.visibility_matrix);
         readData(trajectory_file, vp.trajs);
     }
     else{
-        cand_view_point = vp.generateViewPoint(file_path, sampleNum, coverage_rate, group); // 候选视点
+        cand_view_point = vp.generateViewPoint(file_path, sampleNum, coverage_rate, group); // 候选视点;
         writeData(viewpoint_file, cand_view_point, vp.g.graph, vp.visibility_matrix);
         writeData(trajectory_file, vp.trajs);
     }
@@ -129,21 +152,25 @@ int main(int argc, char **argv)
     // optm_type = 0: RKGA
     // optm_type = 1: MCTS
     vector<ViewPoint> best_view_point;
-    if (optm_type == 0){
-        // 随机密钥遗传算法求解
-        RKGA scp_solver(pop, pop_elite, pop_mutant, rhoe, coverage_rate, cand_view_point, vp.g, vp.visibility_matrix);
-        best_view_point = scp_solver.solveRKGA(maxGen); // 最优视点
+    if(reuse_best){
+        // 复用存储的最优视点
+        readData(bestvp_file, best_view_point);
     }
     else{
-        // 马尔科夫决策过程 + 蒙特卡洛法求解
-        MCST mcst_solver(coverage_rate, cand_view_point, vp.g.graph, vp.visibility_matrix);
-        best_view_point = mcst_solver.solveMCST();
+        if (optm_type == 0){
+            // 随机密钥遗传算法求解
+            RKGA scp_solver(pop, pop_elite, pop_mutant, rhoe, coverage_rate,
+                            cand_view_point, vp.g, vp.visibility_matrix);
+            best_view_point = scp_solver.solveRKGA(maxGen);  // 最优视点
+        }
+        else{
+            // 马尔科夫决策过程 + 蒙特卡洛法求解
+            MCST mcst_solver(coverage_rate, cand_view_point, vp.g.graph,
+                             vp.visibility_matrix);
+            best_view_point = mcst_solver.solveMCST();
+        }
+        writeData(bestvp_file, best_view_point);
     }
-    writeData(bestvp_file, best_view_point);
-
-    // 复用存储的最优视点
-    // readData(bestvp_file, best_view_point);
-
     visBestViewPoint(best_view_point, vp);
 
     cout<<"共获得"<<best_view_point.size()<<"个最佳视点，开始规划机器人运动轨迹："<<endl;
@@ -178,7 +205,8 @@ int main(int argc, char **argv)
 
         cout << "第" << i << "条轨迹时间：";
         int size = traj.joint_trajectory.points.size();
-        cout << traj.joint_trajectory.points[size - 1].time_from_start.toSec() << ", " << size << endl;
+        cout << traj.joint_trajectory.points[size - 1].time_from_start.toSec()
+             << ", " << size << endl;
 
         //让机械臂按照规划的轨迹开始运动。
         group.execute(traj);

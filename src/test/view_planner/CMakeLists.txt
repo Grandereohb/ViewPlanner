@@ -170,6 +170,7 @@ add_library(ViewPlan
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/view_planner_node.cpp)
 add_executable(planner src/planner.cpp)
+add_executable(ViewAngleTest src/ViewAngleTest.cpp)
 # add_executable(setScene src/setScene.cpp)
 
 ## Rename C++ executable without prefix
@@ -185,6 +186,7 @@ add_executable(planner src/planner.cpp)
 # target_link_libraries(ViewPlan ${catkin_LIBRARIES} RKGA)
 # target_link_libraries(RKGA ${catkin_LIBRARIES} ViewPlan)
 target_link_libraries(planner ${catkin_LIBRARIES} ViewPlan)
+target_link_libraries(ViewAngleTest ${catkin_LIBRARIES} ViewPlan)
 # target_link_libraries(setScene ${catkin_LIBRARIES} ViewPlan)
 # target_link_libraries(planner ViewPlan)
 # target_link_libraries(setScene ViewPlan)
