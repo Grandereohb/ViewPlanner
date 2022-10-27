@@ -184,7 +184,8 @@ vector<TriSurface> ViewPlan::readBinary(const char* buffer) {
 		//cout << surface.center.y << " ";
 		
 		surface.flag = false;
-		if(surface.center.m_floats[2] > 5){
+		// if(surface.center.m_floats[2] > 5 && surface.normal.normalized().m_floats[2] > -0.5){
+		if(surface.normal.normalized().m_floats[2] > 0){
 			TriSurfaces.push_back(surface);
 		}
 
@@ -198,7 +199,7 @@ void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, i
     robot_model_loader::RobotModelLoader robot_model_loader("robot_description");  // 原为getJointState第一行，但在循环中无法生成随机数，所以提前声明
 	srand((unsigned)time(NULL));
 
-    cout<<"开始生成候选视点："<<endl;
+    cout<<"开始生成候选视点:"<<endl;
 	int candidate_num = already_sampled;
 
 	// // 模型中心计算
@@ -217,30 +218,32 @@ void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, i
 	while((candidate_view_point.size() - already_sampled) < sampleNum){
 		ViewPoint candidate;
 		vector<int> tempVisibility;
+		vector<int> temp_hole_matrix;
 		if(rand_sample_num >= model.size()){
-			cout << "随机采样数超过模型面片数！" <<model.size()<< endl;
+			cout << "随机采样数超过模型面片数!" <<model.size()<< endl;
 			break;
 		}
 		int randNum = RK_index[rand_sample_num].second;
 		++rand_sample_num;
 		// 生成视点位置
-		// yang
-		// candidate.position = model[randNum].center + model[randNum].normal.normalized() * measure_dist; // 沿面片法线方向延伸最佳测量距离，生成候选视点
-
-		// xcf
-		float randNum_1 = (float)rand() / RAND_MAX * 0.4;
-		float randNum_2 = (float)rand() / RAND_MAX * 0.6 + 0.4;
-		float randNum_3 = (float)rand() / RAND_MAX;
-		if(candidate_num < 0.4 * sampleNum) {
-			candidate.position.m_floats[0] = center_x + measure_dist * cos(randNum_1 * PI/2) * cos(randNum_3 * 2*PI);
-			candidate.position.m_floats[1] = center_y + measure_dist * cos(randNum_1 * PI/2) * sin(randNum_3 * 2*PI);
-			candidate.position.m_floats[2] = center_z + measure_dist * sin(randNum_1 * PI/2);
-		}
-		else {
-			candidate.position.m_floats[0] = center_x + measure_dist * cos(randNum_2 * PI/2) * cos(randNum_3 * 2*PI);
-			candidate.position.m_floats[1] = center_y + measure_dist * cos(randNum_2 * PI/2) * sin(randNum_3 * 2*PI);
-			candidate.position.m_floats[2] = center_z + measure_dist * sin(randNum_2 * PI/2);
-		}
+		// 沿面片法线方向延伸最佳测量距离，生成候选视点。用于一般物体
+		// candidate.position = model[randNum].center + model[randNum].normal.normalized() * measure_dist;
+		// 在选择面片的正上方延伸最佳测量距离，生成候选视点。用于钣金件
+		candidate.position = model[randNum].center + Vector3(0, 0, measure_dist); 
+		// cxf
+		// float randNum_1 = (float)rand() / RAND_MAX * 0.3;
+		// float randNum_2 = (float)rand() / RAND_MAX * 0.7 + 0.3;
+		// float randNum_3 = (float)rand() / RAND_MAX;
+		// if(candidate_num < 0.4 * sampleNum) {
+		// 	candidate.position.m_floats[0] = center_x + measure_dist * cos(randNum_1 * PI/2) * cos(randNum_3 * 2*PI);
+		// 	candidate.position.m_floats[1] = center_y + measure_dist * cos(randNum_1 * PI/2) * sin(randNum_3 * 2*PI);
+		// 	candidate.position.m_floats[2] = center_z + measure_dist * sin(randNum_1 * PI/2);
+		// }
+		// else {
+		// 	candidate.position.m_floats[0] = center_x + measure_dist * cos(randNum_2 * PI/2) * cos(randNum_3 * 2*PI);
+		// 	candidate.position.m_floats[1] = center_y + measure_dist * cos(randNum_2 * PI/2) * sin(randNum_3 * 2*PI);
+		// 	candidate.position.m_floats[2] = center_z + measure_dist * sin(randNum_2 * PI/2);
+		// }
 
 		// 生成视点的z过低，重新生成
 		if(candidate.position.m_floats[2] < -300){
@@ -248,33 +251,31 @@ void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, i
 			continue;
 		}
         
-		// 在所选面片的rangeFOD/2范围内寻找夹角小于90度的邻面片，势场法计算视点方向  
-		// yang   
-		// candidate.direction = Vector3(0,0,0);
-        // for(int j = 0; j < model.size(); ++j){
-        //     double dist = (model[j].center - model[randNum].center).length();
-        //     double theta = model[randNum].normal.angle(model[j].normal);
-		// 	if (dist <= (maxFOD - minFOD) / 2 && theta <= PI / 2){
-		// 		candidate.direction += model[j].area * (model[j].center - candidate.position) / (model[j].center - candidate.position).length();  // 视点方向 = sum（邻面片方向*面积/距视点的距离）
-		// 	}
-		// }
-
+		// 在所选面片的rangeFOD/2范围内寻找夹角小于90度的邻面片，势场法计算视点方向        
+		candidate.direction = Vector3(0,0,0);
+        for(int j = 0; j < model.size(); ++j){
+            double dist = (model[j].center - model[randNum].center).length();
+            double theta = model[randNum].normal.angle(model[j].normal);
+			if (dist <= (maxFOD - minFOD) / 2 && theta <= PI / 2){
+				candidate.direction += model[j].area * (model[j].center - candidate.position) / (model[j].center - candidate.position).length();  // 视点方向 = sum（邻面片方向*面积/距视点的距离）
+			}
+		}
+		candidate.direction.normalize();
 		// xcf
-		// 加权求和生成视点方向
-		Vector3 model_center(center_x,center_y,center_z);
-        // for(int j = 0; j < model.size(); ++j){
-        //     double dist = (model[j].center - candidate.position).length();
-        //     double theta = (candidate.position - model_center).angle(model[j].normal);
-		// 	if (dist <= maxFOD && dist >=minFOD && theta <= PI / 3){
-		// 		candidate.direction += model[j].area * (model[j].center - candidate.position) / (model[j].center - candidate.position).length();  // 视点方向 = sum（邻面片方向*面积/距视点的距离）
-		// 	}
-		// }
-		// 以模型中心为视点方向
-		candidate.direction = (model_center - candidate.position).normalized();
+		// Vector3 model_center(center_x,center_y,center_z);
+        // // for(int j = 0; j < model.size(); ++j){
+        // //     double dist = (model[j].center - candidate.position).length();
+        // //     double theta = (candidate.position - model_center).angle(model[j].normal);
+		// // 	if (dist <= maxFOD && dist >=minFOD && theta <= PI / 3){
+		// // 		candidate.direction += model[j].area * (model[j].center - candidate.position) / (model[j].center - candidate.position).length();  // 视点方向 = sum（邻面片方向*面积/距视点的距离）
+		// // 	}
+		// // }
+
+		// candidate.direction = (model_center - candidate.position).normalized();
 
 		// 计算视点的机器人轴配置参数和碰撞检测，舍弃无法求解IK或发生碰撞的候选视点
 		if(!getJointState(candidate, robot_model_loader) || checkCollision(candidate, robot_model_loader)){
-			cout << "运动学不可解！" << endl;
+			cout << "运动学不可解!" << endl;
 			continue;
 		}
 
@@ -283,6 +284,11 @@ void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, i
 			int n = checkVisibility(candidate, model, j);
 			candidate.vis_area += n;
 			tempVisibility.push_back(n);
+		}
+		// 计算视点的圆孔质量矩阵
+		for(int j = 0; j < holes.size(); ++j){
+			int n = checkHoles(candidate, j);
+			temp_hole_matrix.push_back(n);
 		}
 
 		// 生成视点图
@@ -294,8 +300,9 @@ void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, i
         candidate.direction = candidate.direction.normalize();
 		candidate_view_point.push_back(candidate);
 		visibility_matrix.push_back(tempVisibility);
+        hole_matrix.push_back(temp_hole_matrix);
 
-		cout << "生成第" << candidate.num << "个视点, 随机数为" << randNum << endl;
+        cout << "生成第" << candidate.num << "个视点, 随机数为" << randNum << endl;
 	}
 }
 void ViewPlan::setRandomKey(int size, vector<pair<double, int>> &RK_index){
@@ -315,28 +322,40 @@ void ViewPlan::sortRK(vector<pair<double, int>> &RK_index){
 }
 bool ViewPlan::sampleEnough(const vector<TriSurface> &model, int candidate_num, int sample_num, double coverage_rate){
 	// 未开始采样，可见性矩阵仍为空，进行采样
-	if(visibility_matrix.size() == 0){
-		cout<<"可见性矩阵容量为0"<<endl;
-		return 0;
-	}
+	if(visibility_matrix.size() == 0 || hole_matrix.size() == 0){
+        cout << "可见性矩阵容量为0" << endl;
+        return 0;
+    }
 
 	// 判断模型表面覆盖率是否达到要求
-	double visible_num = 0;
-	for(int j = 0; j < model.size(); j++){
-		double visible_tmp = 0;
-		for(int i = 0; i < candidate_num; i++){
-			visible_tmp += visibility_matrix[i][j];
-			if(visible_tmp == 2)  // 建议设为2
-				break;
-		}
-		visible_num += visible_tmp / 2;
-	}
-	cout<<"表面覆盖率为： "<< visible_num / model.size() <<endl;
-	if(visible_num >= coverage_rate * model.size()){
-		return 1;
-	}
+    double visible_num = 0;
+    for (int j = 0; j < model.size(); j++) {
+        double visible_tmp = 0;
+        for (int i = 0; i < candidate_num; i++) {
+            visible_tmp += visibility_matrix[i][j];
+            if (visible_tmp == 2)  // 建议设为2
+                break;
+        }
+        visible_num += visible_tmp / 2;
+    }
+	double hole_num = 0;
+    for (int j = 0; j < holes.size(); j++) {
+        double hole_tmp = 0;
+        for (int i = 0; i < candidate_num; i++) {
+            hole_tmp += hole_matrix[i][j];
+            if (hole_tmp == 1)  // 建议设为2
+                break;
+        }
+        hole_num += hole_tmp;
+    }
+    cout << "表面覆盖率为: " << visible_num / model.size() << endl;
+    cout << "圆孔覆盖率为: " << hole_num / holes.size() << endl;
+    if (visible_num >= coverage_rate * model.size() &&
+        hole_num == holes.size()) {
+        return 1;
+    }
 
-	// 采样数超过限额，停止采样
+        // 采样数超过限额，停止采样
 	if(candidate_num >= (sample_num * 2)){
 		cout<<"采样数超过限额，停止采样"<<endl;
 		return 1;
@@ -503,6 +522,22 @@ bool ViewPlan::isCovered(Vector3 orig, Vector3 position, const TriSurface &TriSu
 	v = direction.dot(qvec)*inv_det;
 	if (v < 0 || v + u > 1)
 		return 0;
+
+	return 1;
+}
+int ViewPlan::checkHoles(const ViewPoint &view_point, int i){
+    Vector3 hole(holes[i][0], holes[i][1], holes[i][2]);
+    double dist =
+        (hole - view_point.position).dot(view_point.direction.normalized());
+    if (dist <= minFOD || dist >= maxFOD ||
+        abs(view_point.direction.angle(hole - view_point.position)) >= minFOV / 2) {
+        return 0;
+	}
+
+	// 3.判断视角是否在规定范围中
+    Vector3 normal(0, 0, 1);
+    if (normal.angle(view_point.position - hole) >= view_angle_range) 
+        return 0;
 
 	return 1;
 }

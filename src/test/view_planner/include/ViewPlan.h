@@ -85,7 +85,8 @@ public:
 	double getTablePositionZ() const;
 	Graph g;
 	vector<vector<int>> visibility_matrix;  // 可见性矩阵
-	vector<vector<moveit_msgs::RobotTrajectory>> trajs;  // 可见性矩阵
+	vector<vector<int>> hole_matrix;        // 圆孔质量矩阵
+	vector<vector<moveit_msgs::RobotTrajectory>> trajs;  // 轨迹
 	
 private:
     // 相机参数
@@ -97,16 +98,20 @@ private:
 	const double minFOV           = 0.52359877;            // 视野(弧度) 水平视角30度，垂直视角25度  minFOV = 30/180*PI = 0.52359877
 	const double view_angle_range = 1.047;                 // 测量视角范围 view_angle_range = 60/180*PI = 1.047
 	// 仿真场景距离参数
-	const double model_position_x = 0.77;                   // 待测模型在x轴上的位置（单位：m）  
-	const double model_position_z = 0.74;                  // 待测模型在z轴上的位置（单位：m）  
+	const double model_position_x = 1.0;                   // 待测模型在x轴上的位置（单位：m）  
+	const double model_position_z = 0.44;                  // 待测模型在z轴上的位置（单位：m）  
 	const double table_position_x = model_position_x;      // 平台在x轴上的位置（单位：m）  
 	const double table_position_z = model_position_z / 2;  // 平台在z轴上的位置（单位：m）
-    
-	//int numTriangles = 0;  // 面片数量
-	//int sampleNum;  // 视点采样数量
+    // 圆孔信息
+    const vector<vector<double>> holes = {{98, 231, 8.5},
+                                          {-46, 188, -0.8},
+                                          {-112, 268, 22},
+                                          {-180, 268, 22}};
+    // int numTriangles = 0;  // 面片数量
+    // int sampleNum;  // 视点采样数量
 
-	vector<TriSurface> readFile(const char *cfilename);    // 读取STL文件
-    vector<TriSurface> readASCII(const char *cfilename);   // 读取ASCII格式STL
+    vector<TriSurface>readFile(const char* cfilename);  // 读取STL文件
+    vector<TriSurface> readASCII(const char* cfilename);  // 读取ASCII格式STL
 	vector<TriSurface> readBinary(const char *cfilename);  // 读取二进制格式STL
 	
     void sampleViewPoint(const vector<TriSurface> &model, int sampleNum, int already_sampled, vector<ViewPoint> &candidate_view_point, const vector<pair<double, int>> &RK_index, int &rand_sample_num, MGI &group);  // 生成候选视点
@@ -116,6 +121,7 @@ private:
 	bool getJointState(ViewPoint &viewpoint, robot_model_loader::RobotModelLoader robot_model_loader);            // 计算机器人在视点位置处的轴配置数据
     bool isCovered(Vector3 orig, Vector3 position, const TriSurface &TriSurface);                                 // 检测是否被遮挡
 	int checkVisibility(const ViewPoint &view_point, const vector<TriSurface> &model, int i);                     // 检测可见性，并绘制可见性矩阵
+	int checkHoles(const ViewPoint &view_point, int i);                          // 检测圆孔测量质量
 	bool checkCollision(const ViewPoint &view_point, robot_model_loader::RobotModelLoader robot_model_loader);    // 检测视点位置处碰撞
 	void setGraph(vector<ViewPoint> candidate_view_point, ViewPoint candidate, MGI &group, robot_model_loader::RobotModelLoader robot_model_loader);  // 绘制图
 	moveit_msgs::RobotTrajectory calcMotionCost(ViewPoint candidate_view_point, ViewPoint candidate, MGI &group, planning_scene::PlanningScene &planning_scene);
