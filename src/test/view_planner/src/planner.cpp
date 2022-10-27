@@ -13,14 +13,29 @@
 // 在RViz环境中发布实验环境/视点位置/机器人运动轨迹
 ros::Publisher env_vis_pub, view_point_vis_pub, traj_vis_pub;
 void visEnv(const char *file_path_small, const ViewPlan &vp);
-void visCandidateViewPoint(const vector<ViewPoint> &cand_view_point, const ViewPlan &vp);
-void visBestViewPoint(const vector<ViewPoint> &best_view_point, const ViewPlan &vp);
-void writeData(const char *viewpoint_file, const vector<ViewPoint> &cand_view_point, const vector<vector<ViewPoint>> &graph, const vector<vector<int>> &visibility_matrix);
-void writeData(const char *viewpoint_file, const vector<vector<moveit_msgs::RobotTrajectory>> trajs);
-void writeData(const char *viewpoint_file, const vector<ViewPoint> &best_view_point);
-void readData(const char *viewpoint_file, vector<ViewPoint> &cand_view_point, vector<vector<ViewPoint>> &graph, vector<vector<int>> &visibility_matrix);
-void readData(const char *viewpoint_file, vector<vector<moveit_msgs::RobotTrajectory>> &trajs);
-void readData(const char *viewpoint_file, vector<ViewPoint> &best_view_point);
+void visCandidateViewPoint(const vector<ViewPoint>& cand_view_point,
+                           const ViewPlan& vp);
+void visBestViewPoint(const vector<ViewPoint>& best_view_point,
+                      const ViewPlan& vp);
+void writeData(const char* viewpoint_file,
+               const vector<ViewPoint>& cand_view_point,
+               const vector<vector<ViewPoint>>& graph,
+               const vector<vector<int>>& visibility_matrix,
+               const vector<vector<int>>& hole_matrix);
+void writeData(
+    const char* viewpoint_file,
+    const vector<vector<moveit_msgs::RobotTrajectory>> trajs);
+void writeData(const char* viewpoint_file,
+               const vector<ViewPoint>& best_view_point);
+void readData(const char* viewpoint_file,
+              vector<ViewPoint>& cand_view_point,
+              vector<vector<ViewPoint>>& graph,
+              vector<vector<int>>& visibility_matrix,
+              vector<vector<int>> & hole_matrix);
+void readData(const char* viewpoint_file,
+              vector<vector<moveit_msgs::RobotTrajectory>>& trajs);
+void readData(const char* viewpoint_file,
+              vector<ViewPoint>& best_view_point);
 
 int main(int argc, char **argv){
     // ROS初始化
@@ -32,18 +47,19 @@ int main(int argc, char **argv){
 
     // 初始化参数
     // 输入模型与输出视点文件
-    string _file_path, _file_path_small, _viewpoint_file, _trajectory_file, _bestvp_file;
+    string _file_path, _file_path_small, _viewpoint_file,
+           _trajectory_file, _bestvp_file;
     node_handle.getParam("file_path", _file_path);
     node_handle.getParam("file_path_small", _file_path_small);
     node_handle.getParam("viewpoint_file", _viewpoint_file);
     node_handle.getParam("trajectory_file", _trajectory_file);
     node_handle.getParam("bestvp_file", _bestvp_file);
 
-    const char* file_path = _file_path.data();               // 用于视点生成的模型文件路径
-    const char* file_path_small = _file_path_small.data();       // 用于构建场景的模型文件路径
-    const char* viewpoint_file  = _viewpoint_file.data();    // 存储候选视点信息的文件名
-    const char* trajectory_file  = _trajectory_file.data();  // 存储候选视点信息的文件名
-    const char* bestvp_file      = _bestvp_file.data();      // 存储候选视点信息的文件名
+    const char* file_path       = _file_path.data();        // 用于视点生成的模型文件路径
+    const char* file_path_small = _file_path_small.data();  // 用于构建场景的模型文件路径
+    const char* viewpoint_file  = _viewpoint_file.data();   // 存储候选视点信息的文件名
+    const char* trajectory_file = _trajectory_file.data();  // 存储候选视点信息的文件名
+    const char* bestvp_file     = _bestvp_file.data();      // 存储候选视点信息的文件名
 
     // 采样参数
     int sampleNum        = 20;     // 采样候选视点个数
@@ -81,8 +97,9 @@ int main(int argc, char **argv){
 
     // 定义moveit规划接口group，关节模型指针和视点规划类vp
     moveit::planning_interface::MoveGroupInterface group("arm");
-    const moveit::core::JointModelGroup* joint_model_group = group.getCurrentState()->getJointModelGroup("arm");
-    group.allowReplanning(true);            //当运动规划失败后，允许重新规划
+    const moveit::core::JointModelGroup* joint_model_group =
+        group.getCurrentState()->getJointModelGroup("arm");
+    group.allowReplanning(true);  //当运动规划失败后，允许重新规划
     group.setGoalJointTolerance(0.001);
     group.setGoalPositionTolerance(0.001);  //设置位置(单位：米)和姿态（单位：弧度）的允许误差
     group.setGoalOrientationTolerance(0.01);
@@ -97,12 +114,15 @@ int main(int argc, char **argv){
     // reuse = false: 调用函数生成新的候选视点与轨迹，写入并覆盖文件
     vector<ViewPoint> cand_view_point;
     if (reuse_best || reuse){
-        readData(viewpoint_file, cand_view_point, vp.g.graph, vp.visibility_matrix);
+        readData(viewpoint_file, cand_view_point, vp.g.graph,
+                 vp.visibility_matrix, vp.hole_matrix);
         readData(trajectory_file, vp.trajs);
     }
     else{
-        cand_view_point = vp.generateViewPoint(file_path, sampleNum, coverage_rate, group); // 候选视点
-        writeData(viewpoint_file, cand_view_point, vp.g.graph, vp.visibility_matrix);
+        cand_view_point = vp.generateViewPoint(
+            file_path, sampleNum, coverage_rate, group);  // 候选视点
+        writeData(viewpoint_file, cand_view_point, vp.g.graph,
+                  vp.visibility_matrix, vp.hole_matrix);
         writeData(trajectory_file, vp.trajs);
     }
     visCandidateViewPoint(cand_view_point, vp);  // 候选视点可视化
@@ -118,12 +138,17 @@ int main(int argc, char **argv){
         // optm_type = 1: MCTS
         if (optm_type == 0){
             // 随机密钥遗传算法求解
-            RKGA scp_solver(pop, pop_elite, pop_mutant, rhoe, coverage_rate, cand_view_point, vp.g, vp.visibility_matrix);
-            best_view_point = scp_solver.solveRKGA(maxGen); // 最优视点
+            RKGA scp_solver(pop, pop_elite, pop_mutant, rhoe,
+                            coverage_rate, cand_view_point, vp.g,
+                            vp.visibility_matrix);
+            best_view_point =
+                scp_solver.solveRKGA(maxGen);  // 最优视点
         }
         else{
             // 马尔科夫决策过程 + 蒙特卡洛法求解
-            MCST mcst_solver(coverage_rate, cand_view_point, vp.g.graph, vp.visibility_matrix, node_handle);
+            MCST mcst_solver(coverage_rate, cand_view_point,
+                             vp.g.graph, vp.visibility_matrix,
+                             vp.hole_matrix, node_handle);
             best_view_point = mcst_solver.solveMCST();
         }
         writeData(bestvp_file, best_view_point);
@@ -131,7 +156,8 @@ int main(int argc, char **argv){
     visBestViewPoint(best_view_point, vp);                            // 最佳视点与运动路径可视化
 
     // 规划机器人运动轨迹并控制机器人运动
-    cout << "共获得" << best_view_point.size() << "个最佳视点，开始规划机器人运动轨迹: " << endl;
+    cout << "共获得" << best_view_point.size()
+         << "个最佳视点，开始规划机器人运动轨迹: " << endl;
     group.setStartStateToCurrentState();    // 将机器人的初始状态设置为当前状态
 
     ros::Time start_time;  // 机器人实际运动计时器
@@ -143,9 +169,12 @@ int main(int argc, char **argv){
         if(i == 0){
             group.setJointValueTarget(best_view_point[i].joint_state);
             moveit::planning_interface::MoveGroupInterface::Plan my_plan;
-            moveit::planning_interface::MoveItErrorCode success = group.plan(my_plan);
-            ROS_INFO("Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
-            visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
+            moveit::planning_interface::MoveItErrorCode success =
+                group.plan(my_plan);
+            ROS_INFO("Visualizing plan 1 (pose goal) %s",
+                     success ? "" : "FAILED");
+            visual_tools.publishTrajectoryLine(my_plan.trajectory_,
+                                               joint_model_group);
             visual_tools.trigger();
 
             //让机械臂按照规划的轨迹开始运动。
@@ -173,8 +202,10 @@ int main(int argc, char **argv){
         // 轨迹运动时间
         cout << "第" << i << "条轨迹时间: ";
         int size = traj.joint_trajectory.points.size();
-        cout << traj.joint_trajectory.points[size - 1].time_from_start.toSec() << ", " << size << endl;
-        total_time += traj.joint_trajectory.points[size - 1].time_from_start.toSec();
+        cout << traj.joint_trajectory.points[size - 1].time_from_start.toSec()
+             << ", " << size << endl;
+        total_time +=
+            traj.joint_trajectory.points[size - 1].time_from_start.toSec();
         // int size1 = my_plan.trajectory_.joint_trajectory.points.size();
         // cout << my_plan.trajectory_.joint_trajectory.points[size1 - 1].time_from_start.toSec() << ", " << size1 << endl;
 
@@ -467,7 +498,11 @@ void visBestViewPoint(const vector<ViewPoint> &best_view_point, const ViewPlan &
     }
 }
 
-void writeData(const char *viewpoint_file, const vector<ViewPoint> &cand_view_point, const vector<vector<ViewPoint>> &graph, const vector<vector<int>> &visibility_matrix){
+void writeData(const char* viewpoint_file,
+               const vector<ViewPoint>& cand_view_point,
+               const vector<vector<ViewPoint>>& graph,
+               const vector<vector<int>>& visibility_matrix,
+               const vector<vector<int>>& hole_matrix) {
     // 用于存储视点生成步骤生成的候选视点集，视点图和可见性矩阵
     // 文件内容格式为：int 候选视点数， 候选视点， int 视点图行， int 视点图列， 视点图， int 可见性矩阵行， int 可见性矩阵列， 可见性矩阵
 
@@ -509,6 +544,15 @@ void writeData(const char *viewpoint_file, const vector<ViewPoint> &cand_view_po
     for (int i = 0; i < m; ++i){
         for(int j = 0; j < n; ++j)
             fout.write((char *)(&visibility_matrix[i][j]), sizeof(visibility_matrix[i][j]));
+    }
+
+    // 写入圆孔质量矩阵数据
+    m = hole_matrix.size(), n = hole_matrix[0].size();
+    fout.write((char *)&m, sizeof(m));
+    fout.write((char *)&n, sizeof(n));
+    for (int i = 0; i < m; ++i){
+        for(int j = 0; j < n; ++j)
+            fout.write((char *)(&hole_matrix[i][j]), sizeof(hole_matrix[i][j]));
     }
 
     fout.close();
@@ -570,7 +614,11 @@ void writeData(const char *viewpoint_file, const vector<ViewPoint> &best_view_po
     fout.close();
 }
 
-void readData(const char *viewpoint_file, vector<ViewPoint> &cand_view_point, vector<vector<ViewPoint>> &graph, vector<vector<int>> &visibility_matrix){
+void readData(const char* viewpoint_file,
+              vector<ViewPoint>& cand_view_point,
+              vector<vector<ViewPoint>>& graph,
+              vector<vector<int>>& visibility_matrix,
+              vector<vector<int>>& hole_matrix) {
     ifstream fin;
     fin.open(viewpoint_file, ios_base::in | ios_base::binary);
     if(!fin){
@@ -612,6 +660,16 @@ void readData(const char *viewpoint_file, vector<ViewPoint> &cand_view_point, ve
             visibility_matrix[i].resize(n);
             for (int j = 0; j < n; ++j)
                 fin.read((char *)(&visibility_matrix[i][j]), sizeof(int));
+        }
+
+        // 读取圆孔质量矩阵
+        fin.read((char *)&m, sizeof(int));
+        fin.read((char *)&n, sizeof(int));
+        hole_matrix.resize(m);
+        for (int i = 0; i < m; ++i){
+            hole_matrix[i].resize(n);
+            for (int j = 0; j < n; ++j)
+                fin.read((char *)(&hole_matrix[i][j]), sizeof(int));
         }
 
         fin.close();
