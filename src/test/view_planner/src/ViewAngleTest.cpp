@@ -4,7 +4,7 @@
 using namespace std;
 using namespace tf2;
 const double PI = 3.1415926;
-const double interval = PI / 36;
+const double interval = PI / 90;
 const double model_position_x = 0.77;
 const double model_position_z = 0.44;
 
@@ -89,7 +89,6 @@ bool getJointState(ViewPoint &viewpoint, robot_model_loader::RobotModelLoader ro
 	}	
 }
 
-
 int main(int argc, char **argv){
     ros::init(argc, argv, "ViewAngleTest");
     ros::NodeHandle node_handle; 
@@ -110,17 +109,19 @@ int main(int argc, char **argv){
     Vector3 view_position, view_direction;
     geometry_msgs::Pose view_pose;
 
-    for (int i = 0; i < 10; i++){
+    for (int i = 23; i < 26; i++){
         ViewPoint cur;
         cur.position.m_floats[0] = -measure_dist * cos(PI / 2 - interval * i);
         cur.position.m_floats[1] = 0;
         cur.position.m_floats[2] = measure_dist * sin(PI / 2 - interval * i);
-		cout << PI / 2 - interval * i << endl;
-		cout << cur.position.m_floats[0] << " " << cur.position.m_floats[1] << " " << cur.position.m_floats[2] << endl;
-		cur.direction = -cur.position.normalized();
-		cout << cur.direction.m_floats[0] << " " << cur.direction.m_floats[1] << " " << cur.direction.m_floats[2] << endl;
+        cur.direction = -cur.position.normalized();
 
-		getJointState(cur, robot_model_loader);
+        cout << "运动到第" << i + 1 << "个位置: ";
+        cout << cur.position.m_floats[0] << " " << cur.position.m_floats[1]
+             << " " << cur.position.m_floats[2] << endl;
+        cout << "输入任意数字运动至下一位置: ";
+
+        getJointState(cur, robot_model_loader);
         group.setStartStateToCurrentState();    // 将机器人的初始状态设置为当前状态
         group.setJointValueTarget(cur.joint_state);
         moveit::planning_interface::MoveGroupInterface::Plan my_plan;
