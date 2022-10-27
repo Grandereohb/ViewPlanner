@@ -44,6 +44,7 @@ public:
       const vector<ViewPoint>& candidates_,
       const vector<vector<ViewPoint>>& graph_,
       const vector<vector<int>>& visibility_matrix_,
+      const vector<vector<int>>& hole_matrix_,
       ros::NodeHandle nh);
  // ~MSCT();
 
@@ -60,6 +61,7 @@ private:
     const vector<ViewPoint> candidates;
     const vector<vector<ViewPoint>> graph;
     const vector<vector<int>> visibility_matrix;
+    const vector<vector<int>> hole_matrix;
 
     int selectStartIndex(const vector<ViewPoint> &candidates);                                    // 选择初始视点
     TreeNode *treePolicy(TreeNode &root, vector<ViewPoint> &select_vp);                           // 选择与扩展搜索树

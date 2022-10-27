@@ -6,11 +6,13 @@ MCST::MCST(const double& coverage_rate_,
            const vector<ViewPoint>& candidates_,
            const vector<vector<ViewPoint>>& graph_,
            const vector<vector<int>>& visibility_matrix_,
+           const vector<vector<int>>& hole_matrix_,
            ros::NodeHandle nh)
     : coverage_rate(coverage_rate_),
       candidates(candidates_),
       graph(graph_),
-      visibility_matrix(visibility_matrix_) {
+      visibility_matrix(visibility_matrix_), 
+      hole_matrix(hole_matrix_) {
     nh.getParam("max_iter", max_iteration);
     nh.getParam("epsilon1", epsilon1);
     nh.getParam("epsilon2", epsilon2);
@@ -137,8 +139,10 @@ double MCST::simulation(const TreeNode *node, vector<ViewPoint> &select_vp){
 bool MCST::isMostCovered(const vector<ViewPoint> &select_vp){
     // 同RKGA，判断是否满足覆盖率要求
     vector<vector<int>> tempVM;
+    vector<vector<int>> tempHM;
     for(int i = 0; i < select_vp.size(); i++){
         tempVM.push_back(visibility_matrix[select_vp[i].num]);
+        tempHM.push_back(hole_matrix[select_vp[i].num]);
     }
     double visible_num = 0;
     for (int i = 0; i < tempVM[0].size(); i++){
@@ -150,10 +154,19 @@ bool MCST::isMostCovered(const vector<ViewPoint> &select_vp){
         }
         visible_num += visible_tmp;  // 设为2时此处应当 / 2
 	}
-    if (visible_num >= coverage_rate * tempVM[0].size())
-    {
-        return 1;
+    double hole_num = 0;
+    for (int j = 0; j < tempHM[0].size(); j++) {
+        double hole_tmp = 0;
+        for (int i = 0; i < tempHM.size(); i++) {
+            hole_tmp += tempHM[i][j];
+            if (hole_tmp == 1)  // 建议设为2
+                break;
+        }
+        hole_num += hole_tmp;
     }
+    if (visible_num >= coverage_rate * tempVM[0].size() &&
+        hole_num == tempHM[0].size())
+        return 1;
     else
         return 0;
 }
