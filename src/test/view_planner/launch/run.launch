@@ -39,7 +39,7 @@
     <!-- true 即 重用已存储的最佳视点，false 即 重新生成最佳视点 -->
     <param name="reuse_best" value="false"/>
     <!-- true 即 重用已存储的候选视点，false 即 重新生成候选视点 -->
-    <param name="reuse"      value="false"/>
+    <param name="reuse"      value="true"/>
     <!-- 1 即 MCTS, 0 即 RKGA -->
     <param name="optm_type"  value="1"/>
 

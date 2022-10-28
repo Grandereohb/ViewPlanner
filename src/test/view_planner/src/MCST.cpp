@@ -193,6 +193,19 @@ Action MCST::greedyRollout(const TreeNode *node, vector<ViewPoint> &select_vp, d
         if (flag == false)
             uncovered_patch.push_back(i);
     }
+    // 记录未被覆盖的圆孔
+    vector<int> uncovered_hole;
+    for (int i = 0; i < hole_matrix[0].size(); ++i){  // 遍历面片
+        bool flag = false;
+        for (int j = 0; j < select_vp.size(); ++j){         // 遍历视点
+            if (hole_matrix[select_vp[j].num][i] == 1){  
+                flag = true;
+                break;
+            }
+        }
+        if (flag == false)
+            uncovered_hole.push_back(i);
+    }
 
     // 贪心搜索，寻找value最大的视点
     int vp_index = 0;
@@ -209,6 +222,7 @@ Action MCST::greedyRollout(const TreeNode *node, vector<ViewPoint> &select_vp, d
         double travel_cost = getTravelCost(node->state.getNum(), i);
         if(travel_cost > 1000)
             continue;
+
         // 计算该视点能新覆盖的面片数
         double delta_coverage = 0;
         for (int j = 0; j < uncovered_patch.size(); ++j){
@@ -223,7 +237,34 @@ Action MCST::greedyRollout(const TreeNode *node, vector<ViewPoint> &select_vp, d
         }
     }
     if(max_index == -1){
-        cout << "202 GreedyRollout ERROR!" << endl;
+        vp_index = 0;
+        double cost = DBL_MAX;
+        for (int i = 0; i < visibility_matrix.size(); ++i) {
+            // 视点在simulation前已被选择，不能重复选择，跳过
+            if (i == select_vp_index[vp_index]) {
+                ++vp_index;
+                continue;
+            }
+            // 计算simulation起点到该视点的运动成本
+            double travel_cost = getTravelCost(node->state.getNum(), i);
+            if (travel_cost > 1000)
+                continue;
+
+            // 计算该视点能新覆盖的面片数
+            double delta_coverage = 0;
+            for (int j = 0; j < uncovered_hole.size(); ++j) {
+                if(hole_matrix[i][uncovered_hole[j]] == 1){
+                    if(cost > travel_cost){
+                        cost = travel_cost;
+                        max_index = i;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    if(max_index == -1){
+        cout << "227 GreedyRollout ERROR!" << endl;
         abort();
     }
     // 返回指向下一个状态需要执行的action

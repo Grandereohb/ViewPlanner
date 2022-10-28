@@ -255,9 +255,12 @@ void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, i
             double dist = (model[j].center - model[randNum].center).length();
             double theta = model[randNum].normal.angle(model[j].normal);
 			if (dist <= (maxFOD - minFOD) / 2 && theta <= PI / 2){
-				candidate.direction += model[j].area * (model[j].center - candidate.position) / (model[j].center - candidate.position).length();  // 视点方向 = sum（邻面片方向*面积/距视点的距离）
-			}
-		}
+				// 视点方向 = sum（邻面片方向*面积/距视点的距离）
+                candidate.direction += model[j].area *
+                    (model[j].center - candidate.position) /
+                    (model[j].center - candidate.position).length();
+            }
+        }
 		candidate.direction.normalize();
 		// xcf
 		// Vector3 model_center(center_x,center_y,center_z);
@@ -347,7 +350,7 @@ bool ViewPlan::sampleEnough(const vector<TriSurface> &model, int candidate_num, 
         hole_num += hole_tmp;
     }
     cout << "表面覆盖率为: " << visible_num / model.size() << endl;
-    cout << "圆孔覆盖率为: " << hole_num / holes.size() << endl;
+    cout << "圆孔覆盖率为: " << hole_num << " / " << holes.size() << endl;
     if (visible_num >= coverage_rate * model.size() &&
         hole_num == holes.size()) {
         return 1;
@@ -529,13 +532,18 @@ int ViewPlan::checkHoles(const ViewPoint &view_point, int i){
         (hole - view_point.position).dot(view_point.direction.normalized());
     if (dist <= minFOD || dist >= maxFOD ||
         abs(view_point.direction.angle(hole - view_point.position)) >= minFOV / 2) {
+        cout << "hole position error, " << i << endl;
         return 0;
-	}
+        }
 
 	// 3.判断视角是否在规定范围中
     Vector3 normal(0, 0, 1);
-    if (normal.angle(view_point.position - hole) >= view_angle_range) 
+    if (abs(normal.angle(view_point.position - hole)) > max_hole_angle ||
+	    abs(normal.angle(view_point.position - hole)) < min_hole_angle) {
+        cout << "hole angle error: " << abs(normal.angle(view_point.position - hole))
+             << ", " << i << endl;
         return 0;
+    }
 
 	return 1;
 }
