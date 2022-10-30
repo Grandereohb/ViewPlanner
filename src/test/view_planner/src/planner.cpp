@@ -155,6 +155,12 @@ int main(int argc, char **argv){
     }
     visBestViewPoint(best_view_point, vp);                            // 最佳视点与运动路径可视化
 
+    for(int i = 0; i < best_view_point.size(); ++i){
+        for (int j = 0; j < vp.hole_matrix[0].size(); ++j)
+            cout << vp.hole_matrix[best_view_point[i].num][j] << " ";
+        cout << endl;
+    }
+
     // 规划机器人运动轨迹并控制机器人运动
     cout << "共获得" << best_view_point.size()
          << "个最佳视点，开始规划机器人运动轨迹: " << endl;
