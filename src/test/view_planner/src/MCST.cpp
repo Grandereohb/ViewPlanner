@@ -165,8 +165,11 @@ bool MCST::isMostCovered(const vector<ViewPoint> &select_vp){
         hole_num += hole_tmp;
     }
     if (visible_num >= coverage_rate * tempVM[0].size() &&
-        hole_num == tempHM[0].size())
+        hole_num >= 0)
         return 1;
+    // if (visible_num >= coverage_rate * tempVM[0].size() &&
+    //     hole_num == tempHM[0].size())
+    //     return 1;
     else
         return 0;
 }

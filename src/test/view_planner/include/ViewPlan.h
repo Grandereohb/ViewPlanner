@@ -97,8 +97,8 @@ private:
     //int rangeFOD                = maxFOD - minFOD;       // 测量范围
 	const double minFOV           = 0.52359877;            // 视野(弧度) 水平视角30度，垂直视角25度  minFOV = 30/180*PI = 0.52359877
 	const double view_angle_range = 1.047;                 // 测量视角范围 view_angle_range = 60/180*PI = 1.047
-	const double min_hole_angle   = 0.24434609;           // min best measurement angle for holes 14/180*PI = 0.24434609
-	const double max_hole_angle   = 0.436323056;           // max best measurement angle for holes 25/180*PI = 0.436323055
+	const double min_hole_angle   = 0.17453292;           // min best measurement angle for holes 10/180*PI = 0.17453292
+	const double max_hole_angle   = 0.34906584;           // max best measurement angle for holes 20/180*PI = 0.34906584
 
 	// 仿真场景距离参数
 	const double model_position_x = 1.0;                   // 待测模型在x轴上的位置（单位：m）  

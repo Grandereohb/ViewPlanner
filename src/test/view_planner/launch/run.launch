@@ -15,13 +15,20 @@
     <!-- 输入与输出文件 -->
     <param name="file_path"       value="/home/ros/abb_ws/src/test/view_planner/model/sheet_9392.stl"/>
     <param name="file_path_small" value="package://view_planner/model/sheet_9392_small.stl"/>
-    <param name="viewpoint_file"  value="/home/ros/abb_ws/src/test/view_planner/data/1026/raw/candidates.dat"/>
-    <param name="trajectory_file" value="/home/ros/abb_ws/src/test/view_planner/data/1026/raw/trajs.dat"/>
-    <param name="bestvp_file"     value="/home/ros/abb_ws/src/test/view_planner/data/1026/raw/best_vps.dat"/>
+
+    <param name="viewpoint_file"  value="/home/ros/abb_ws/src/test/view_planner/data/1030/candidates.dat"/>
+    <param name="trajectory_file" value="/home/ros/abb_ws/src/test/view_planner/data/1030/trajs.dat"/>
+    <param name="bestvp_file"     value="/home/ros/abb_ws/src/test/view_planner/data/1030/best_vps.dat"/>
+
+    <!-- <param name="file_path"       value="/home/ros/abb_ws/src/test/view_planner/model/sheet_9392.stl"/>
+    <param name="file_path_small" value="package://view_planner/model/sheet_9392_small.stl"/> -->
+    <!-- <param name="viewpoint_file"  value="/home/ros/abb_ws/src/test/view_planner/data/1030/candidates.dat"/>
+    <param name="trajectory_file" value="/home/ros/abb_ws/src/test/view_planner/data/1030/trajs.dat"/>
+    <param name="bestvp_file"     value="/home/ros/abb_ws/src/test/view_planner/data/1030/best_vps.dat"/> -->
 
     <!-- 采样参数 -->
     <param name="sample_num"    value="40"/>
-    <param name="coverage_rate" value="0.7"/>
+    <param name="coverage_rate" value="0.99"/>
 
     <!-- RKGA参数 -->
     <param name="max_gen"    value="400"/>
@@ -37,7 +44,7 @@
 
     <!-- 是否重用与优化方法 -->
     <!-- true 即 重用已存储的最佳视点，false 即 重新生成最佳视点 -->
-    <param name="reuse_best" value="true"/>
+    <param name="reuse_best" value="false"/>
     <!-- true 即 重用已存储的候选视点，false 即 重新生成候选视点 -->
     <param name="reuse"      value="true"/>
     <!-- 1 即 MCTS, 0 即 RKGA -->

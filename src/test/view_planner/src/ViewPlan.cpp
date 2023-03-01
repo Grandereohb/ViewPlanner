@@ -225,9 +225,9 @@ void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, i
 		++rand_sample_num;
 		// 生成视点位置
 		// 沿面片法线方向延伸最佳测量距离，生成候选视点。用于一般物体
-		// candidate.position = model[randNum].center + model[randNum].normal.normalized() * measure_dist;
+		candidate.position = model[randNum].center + model[randNum].normal.normalized() * measure_dist;
 		// 在选择面片的正上方延伸最佳测量距离，生成候选视点。用于钣金件
-		candidate.position = model[randNum].center + Vector3(0, 0, measure_dist); 
+		// candidate.position = model[randNum].center + Vector3(0, 0, measure_dist); 
 		// cxf
 		// float randNum_1 = (float)rand() / RAND_MAX * 0.3;
 		// float randNum_2 = (float)rand() / RAND_MAX * 0.7 + 0.3;
@@ -352,9 +352,13 @@ bool ViewPlan::sampleEnough(const vector<TriSurface> &model, int candidate_num, 
     cout << "表面覆盖率为: " << visible_num / model.size() << endl;
     cout << "圆孔覆盖率为: " << hole_num << " / " << holes.size() << endl;
     if (visible_num >= coverage_rate * model.size() &&
-        hole_num == holes.size()) {
+        hole_num >= 0) {
         return 1;
     }
+	// if (visible_num >= coverage_rate * model.size() &&
+    //     hole_num == holes.size()) {
+    //     return 1;
+    // }
 
         // 采样数超过限额，停止采样
 	if(candidate_num >= (sample_num * 2)){
@@ -395,20 +399,20 @@ bool ViewPlan::getJointState(ViewPoint &viewpoint, robot_model_loader::RobotMode
 	// 手眼标定结果 X1
 	Eigen::Matrix4d rob_cam_calibration;
 	// 右相机到末端（从末端移动到右相机） 第一次标定（x为光轴）
-	rob_cam_calibration << 0.206326, 0.001152, 0.978508, 0.067869619,
-					      -0.000008, 0.999980, 0.001183,-0.139219215,
-					      -0.978482, 0.000183, 0.206310, 0.102563320,
-					       0,        0,        0,        1;
+	// rob_cam_calibration << 0.206326, 0.001152, 0.978508, 0.067869619,
+	// 				      -0.000008, 0.999980, 0.001183,-0.139219215,
+	// 				      -0.978482, 0.000183, 0.206310, 0.102563320,
+	// 				       0,        0,        0,        1;
 	// 左相机到末端（从末端移动到左相机）手眼标定结果（z为光轴）
 	// rob_cam_calibration << -0.231825,  0.002388,  0.972779, 0.060808487,
     //                        -0.972672,  0.011158, -0.231820, 0.140728791,
     //                        -0.011499, -0.999932, -0.000279, 0.103992375,
     //                         0.000000,  0.000000,  0.000000, 1.000000;
 	// 左相机到末端（从末端移动到左相机）手眼标定结果（x为光轴）
-	// rob_cam_calibration << -0.000279, 0.011499,  0.999932, 0.060808487,
-    //                         -0.972779, -0.231825,  0.002388, 0.140728791,
-    //                         0.231820, -0.972672,  0.011158, 0.103992375,
-    //                         0.000000,  0.000000,  0.000000, 1.000000;
+	rob_cam_calibration << -0.000279, 0.011499,  0.999932, 0.060808487,
+                            -0.972779, -0.231825,  0.002388, 0.140728791,
+                            0.231820, -0.972672,  0.011158, 0.103992375,
+                            0.000000,  0.000000,  0.000000, 1.000000;
 
 	// 相机到投影仪标定结果 X2
 	Eigen::Matrix4d cam_pro_calibration;
@@ -450,9 +454,9 @@ bool ViewPlan::getJointState(ViewPoint &viewpoint, robot_model_loader::RobotMode
 	// 根据手眼标定关系校正后的机器人位姿变换矩阵T2      T1 = T2 * X1 * X2
 	// end_effector_state = end_effector_state * cam_pro_calibration.inverse() * rob_cam_calibration.inverse();
 	// end_effector_state = end_effector_state * (R * cam_pro_calibration) * rob_cam_calibration.inverse();
-	// end_effector_state = end_effector_state * rob_cam_calibration.inverse();
+	end_effector_state = end_effector_state * rob_cam_calibration.inverse();
 	// 根据手眼标定关系校正后的机器人位姿变换矩阵T2      T1 = T2 * R
-	end_effector_state = end_effector_state * R.inverse();
+	// end_effector_state = end_effector_state * R.inverse();
 
 	// 我们现在可以为机器人求解逆运动学 (IK)。要解决 IK，我们需要以下内容：
 	// 1.机械臂末端的所需姿势（默认情况下，这是“arm”链中的最后一个链接）：我们在上述步骤中计算的 end_effector_state。
