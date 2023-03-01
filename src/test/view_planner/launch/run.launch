@@ -13,11 +13,11 @@
     <rosparam command="load"
               file="$(find abb_irb1600_10_145_moveit_config)/config/kinematics.yaml"/>
     <!-- 输入与输出文件 -->
-    <param name="file_path"       value="/home/ros/abb_ws/src/test/view_planner/model/0523/man_5186.stl"/>
-    <param name="file_path_small" value="package://view_planner/model/0523/man_5186_small.stl"/>
-    <param name="viewpoint_file"  value="/home/ros/abb_ws/src/test/view_planner/data/0601/1629/candidates.dat"/>
-    <param name="trajectory_file" value="/home/ros/abb_ws/src/test/view_planner/data/0601/1629/trajs.dat"/>
-    <param name="bestvp_file"     value="/home/ros/abb_ws/src/test/view_planner/data/0601/1629/best_vps.dat"/>
+    <param name="file_path"       value="/home/ros/abb_ws/src/test/view_planner/model/0301/sheet_9392.stl"/>
+    <param name="file_path_small" value="package://view_planner/model/0301/sheet_9392_small.stl"/>
+    <param name="viewpoint_file"  value="/home/ros/abb_ws/src/test/view_planner/data/0301/candidates.dat"/>
+    <param name="trajectory_file" value="/home/ros/abb_ws/src/test/view_planner/data/0301/trajs.dat"/>
+    <param name="bestvp_file"     value="/home/ros/abb_ws/src/test/view_planner/data/0301/best_vps.dat"/>
 
     <!-- 采样参数 -->
     <param name="sample_num"    value="40"/>

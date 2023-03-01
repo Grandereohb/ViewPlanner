@@ -243,13 +243,25 @@ void MCST::backPropagation(TreeNode *node, double cost){
 }
 
 // ---------------------------------------------
-TreeNode::TreeNode(const State &state_, TreeNode *parent_) : state(state_), parent(parent_), has_child(false),
-                                                             num_visits(0), cost(0), min_cost(DBL_MAX), depth(parent ? parent->depth + 1 : 0) {
-    action.id = state.getNum();
+TreeNode::TreeNode(const State& state_, TreeNode* parent_)
+    : state(state_),
+      parent(parent_),
+      has_child(false),
+      num_visits(0),
+      cost(0),
+      min_cost(DBL_MAX),
+      depth(parent ? parent->depth + 1 : 0){ 
+    action.id = state.getNum(); 
 }
-TreeNode::TreeNode(const State &state_) : state(state_), parent(nullptr), has_child(false),
-                                          num_visits(0), cost(0), min_cost(DBL_MAX), depth(parent ? parent->depth + 1 : 0) {
-    action.id = state.getNum();
+TreeNode::TreeNode(const State& state_)
+    : state(state_),
+      parent(nullptr),
+      has_child(false),
+      num_visits(0),
+      cost(0),
+      min_cost(DBL_MAX),
+      depth(parent ? parent->depth + 1 : 0){
+    action.id = state.getNum(); 
 }
 TreeNode::TreeNode(const TreeNode* node){
     state = node->state;
@@ -356,7 +368,8 @@ TreeNode *TreeNode::applyAction(const Action &action){
         }
             // return &children[i];
     }
-    cout << "无法获取执行action后的结果 当前节点:" << state.getNum() << ", 目标id:" << action.id << endl;
+    cout << "无法获取执行action后的结果 当前节点:" << state.getNum()
+         << ", 目标id:" << action.id << endl;
     abort();
     return nullptr;
 }

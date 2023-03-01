@@ -52,8 +52,8 @@ public:
 private:
     // 可按需求修改参数
     int max_iteration = 45000;  // 最大迭代次数
-    double epsilon1 = 50;     // TreePolicy参数1
-    double epsilon2 = 60;     // TreePolicy参数2
+    double epsilon1 = 50;       // TreePolicy参数1
+    double epsilon2 = 60;       // TreePolicy参数2
 
     // 不可修改参数
     const double coverage_rate;
@@ -63,7 +63,7 @@ private:
 
     int selectStartIndex(const vector<ViewPoint> &candidates);                                    // 选择初始视点
     TreeNode *treePolicy(TreeNode &root, vector<ViewPoint> &select_vp);                           // 选择与扩展搜索树
-    double simulation(const TreeNode *node, vector<ViewPoint> &select_vp);                              // 模拟
+    double simulation(const TreeNode *node, vector<ViewPoint> &select_vp);                        // 模拟
     bool isMostCovered(const vector<ViewPoint> &select_vp);                                       // 判断是否满足覆盖
     Action greedyRollout(const TreeNode *node, vector<ViewPoint> &select_vp, double &once_cost);  // 贪心搜索
     // int updateByModel(TreeNode &node, Action a, const vector<ViewPoint> &candidates);
