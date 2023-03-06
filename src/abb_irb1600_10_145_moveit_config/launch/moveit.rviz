@@ -5,6 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Marker1/Namespaces1
+        - /Marker2
       Splitter Ratio: 0.7425600290298462
     Tree Height: 210
   - Class: rviz/Help
@@ -228,6 +229,14 @@ Visualization Manager:
       Enabled: true
       Marker Topic: /planner/vis_traj
       Name: MarkerArray
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: vis_patch
+      Name: Marker
       Namespaces:
         {}
       Queue Size: 100

@@ -9,7 +9,7 @@ vector<ViewPoint> ViewPlan::generateViewPoint(const char* cfilename,
                                               int sampleNum,
                                               double coverage_rate,
                                               MGI& group) {
-    vector<TriSurface> model = readFile(cfilename);  // 读取STL模型点云
+    model = readFile(cfilename);  // 读取STL模型点云
 
     vector<ViewPoint> candidate_view_point;
     vector<ViewPoint> best_view_point;
@@ -96,7 +96,6 @@ vector<TriSurface> ViewPlan::readASCII(const char* buffer) {
 	string name, useless;
 	stringstream ss(buffer);
 	TriSurface surface;
-	int numTriangles = 0;
 
 	ss >> name >> name;
 	ss.get();
@@ -112,14 +111,23 @@ vector<TriSurface> ViewPlan::readASCII(const char* buffer) {
 
 		//删去第二行
 		getline(ss, useless);
-		for (i = 0; i < 3; i++)
-		{
+
+		for (i = 0; i < 3; i++){
 			ss >> useless >> x >> y >> z;
 			surface.vertex[i].m_floats[0] = x;
 			surface.vertex[i].m_floats[1] = y;
 			surface.vertex[i].m_floats[2] = z;
 		}
-		numTriangles++;
+		getline(ss, useless);
+		getline(ss, useless);
+
+		// 删去模型底部无法测量的面片
+        // if(surface.center.m_floats[2] > 5 &&
+        // surface.normal.normalized().m_floats[2] > -0.5){
+        if (surface.normal.normalized().m_floats[2] <= 0.1) {
+            continue;
+        }
+
 		surface.number = ++number;
 		//计算三角形面积
         Vector3 AB(surface.vertex[2].m_floats[0] - surface.vertex[0].m_floats[0],
@@ -142,16 +150,8 @@ vector<TriSurface> ViewPlan::readASCII(const char* buffer) {
              surface.vertex[2].m_floats[2]) / 3;
 
         surface.flag = false;
-        // 删去模型底部无法测量的面片
-        // if(surface.center.m_floats[2] > 5 &&
-        // surface.normal.normalized().m_floats[2] > -0.5){
-        if (surface.normal.normalized().m_floats[2] > 0) {
-            TriSurfaces.push_back(surface);
-		}
 
-		getline(ss, useless);
-		getline(ss, useless);
-		//getline(ss, useless);
+		TriSurfaces.push_back(surface);
 	} while (1);
 	cout << "模型读取完成，共读取了" << TriSurfaces.size() << "个面片" << endl;
 	return TriSurfaces;
@@ -183,15 +183,26 @@ vector<TriSurface> ViewPlan::readBinary(const char* buffer) {
 			tmp.m_floats[2] = cpyfloat(p);
 			surface.vertex.push_back(tmp);
 		}
+		p += 2; //跳过尾部标志
+
+		// if(surface.center.m_floats[2] > 5 &&
+        // surface.normal.normalized().m_floats[2] > -0.5){
+        if (surface.normal.normalized().m_floats[2] <= 0.1) {
+            continue;
+        }
+        // if(surface.center.m_floats[2] > 5){
+		// 	TriSurfaces.push_back(surface);
+		// }
+
 		surface.number = ++number;
 
 		//计算三角形面积
         Vector3 AB(surface.vertex[2].m_floats[0] - surface.vertex[0].m_floats[0],
-                    surface.vertex[2].m_floats[1] - surface.vertex[0].m_floats[1],
-                    surface.vertex[2].m_floats[2] - surface.vertex[0].m_floats[2]);
+                   surface.vertex[2].m_floats[1] - surface.vertex[0].m_floats[1],
+                   surface.vertex[2].m_floats[2] - surface.vertex[0].m_floats[2]);
         Vector3 AC(surface.vertex[1].m_floats[0] - surface.vertex[0].m_floats[0],
-                    surface.vertex[1].m_floats[1] - surface.vertex[0].m_floats[1],
-                    surface.vertex[1].m_floats[2] - surface.vertex[0].m_floats[2]);
+                   surface.vertex[1].m_floats[1] - surface.vertex[0].m_floats[1],
+                   surface.vertex[1].m_floats[2] - surface.vertex[0].m_floats[2]);
         surface.area = (AB.cross(AC)).length() / 2;
 
 		//面片中心提取
@@ -206,16 +217,8 @@ vector<TriSurface> ViewPlan::readBinary(const char* buffer) {
              surface.vertex[2].m_floats[2]) / 3;
 
         surface.flag = false;
-        // if(surface.center.m_floats[2] > 5 &&
-        // surface.normal.normalized().m_floats[2] > -0.5){
-        if (surface.normal.normalized().m_floats[2] > 0) {
-            TriSurfaces.push_back(surface);
-		}
-		// if(surface.center.m_floats[2] > 5){
-		// 	TriSurfaces.push_back(surface);
-		// }
-
-		p += 2; //跳过尾部标志
+        
+        TriSurfaces.push_back(surface);
 	}
 	cout << "模型读取完成，共读取了" << TriSurfaces.size() << "个面片" << endl;
 	return TriSurfaces;

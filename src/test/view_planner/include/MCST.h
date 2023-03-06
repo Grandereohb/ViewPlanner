@@ -29,7 +29,7 @@ public:
     void addCost(double once_cost);                            // 增加节点的cost
     void updateMinCost(double once_cost);                      // 更新min_cost
     void setUnreachable(int id);                               // 将子节点设置为无法到达
-
+    
 private:
     int num_visits;               // 该节点被访问的次数
     double cost;                  // 该节点的cost
@@ -48,12 +48,15 @@ public:
  // ~MSCT();
 
  vector<ViewPoint> solveMCST();
+ void getUncoveredPatch(vector<int>& uncovered_patch,
+                        const vector<ViewPoint>& select_vp);  // 计算未覆盖的表面片
 
 private:
     // 可按需求修改参数
-    int max_iteration = 45000;  // 最大迭代次数
-    double epsilon1 = 50;       // TreePolicy参数1
-    double epsilon2 = 60;       // TreePolicy参数2
+    int max_iteration = 45000;    // 最大迭代次数
+    double epsilon1 = 50;         // TreePolicy参数1
+    double epsilon2 = 60;         // TreePolicy参数2
+    double single_pic_cost = 2.0; // 单次测量时间
 
     // 不可修改参数
     const double coverage_rate;
@@ -65,6 +68,7 @@ private:
     TreeNode *treePolicy(TreeNode &root, vector<ViewPoint> &select_vp);                           // 选择与扩展搜索树
     double simulation(const TreeNode *node, vector<ViewPoint> &select_vp);                        // 模拟
     bool isMostCovered(const vector<ViewPoint> &select_vp);                                       // 判断是否满足覆盖
+    bool isMostCovered(const vector<ViewPoint> &select_vp, double& count);                           // 判断是否满足覆盖
     Action greedyRollout(const TreeNode *node, vector<ViewPoint> &select_vp, double &once_cost);  // 贪心搜索
     // int updateByModel(TreeNode &node, Action a, const vector<ViewPoint> &candidates);
     double getTravelCost(int start, int end);                                                     // 计算运动成本

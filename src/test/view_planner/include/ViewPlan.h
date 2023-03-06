@@ -87,9 +87,11 @@ public:
  double getModelPositionZ() const;
  double getTablePositionX() const;
  double getTablePositionZ() const;
+
  Graph g;
  vector<vector<int>> visibility_matrix;               // 可见性矩阵
  vector<vector<moveit_msgs::RobotTrajectory>> trajs;  // 轨迹
+ vector<TriSurface> model;
 	
 private:
     // 相机参数
@@ -102,7 +104,7 @@ private:
 	const double view_angle_range = 1.047;                 // 测量视角范围 view_angle_range = 60/180*PI = 1.047
 	// 仿真场景距离参数
 	const double model_position_x = 0.77;                  // 待测模型在x轴上的位置（单位：m）  
-	const double model_position_z = 0.74;                  // 待测模型在z轴上的位置（单位：m）  
+	const double model_position_z = 0.44;                  // 待测模型在z轴上的位置（单位：m）  
 	const double table_position_x = model_position_x;      // 平台在x轴上的位置（单位：m）  
 	const double table_position_z = model_position_z / 2;  // 平台在z轴上的位置（单位：m）
     
@@ -150,21 +152,19 @@ private:
     bool checkCollision(const ViewPoint& view_point,
             			robot_model_loader::RobotModelLoader robot_model_loader);
 
-        // 绘制图
-        void setGraph(vector<ViewPoint> candidate_view_point,
-                      ViewPoint candidate,
-                      MGI& group,
-                      robot_model_loader::RobotModelLoader robot_model_loader);
+    // 绘制图
+    void setGraph(vector<ViewPoint> candidate_view_point,
+                  ViewPoint candidate,
+                  MGI& group,
+                  robot_model_loader::RobotModelLoader robot_model_loader);
 
-        moveit_msgs::RobotTrajectory calcMotionCost(
-            ViewPoint candidate_view_point,
-            ViewPoint candidate,
-            MGI& group,
-            planning_scene::PlanningScene& planning_scene);
+    moveit_msgs::RobotTrajectory calcMotionCost(ViewPoint candidate_view_point,
+        										ViewPoint candidate,
+        										MGI& group,
+       											planning_scene::PlanningScene& planning_scene);
 
-        int cpyint(const char*& p);
-        float cpyfloat(const char*& p);
-
+    int cpyint(const char*& p);
+    float cpyfloat(const char*& p);
 };
 
 #endif

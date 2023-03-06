@@ -14,6 +14,7 @@ MCST::MCST(const double& coverage_rate_,
     nh.getParam("max_iter", max_iteration);
     nh.getParam("epsilon1", epsilon1);
     nh.getParam("epsilon2", epsilon2);
+    nh.getParam("single_pic_cost", single_pic_cost);
 }
 
 vector<ViewPoint> MCST::solveMCST(){
@@ -23,33 +24,43 @@ vector<ViewPoint> MCST::solveMCST(){
         cout << "候选视点集为空，无法寻找初始视点!" << endl;
         return res;
     }
+    srand(time(nullptr));
+
+    int delta_iteration = max_iteration / 10;
+    int i = 0;
     State state(candidates[start_index]);
     TreeNode root(state);
     root.initializeNode(candidates);
+    double cur_coverage_rate = 0.0;
 
-    for (int i = 0; i < max_iteration; ++i){
-        vector<ViewPoint> select_vp;
-        select_vp.push_back(root.state.getVP());
+    while(!isMostCovered(res, cur_coverage_rate) && max_iteration < 100000){
+        for (; i < max_iteration; ++i) {
+            vector<ViewPoint> select_vp;
+            select_vp.push_back(root.state.getVP());
 
-        TreeNode *node = treePolicy(root, select_vp);
-        select_vp.push_back(node->state.getVP());
+            TreeNode *node = treePolicy(root, select_vp);
+            select_vp.push_back(node->state.getVP());
 
-        double cost = simulation(node, select_vp);
-        
-        if(i % 100 == 0)
-            cout << i << " " << cost << endl;
-        backPropagation(node, cost);
-    }
+            double cost = simulation(node, select_vp);
+            
+            if(i % 1000 == 0)
+                cout << i << " " << cost << endl;
+            backPropagation(node, cost);
+        }
 
-    TreeNode *cur = &root;
-    while(cur){
-        res.push_back(cur->state.getVP());
-        cur = cur->bestChild();
+        TreeNode *cur = &root;
+        res.clear();
+        while (cur) {
+            res.push_back(cur->state.getVP());
+            cur = cur->bestChild();
+        }
+        max_iteration += delta_iteration;
     }
     // delete cur;
     return res;
 }
 int MCST::selectStartIndex(const vector<ViewPoint> &candidates){
+    // 贪心选取寻找可见面片最大的视点为初始视点
     if(candidates.size() == 0){
         return -1;
     }
@@ -70,13 +81,16 @@ TreeNode *MCST::treePolicy(TreeNode &root, vector<ViewPoint> &select_vp){
 
     int iteration = 40;  // 树搜索次数上限
     TreeNode *node = &root;
+
     while (iteration--){
-        int random_num = rand() % 100;
+        int random_num_1 = rand() % 100;
+        int random_num_2 = rand() % 100;
         // 判断是否存在未被访问过的子节点，存在则返回子节点序号，不存在返回-1
         int expand_id = node->isFullyExpanded(); 
 
-        // 如果所有子节点均未被访问，或者存在未被访问的子节点且小于epsilon1 greedy，则扩展子节点 
-        if (!node->has_child || (expand_id >= 0 && random_num < epsilon1)){
+        // 如果所有子节点均未被访问，或者存在未被访问的子节点且小于epsilon1，则扩展子节点 
+        // epsilon1用于平衡节点的 选择 与 扩展
+        if (!node->has_child || (expand_id >= 0 && random_num_1 < epsilon1)){
             if(getTravelCost(node->state.getNum(), node->children[expand_id].state.getNum()) < 1000){
                 node->has_child = true;
                 return node->expand(expand_id);
@@ -89,20 +103,12 @@ TreeNode *MCST::treePolicy(TreeNode &root, vector<ViewPoint> &select_vp){
         }
 
         TreeNode *child_node;
-        // 不存在未被访问的子节点，直接选择下一个节点
-        if(expand_id == -1){
-            if(random_num < epsilon2)
-                child_node = node->weightedBestChild();
-            else
-                child_node = node->randomChild();
-        } 
-        // 存在访问与未被访问过的节点，且大于epsilon1 greedy
-        else{
-            if(random_num < epsilon2)
-                child_node = node->randomChild();
-            else
-                child_node = node->weightedBestChild();
-        }
+        // epsilon2用于平衡节点 选择 时的 explore and exploit
+        if(random_num_2 < epsilon2)
+            child_node = node->weightedBestChild();
+        else
+            child_node = node->randomChild();
+
         // 检查父节点与子节点之间能否到达
         if(getTravelCost(node->state.getNum(), child_node->state.getNum()) > 1000){
             ++iteration;
@@ -119,23 +125,25 @@ double MCST::simulation(const TreeNode *node, vector<ViewPoint> &select_vp){
     // 模拟。从给定节点开始按照贪心策略向下搜索，直到得到一条满足覆盖率要求的轨迹（视点集），返回轨迹的总运动成本
     TreeNode *sim_node = new TreeNode(node);
     double cost = 0; // 总运动成本
-    do{
-        double once_cost = 0;  // 单次运动成本
+    while (!isMostCovered(select_vp)){
+        double single_travel_cost = 0;  // 单次运动成本
 
         // 贪心搜索
-        Action action = greedyRollout(sim_node, select_vp, once_cost);
-       
+        Action action = greedyRollout(sim_node, select_vp, single_travel_cost);
+
         // 执行action，得到下一状态（节点）
         sim_node = sim_node->applyAction(action);
 
         select_vp.push_back(sim_node->state.getVP());
-        cost += once_cost;
-    } while (!isMostCovered(select_vp));
+        cost += single_travel_cost + single_pic_cost;        
+    }
     // delete sim_node;
     return cost;
 }
 bool MCST::isMostCovered(const vector<ViewPoint> &select_vp){
     // 同RKGA，判断是否满足覆盖率要求
+    if(select_vp.empty())
+        return false;
     vector<vector<int>> tempVM;
     for(int i = 0; i < select_vp.size(); i++){
         tempVM.push_back(visibility_matrix[select_vp[i].num]);
@@ -150,12 +158,35 @@ bool MCST::isMostCovered(const vector<ViewPoint> &select_vp){
         }
         visible_num += visible_tmp;  // 设为2时此处应当 / 2
 	}
-    if (visible_num >= coverage_rate * tempVM[0].size())
-    {
-        return 1;
-    }
+    if (visible_num >= coverage_rate * visibility_matrix[0].size())
+        return true;
     else
-        return 0;
+        return false;
+}
+bool MCST::isMostCovered(const vector<ViewPoint> &select_vp, double& count){
+    // 同RKGA，判断是否满足覆盖率要求
+    if(select_vp.empty())
+        return false;
+    vector<vector<int>> tempVM;
+    for(int i = 0; i < select_vp.size(); i++){
+        tempVM.push_back(visibility_matrix[select_vp[i].num]);
+    }
+    double visible_num = 0;
+    for (int i = 0; i < tempVM[0].size(); i++){
+        double visible_tmp = 0;
+        for (int j = 0; j < tempVM.size(); j++){
+            visible_tmp += tempVM[j][i];
+			if(visible_tmp == 1)  // 建议设为2
+				break;
+        }
+        visible_num += visible_tmp;  // 设为2时此处应当 / 2
+	}
+    count = visible_num / visibility_matrix[0].size();
+    cout << "当前覆盖率为: " << count << endl;
+    if (visible_num >= coverage_rate * visibility_matrix[0].size())
+        return true;
+    else
+        return false;
 }
 Action MCST::greedyRollout(const TreeNode *node, vector<ViewPoint> &select_vp, double &once_cost){
     // 根据 新增覆盖面积最大 + 运动成本最短 的原则进行贪心搜索
@@ -169,22 +200,13 @@ Action MCST::greedyRollout(const TreeNode *node, vector<ViewPoint> &select_vp, d
 
     // 记录未被覆盖的面片
     vector<int> uncovered_patch;
-    for (int i = 0; i < visibility_matrix[0].size(); ++i){  // 遍历面片
-        bool flag = false;
-        for (int j = 0; j < select_vp.size(); ++j){         // 遍历视点
-            if (visibility_matrix[select_vp[j].num][i] == 1){  
-                flag = true;
-                break;
-            }
-        }
-        if (flag == false)
-            uncovered_patch.push_back(i);
-    }
+    getUncoveredPatch(uncovered_patch, select_vp);
 
     // 贪心搜索，寻找value最大的视点
     int vp_index = 0;
     double max_value = DBL_MIN;
     int max_index = -1;
+    int test_num = 0;
     // 遍历视点
     for (int i = 0; i < visibility_matrix.size(); ++i){
         // 视点在simulation前已被选择，不能重复选择，跳过
@@ -194,15 +216,18 @@ Action MCST::greedyRollout(const TreeNode *node, vector<ViewPoint> &select_vp, d
         }
         // 计算simulation起点到该视点的运动成本
         double travel_cost = getTravelCost(node->state.getNum(), i);
-        if(travel_cost > 1000)
+        if(travel_cost > 1000){
+            ++test_num;
             continue;
+        }
         // 计算该视点能新覆盖的面片数
         double delta_coverage = 0;
         for (int j = 0; j < uncovered_patch.size(); ++j){
             delta_coverage += visibility_matrix[i][uncovered_patch[j]];
         }
         // value用来计算和表示能看到更多面片且更近的视点
-        double value = delta_coverage / travel_cost;
+        double value = delta_coverage * delta_coverage / travel_cost;
+
         if(value > max_value){
             max_value = value;
             max_index = i;
@@ -211,6 +236,13 @@ Action MCST::greedyRollout(const TreeNode *node, vector<ViewPoint> &select_vp, d
     }
     if(max_index == -1){
         cout << "202 GreedyRollout ERROR!" << endl;
+        cout << "unreachable num: " << test_num;
+        cout << "selected vp size: " << select_vp_index.size();
+        cout << "; uncovered patch size: " << uncovered_patch.size() << endl;
+        // for(int num : select_vp_index)
+        //     cout << num << " - ";
+        bool flag = isMostCovered(select_vp);
+        cout << endl;
         abort();
     }
     // 返回指向下一个状态需要执行的action
@@ -231,15 +263,30 @@ double MCST::getTravelCost(int start, int end){
 void MCST::backPropagation(TreeNode *node, double cost){
     // 反向传播，更新从simulation起点到root之间每个节点的参数
     TreeNode *cur = node;
-    while(cur->parent){
+    while(cur){
         cur->addVisitNum();        // 增加访问次数
         cur->addCost(cost);        // 增加总cost
         cur->updateMinCost(cost);  // 更新最小cost
         // 父节点cost = 子节点cost + 父节点到子节点cost
-        cost += getTravelCost(cur->parent->state.getNum(), cur->state.getNum());
+        if(!cur->parent)
+            break;
+        cost = getTravelCost(cur->parent->state.getNum(), cur->state.getNum()) + single_pic_cost;
         cur = cur->parent;
     }
     // delete cur;
+}
+void MCST::getUncoveredPatch(vector<int>& uncovered_patch, const vector<ViewPoint>& select_vp){
+    for (int i = 0; i < visibility_matrix[0].size(); ++i){  // 遍历面片
+        bool flag = false;
+        for (int j = 0; j < select_vp.size(); ++j){         // 遍历视点
+            if (visibility_matrix[select_vp[j].num][i] == 1){  
+                flag = true;
+                break;
+            }
+        }
+        if (flag == false)
+            uncovered_patch.push_back(i);
+    }
 }
 
 // ---------------------------------------------

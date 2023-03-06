@@ -10,11 +10,13 @@
 #include <moveit_msgs/DisplayRobotState.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 
-// 在RViz环境中发布实验环境/视点位置/机器人运动轨迹
-ros::Publisher env_vis_pub, view_point_vis_pub, traj_vis_pub;
+// 在RViz环境中发布实验环境/视点位置/机器人运动轨迹/表面片
+ros::Publisher env_vis_pub, view_point_vis_pub, patch_vis_pub;
 void visEnv(const char *file_path_small, const ViewPlan &vp);
 void visCandidateViewPoint(const vector<ViewPoint> &cand_view_point, const ViewPlan &vp);
 void visBestViewPoint(const vector<ViewPoint> &best_view_point, const ViewPlan &vp);
+void visPatch(const vector<int>& uncovered_patch, const ViewPlan& vp);
+// 读写视点/可见性矩阵/轨迹/表面片信息
 void writeData(const char* viewpoint_file,
                const vector<ViewPoint>& cand_view_point,
                const vector<vector<ViewPoint>>& graph,
@@ -22,6 +24,8 @@ void writeData(const char* viewpoint_file,
 void writeData(const char* viewpoint_file,
                const vector<vector<moveit_msgs::RobotTrajectory>> trajs);
 void writeData(const char *viewpoint_file, const vector<ViewPoint> &best_view_point);
+void writeData(const char *patch_file, const vector<TriSurface> &model);
+void writeData(const char* patch_file, const vector<int>& uncovered_patch);
 void readData(const char* viewpoint_file,
               vector<ViewPoint>& cand_view_point,
               vector<vector<ViewPoint>>& graph,
@@ -29,6 +33,8 @@ void readData(const char* viewpoint_file,
 void readData(const char* viewpoint_file,
               vector<vector<moveit_msgs::RobotTrajectory>>& trajs);
 void readData(const char *viewpoint_file, vector<ViewPoint> &best_view_point);
+void readData(const char *patch_file, vector<TriSurface> &model);
+void readData(const char *patch_file, vector<int>& uncovered_patch);
 
 int main(int argc, char **argv){
     // ROS初始化
@@ -41,25 +47,31 @@ int main(int argc, char **argv){
     // 初始化参数
     // 输入模型与输出视点文件
     string _file_path, _file_path_small, _viewpoint_file, _trajectory_file, _bestvp_file;
+    // 模型表面片文件
+    string _model_file, _uncovered_file;
     node_handle.getParam("file_path", _file_path);
     node_handle.getParam("file_path_small", _file_path_small);
     node_handle.getParam("viewpoint_file", _viewpoint_file);
     node_handle.getParam("trajectory_file", _trajectory_file);
     node_handle.getParam("bestvp_file", _bestvp_file);
+    node_handle.getParam("model_file", _model_file);
+    node_handle.getParam("uncovered_file", _uncovered_file);
 
-    const char* file_path = _file_path.data();               // 用于视点生成的模型文件路径
-    const char* file_path_small = _file_path_small.data();   // 用于构建场景的模型文件路径
-    const char* viewpoint_file  = _viewpoint_file.data();    // 存储候选视点信息的文件名
-    const char* trajectory_file  = _trajectory_file.data();  // 存储候选视点信息的文件名
-    const char* bestvp_file      = _bestvp_file.data();      // 存储候选视点信息的文件名
+    const char* file_path       = _file_path.data();        // 用于视点生成的模型文件路径
+    const char* file_path_small = _file_path_small.data();  // 用于构建场景的模型文件路径
+    const char* viewpoint_file  = _viewpoint_file.data();   // 存储候选视点信息的文件名
+    const char* trajectory_file = _trajectory_file.data();  // 存储轨迹信息的文件名
+    const char* bestvp_file     = _bestvp_file.data();      // 存储最优视点信息的文件名
+    const char* model_file      = _model_file.data();       // 存储模型表面片坐标信息的文件名
+    const char* uncovered_file  = _uncovered_file.data();   // 存储未覆盖表面片信息的文件名
 
-    // 采样参数
+    // 采样参数(default)
     int sampleNum        = 20;     // 采样候选视点个数
     double coverage_rate = 0.6;    // 要求的采样覆盖率
     node_handle.getParam("sample_num", sampleNum);
     node_handle.getParam("coverage_rate", coverage_rate);
 
-    // RKGA参数
+    // RKGA参数(default)
     int maxGen        = 400;  // 最大进化代数
     int pop           = 200;  // 每代个体样本数
     double pop_elite  = 0.1;  // 每代种群中的精英个体比例
@@ -82,6 +94,7 @@ int main(int argc, char **argv){
     // 定义添加环境与视点模型的消息发布端，定义轨迹可视化接口
     env_vis_pub        = nh.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
     view_point_vis_pub = nh.advertise<visualization_msgs::Marker>("vis_view_point", 1);
+    patch_vis_pub      = nh.advertise<visualization_msgs::Marker>("vis_patch", 1);
 
     namespace rvt = rviz_visual_tools;
     moveit_visual_tools::MoveItVisualTools visual_tools("base_link", "vis_traj");
@@ -108,21 +121,24 @@ int main(int argc, char **argv){
     if (reuse_best || reuse){
         readData(viewpoint_file, cand_view_point, vp.g.graph, vp.visibility_matrix);
         readData(trajectory_file, vp.trajs);
+        readData(model_file, vp.model);
     }
     else{
         cand_view_point = vp.generateViewPoint(file_path, sampleNum, coverage_rate, group); // 候选视点
         writeData(viewpoint_file, cand_view_point, vp.g.graph, vp.visibility_matrix);
         writeData(trajectory_file, vp.trajs);
+        writeData(model_file, vp.model);
     }
     visCandidateViewPoint(cand_view_point, vp);  // 候选视点可视化
     
     // 筛选最优视点并进行测量路径规划
     vector<ViewPoint> best_view_point;
-    if(reuse_best){
+    vector<int> uncovered_patch;
+    if (reuse_best) {
         // 复用存储的最优视点
         readData(bestvp_file, best_view_point);
-    }
-    else{
+        readData(uncovered_file, uncovered_patch);
+    } else {
         // optm_type = 0: RKGA
         // optm_type = 1: MCTS
         if (optm_type == 0){
@@ -136,10 +152,13 @@ int main(int argc, char **argv){
             MCST mcst_solver(coverage_rate, cand_view_point, vp.g.graph,
                              vp.visibility_matrix, node_handle);
             best_view_point = mcst_solver.solveMCST();
+            mcst_solver.getUncoveredPatch(uncovered_patch, best_view_point);
         }
         writeData(bestvp_file, best_view_point);
+        writeData(uncovered_file, uncovered_patch);
     }
     visBestViewPoint(best_view_point, vp);  // 最佳视点与运动路径可视化
+    visPatch(uncovered_patch, vp);
 
     // 规划机器人运动轨迹并控制机器人运动
     cout << "共获得" << best_view_point.size()
@@ -441,6 +460,7 @@ void visBestViewPoint(const vector<ViewPoint> &best_view_point, const ViewPlan &
     view_point_vis_pub.publish(line_list);
     // sleep(0.5);
 
+    // 视点方向可视化
     visualization_msgs::Marker dir;
     id = 2;
     dir.header.frame_id    = "base_link";
@@ -477,8 +497,101 @@ void visBestViewPoint(const vector<ViewPoint> &best_view_point, const ViewPlan &
         
         view_point_vis_pub.publish(dir);
         dir.id++;
+        id++;
         sleep(0.5);
     }
+
+    // 视点测量区域可视化
+    visualization_msgs::Marker vis_area;
+    vis_area.header.frame_id    = "base_link";
+    vis_area.header.stamp       = ros::Time::now();
+    vis_area.ns                 = "best_vp_vis_area";
+    vis_area.action             = visualization_msgs::Marker::ADD;
+    vis_area.pose.orientation.w = 1.0;
+    vis_area.id                 = id;
+    vis_area.type               = visualization_msgs::Marker::CYLINDER;
+    
+    vis_area.color.a = 0.3;
+    vis_area.color.r = 0.3;
+    vis_area.color.g = 0.0;
+    vis_area.color.b = 1.0;
+
+    for (int i = 0; i < best_view_point.size(); ++i){
+        vis_area.scale.x = 0.31;
+        vis_area.scale.y = 0.31;
+        vis_area.scale.z = 0.7;
+        vis_area.points.clear();
+
+        vis_area.pose.position.x = best_view_point[i].position.m_floats[0] / 1000 +
+                                   vp.getModelPositionX() +
+                                   best_view_point[i].direction.m_floats[0] * 0.35;
+        vis_area.pose.position.y = best_view_point[i].position.m_floats[1] / 1000 +
+                                   best_view_point[i].direction.m_floats[1] * 0.35;
+        vis_area.pose.position.z = best_view_point[i].position.m_floats[2] / 1000 +
+                                   vp.getModelPositionZ() +
+                                   best_view_point[i].direction.m_floats[2] * 0.35;
+
+        view_point_vis_pub.publish(vis_area);
+        vis_area.id++;
+        sleep(0.5);
+    }
+}
+
+void visPatch(const vector<int>& uncovered_patch, const ViewPlan& vp) {
+    cout << "开始进行表面片可视化:" << endl;
+    visualization_msgs::Marker model_points, uncovered_points;
+    int id = 50;
+    model_points.header.frame_id    = uncovered_points.header.frame_id    = "base_link";
+    model_points.header.stamp       = uncovered_points.header.stamp       = ros::Time::now();
+    model_points.ns                 = "model_patch";
+    uncovered_points.ns             = "uncovered_patch";
+    model_points.action             = uncovered_points.action             = visualization_msgs::Marker::ADD;
+    model_points.pose.orientation.w = uncovered_points.pose.orientation.w = 1.0;
+    model_points.pose.orientation.x = uncovered_points.pose.orientation.x = 0.0;
+    model_points.pose.orientation.y = uncovered_points.pose.orientation.y = 0.0;
+    model_points.pose.orientation.z = uncovered_points.pose.orientation.z = 0.0;
+    model_points.id                 = uncovered_points.id                 = id;
+    model_points.type               = uncovered_points.type               = visualization_msgs::Marker::SPHERE_LIST;
+    
+    model_points.scale.x = 0.002;
+    model_points.scale.y = 0.002;
+    model_points.scale.z = 0.002;
+    uncovered_points.scale.x = 0.004;
+    uncovered_points.scale.y = 0.004;
+    uncovered_points.scale.z = 0.004;
+    model_points.color.a = 0.9;
+    model_points.color.r = 0.0;
+    model_points.color.g = 0.0;
+    model_points.color.b = 1.0;
+    uncovered_points.color.a = 1.0;
+    uncovered_points.color.r = 1.0;
+    uncovered_points.color.g = 0.0;
+    uncovered_points.color.b = 0.0;
+
+    for (int i = 0; i < vp.model.size(); ++i){
+        geometry_msgs::Point p;
+        p.x = vp.model[i].center.m_floats[0] / 1000 + vp.getModelPositionX();
+        p.y = vp.model[i].center.m_floats[1] / 1000;
+        p.z = vp.model[i].center.m_floats[2] / 1000 + vp.getModelPositionZ();
+
+        model_points.points.push_back(p);
+    }
+    for (int i = 0; i < uncovered_patch.size(); ++i){
+        geometry_msgs::Point p;
+        p.x = vp.model[uncovered_patch[i]].center.m_floats[0] / 1000 + vp.getModelPositionX();
+        p.y = vp.model[uncovered_patch[i]].center.m_floats[1] / 1000;
+        p.z = vp.model[uncovered_patch[i]].center.m_floats[2] / 1000 + vp.getModelPositionZ();
+
+        uncovered_points.points.push_back(p);
+    }
+
+    patch_vis_pub.publish(uncovered_points);
+    sleep(0.5);
+    patch_vis_pub.publish(model_points);
+
+    cout << "共获得" << vp.model.size() << "个表面片, 其中未覆盖表面数为: ";
+    cout << uncovered_patch.size() << endl;
+    cout << "表面片可视化完成!" << endl;
 }
 
 void writeData(const char *viewpoint_file, const vector<ViewPoint> &cand_view_point,
@@ -585,6 +698,45 @@ void writeData(const char *viewpoint_file, const vector<ViewPoint> &best_view_po
 
     fout.close();
 }
+void writeData(const char *patch_file, const vector<TriSurface> &model){
+    // 用于存储待测模型 全部 表面片
+    ofstream fout(patch_file, ios_base::binary);
+    // ofstream fout(viewpoint_file, ios_base::out | ios_base::app | ios_base::binary);
+    if(!fout.is_open()){
+        cerr << "open error:\n";
+        exit(EXIT_FAILURE);
+    }
+    int n;
+    // 写入候选视点数据
+    n = model.size();
+    fout.write((char *)&n, sizeof(n));
+    for(int i = 0; i < n; ++i){
+        for (int j = 0; j < 3; ++j){
+            fout.write((char *)(&model[i].center.m_floats[j]), sizeof(double));
+        }
+    }
+
+    fout.close();
+}
+void writeData(const char* patch_file, const vector<int>& uncovered_patch){
+    // 用于存储待测模型 未被覆盖的 表面片序号
+    ofstream fout(patch_file, ios_base::binary);
+    // ofstream fout(viewpoint_file, ios_base::out | ios_base::app | ios_base::binary);
+    if(!fout.is_open()){
+        cerr << "open error:\n";
+        exit(EXIT_FAILURE);
+    }
+    int n;
+    // 写入候选视点数据
+    n = uncovered_patch.size();
+    fout.write((char *)&n, sizeof(n));
+    for(int i = 0; i < n; ++i)
+        fout.write((char *)(&uncovered_patch[i]), sizeof(int));    
+
+    fout.close();
+}
+
+
 
 void readData(const char *viewpoint_file, vector<ViewPoint> &cand_view_point,
               vector<vector<ViewPoint>> &graph, vector<vector<int>> &visibility_matrix){
@@ -708,4 +860,42 @@ void readData(const char *viewpoint_file, vector<ViewPoint> &best_view_point){
         fin.close();
     }
 }
-
+void readData(const char *patch_file, vector<TriSurface> &model){
+    // 读取待测模型全部表面片坐标
+    ifstream fin;
+    fin.open(patch_file, ios_base::in | ios_base::binary);
+    if(!fin){
+		cout << "读取文件失败" <<endl;
+		return;
+	}
+    if(fin.is_open()){
+        int n;
+        // 读取候选视点
+        fin.read((char *)&n, sizeof(int));
+        model.resize(n);
+        for(int i = 0; i < n; ++i){
+            for (int j = 0; j < 3; ++j)
+                fin.read((char *)(&model[i].center.m_floats[j]), sizeof(double));
+        }
+        fin.close();
+    }
+}
+void readData(const char *patch_file, vector<int>& uncovered_patch){
+    // 读取待测模型 未覆盖的 表面片序号
+    ifstream fin;
+    fin.open(patch_file, ios_base::in | ios_base::binary);
+    if(!fin){
+		cout << "读取文件失败" <<endl;
+		return;
+	}
+    if(fin.is_open()){
+        int n;
+        // 读取候选视点
+        fin.read((char *)&n, sizeof(int));
+        uncovered_patch.resize(n);
+        for(int i = 0; i < n; ++i){
+            fin.read((char *)(&uncovered_patch[i]), sizeof(int));
+        }
+        fin.close();
+    }
+}
