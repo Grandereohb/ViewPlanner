@@ -33,26 +33,35 @@ vector<ViewPoint> MCST::solveMCST(){
     root.initializeNode(candidates);
     double cur_coverage_rate = 0.0;
 
-    while(!isMostCovered(res, cur_coverage_rate) && max_iteration < 100000){
+    while(!isMostCovered(res, cur_coverage_rate) && max_iteration < 300000){
         for (; i < max_iteration; ++i) {
             vector<ViewPoint> select_vp;
             select_vp.push_back(root.state.getVP());
 
             TreeNode *node = treePolicy(root, select_vp);
+            if(node->is_terminal){
+                --i;
+                continue;
+            }
             select_vp.push_back(node->state.getVP());
 
             double cost = simulation(node, select_vp);
-            
-            if(i % 1000 == 0)
-                cout << i << " " << cost << endl;
+
+            if(cost == single_pic_cost)
+                node->is_terminal = true;
+
             backPropagation(node, cost);
+
+            if(i % 1000 == 0)
+                cout << i << ", simulation cost: " << cost 
+                          << ", min cost: " << root.getMinCost() << endl;
         }
 
         TreeNode *cur = &root;
         res.clear();
         while (cur) {
             res.push_back(cur->state.getVP());
-            cur = cur->bestChild();
+            cur = cur->best_child;
         }
         max_iteration += delta_iteration;
     }
@@ -104,10 +113,13 @@ TreeNode *MCST::treePolicy(TreeNode &root, vector<ViewPoint> &select_vp){
 
         TreeNode *child_node;
         // epsilon2用于平衡节点 选择 时的 explore and exploit
-        if(random_num_2 < epsilon2)
-            child_node = node->weightedBestChild();
-        else
+        if (random_num_2 < epsilon2)
+            child_node = node->weightedBestChild(getTravelCostGraph());
+        else 
             child_node = node->randomChild();
+    
+        if(child_node->is_terminal)
+            return child_node;
 
         // 检查父节点与子节点之间能否到达
         if(getTravelCost(node->state.getNum(), child_node->state.getNum()) > 1000){
@@ -124,8 +136,9 @@ TreeNode *MCST::treePolicy(TreeNode &root, vector<ViewPoint> &select_vp){
 double MCST::simulation(const TreeNode *node, vector<ViewPoint> &select_vp){
     // 模拟。从给定节点开始按照贪心策略向下搜索，直到得到一条满足覆盖率要求的轨迹（视点集），返回轨迹的总运动成本
     TreeNode *sim_node = new TreeNode(node);
-    double cost = 0; // 总运动成本
-    while (!isMostCovered(select_vp)){
+    double cost = single_pic_cost; // 总运动成本+测量成本
+
+    while (!isMostCovered(select_vp)) {
         double single_travel_cost = 0;  // 单次运动成本
 
         // 贪心搜索
@@ -135,9 +148,8 @@ double MCST::simulation(const TreeNode *node, vector<ViewPoint> &select_vp){
         sim_node = sim_node->applyAction(action);
 
         select_vp.push_back(sim_node->state.getVP());
-        cost += single_travel_cost + single_pic_cost;        
+        cost += single_travel_cost + single_pic_cost;
     }
-    // delete sim_node;
     return cost;
 }
 bool MCST::isMostCovered(const vector<ViewPoint> &select_vp){
@@ -263,14 +275,17 @@ double MCST::getTravelCost(int start, int end){
 void MCST::backPropagation(TreeNode *node, double cost){
     // 反向传播，更新从simulation起点到root之间每个节点的参数
     TreeNode *cur = node;
+    TreeNode *pre = nullptr;
     while(cur){
-        cur->addVisitNum();        // 增加访问次数
-        cur->addCost(cost);        // 增加总cost
-        cur->updateMinCost(cost);  // 更新最小cost
+        cur->addVisitNum();             // 增加访问次数
+        cur->addCost(cost);             // 增加总cost
+        cur->updateMinCost(cost, pre);  // 更新最小cost与最优子节点
         // 父节点cost = 子节点cost + 父节点到子节点cost
         if(!cur->parent)
             break;
-        cost = getTravelCost(cur->parent->state.getNum(), cur->state.getNum()) + single_pic_cost;
+        cost = cost + single_pic_cost +
+               getTravelCost(cur->parent->state.getNum(), cur->state.getNum());
+        pre = cur;
         cur = cur->parent;
     }
     // delete cur;
@@ -288,12 +303,16 @@ void MCST::getUncoveredPatch(vector<int>& uncovered_patch, const vector<ViewPoin
             uncovered_patch.push_back(i);
     }
 }
-
+vector<vector<ViewPoint>> MCST::getTravelCostGraph(){
+    return graph;
+}
 // ---------------------------------------------
 TreeNode::TreeNode(const State& state_, TreeNode* parent_)
     : state(state_),
       parent(parent_),
+      best_child(nullptr),
       has_child(false),
+      is_terminal(false),
       num_visits(0),
       cost(0),
       min_cost(DBL_MAX),
@@ -303,7 +322,9 @@ TreeNode::TreeNode(const State& state_, TreeNode* parent_)
 TreeNode::TreeNode(const State& state_)
     : state(state_),
       parent(nullptr),
+      best_child(nullptr),
       has_child(false),
+      is_terminal(false),
       num_visits(0),
       cost(0),
       min_cost(DBL_MAX),
@@ -314,7 +335,19 @@ TreeNode::TreeNode(const TreeNode* node){
     state = node->state;
     action = node->action;
     parent = node->parent;
+    best_child = node->best_child;
     children = node->children;
+}
+TreeNode::TreeNode()
+    : state(),
+      parent(nullptr),
+      best_child(nullptr),
+      has_child(false),
+      is_terminal(false),
+      num_visits(0),
+      cost(0),
+      min_cost(DBL_MAX),
+      depth(parent ? parent->depth + 1 : 0){
 }
 
 bool TreeNode::initializeNode(const vector<ViewPoint> &candidates){
@@ -376,15 +409,18 @@ TreeNode *TreeNode::randomChild(){
     random_shuffle(visited_child_index.begin(), visited_child_index.end());
     return &children[visited_child_index[0]];
 }
-TreeNode *TreeNode::weightedBestChild(){
+TreeNode *TreeNode::weightedBestChild(const vector<vector<ViewPoint>>& graph){
     // 选择加权最佳子节点
     double min_value = DBL_MAX;
     int min_index;
-    double alpha = 0.3;
+    // alpha平衡节点加权评分中最小代价和平均代价，越大越平均
+    double alpha = 0.2;
     for (int i = 0; i < children.size(); ++i){
         if(children[i].num_visits > 0){
             double value = (1 - alpha) * children[i].min_cost + 
-                            alpha * children[i].cost / children[i].num_visits;
+                            alpha * children[i].cost / children[i].num_visits +
+                            graph[state.getNum()][children[i].state.getNum()].cost + 
+                            log10(children[i].num_visits + 1);
             if(value < min_value){
                 min_value = value;
                 min_index = i;
@@ -442,9 +478,15 @@ void TreeNode::addVisitNum(){
 void TreeNode::addCost(double once_cost){
     cost += once_cost;
 }
-void TreeNode::updateMinCost(double once_cost){
-    min_cost = min(min_cost, once_cost);
+void TreeNode::updateMinCost(double once_cost, TreeNode* pre){
+    if(once_cost <= min_cost){
+        this->min_cost = once_cost;
+        this->best_child = pre;
+    }
 }
 void TreeNode::setUnreachable(int id){
     children[id].num_visits = -1;
+}
+double TreeNode::getMinCost(){
+    return min_cost;
 }

@@ -22,8 +22,8 @@
     <param name="uncovered_file"  value="/home/ros/abb_ws/src/test/view_planner/data/0301/uncovered.dat"/>
 
     <!-- 采样参数 -->
-    <param name="sample_num"    value="40"/>
-    <param name="coverage_rate" value="0.90"/>
+    <param name="sample_num"    value="30"/>
+    <param name="coverage_rate" value="0.93"/>
 
     <!-- RKGA参数 -->
     <param name="max_gen"    value="400"/>
