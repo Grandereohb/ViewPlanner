@@ -52,7 +52,7 @@ vector<ViewPoint> MCST::solveMCST(){
 
             backPropagation(node, cost);
 
-            if(i % 1000 == 0)
+            if(i % 100 == 0)
                 cout << i << ", simulation cost: " << cost 
                           << ", min cost: " << root.getMinCost() << endl;
         }
@@ -420,7 +420,7 @@ TreeNode *TreeNode::weightedBestChild(const vector<vector<ViewPoint>>& graph){
             double value = (1 - alpha) * children[i].min_cost + 
                             alpha * children[i].cost / children[i].num_visits +
                             graph[state.getNum()][children[i].state.getNum()].cost + 
-                            log10(children[i].num_visits + 1);
+                            log(children[i].num_visits + 1);
             if(value < min_value){
                 min_value = value;
                 min_index = i;
