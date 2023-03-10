@@ -5,22 +5,28 @@
 using namespace std;
 using namespace tf2;
 
-vector<ViewPoint> ViewPlan::generateViewPoint(const char *cfilename, int sampleNum, double coverage_rate, MGI &group){
-    vector<TriSurface> model = readFile(cfilename); // 读取STL模型点云
+vector<ViewPoint> ViewPlan::generateViewPoint(const char* cfilename,
+                                              int sampleNum,
+                                              double coverage_rate,
+                                              MGI& group) {
+    model = readFile(cfilename);  // 读取STL模型点云
 
     vector<ViewPoint> candidate_view_point;
     vector<ViewPoint> best_view_point;
 	g = Graph();
-	trajs = vector<vector<moveit_msgs::RobotTrajectory>>(100, vector<moveit_msgs::RobotTrajectory>(100));
-	vector<pair<double, int>> RK_index;
-	setRandomKey(model.size(), RK_index);
+    trajs = vector<vector<moveit_msgs::RobotTrajectory>>(100,
+		vector<moveit_msgs::RobotTrajectory>(100));
+    vector<pair<double, int>> RK_index;
+    setRandomKey(model.size(), RK_index);
     sortRK(RK_index);
 	int rand_sample_num = 0;
 
-	while(!sampleEnough(model, candidate_view_point.size(), sampleNum, coverage_rate) && (rand_sample_num < model.size())){
+	while(!sampleEnough(model, candidate_view_point.size(), sampleNum, 
+	                    coverage_rate) && (rand_sample_num < model.size())){
 		int already_sampled = candidate_view_point.size();
-		sampleViewPoint(model, sampleNum, already_sampled, candidate_view_point, RK_index, rand_sample_num, group);  // 采样生成候选视点
-	}
+        sampleViewPoint(model, sampleNum, already_sampled,candidate_view_point,
+		                RK_index, rand_sample_num, group);  // 采样生成候选视点
+        }
 	g.graph.resize(candidate_view_point.size());
 	trajs.resize(candidate_view_point.size());
 	for (int i = 0; i < g.graph.size(); ++i){
@@ -90,7 +96,6 @@ vector<TriSurface> ViewPlan::readASCII(const char* buffer) {
 	string name, useless;
 	stringstream ss(buffer);
 	TriSurface surface;
-	int numTriangles = 0;
 
 	ss >> name >> name;
 	ss.get();
@@ -106,36 +111,49 @@ vector<TriSurface> ViewPlan::readASCII(const char* buffer) {
 
 		//删去第二行
 		getline(ss, useless);
-		for (i = 0; i < 3; i++)
-		{
+
+		for (i = 0; i < 3; i++){
 			ss >> useless >> x >> y >> z;
 			surface.vertex[i].m_floats[0] = x;
 			surface.vertex[i].m_floats[1] = y;
 			surface.vertex[i].m_floats[2] = z;
 		}
-		numTriangles++;
+		getline(ss, useless);
+		getline(ss, useless);
+
+		// 删去模型底部无法测量的面片
+        // if(surface.center.m_floats[2] > 5 &&
+        // surface.normal.normalized().m_floats[2] > -0.5){
+        if (surface.normal.normalized().m_floats[2] <= 0.1) {
+            continue;
+        }
+
 		surface.number = ++number;
 		//计算三角形面积
-		Vector3 AB(surface.vertex[2].m_floats[0] - surface.vertex[0].m_floats[0], surface.vertex[2].m_floats[1] - surface.vertex[0].m_floats[1], surface.vertex[2].m_floats[2] - surface.vertex[0].m_floats[2]);
-		Vector3 AC(surface.vertex[1].m_floats[0] - surface.vertex[0].m_floats[0], surface.vertex[1].m_floats[1] - surface.vertex[0].m_floats[1], surface.vertex[1].m_floats[2] - surface.vertex[0].m_floats[2]);
-		surface.area = (AB.cross(AC)).length() / 2;
+        Vector3 AB(surface.vertex[2].m_floats[0] - surface.vertex[0].m_floats[0],
+                   surface.vertex[2].m_floats[1] - surface.vertex[0].m_floats[1],
+                   surface.vertex[2].m_floats[2] - surface.vertex[0].m_floats[2]);
+        Vector3 AC(surface.vertex[1].m_floats[0] - surface.vertex[0].m_floats[0],
+                   surface.vertex[1].m_floats[1] - surface.vertex[0].m_floats[1],
+                   surface.vertex[1].m_floats[2] - surface.vertex[0].m_floats[2]);
+        surface.area = (AB.cross(AC)).length() / 2;
 
 		//面片中心提取
-		surface.center.m_floats[0] = (surface.vertex[0].m_floats[0] + surface.vertex[1].m_floats[0] + surface.vertex[2].m_floats[0]) / 3;
-		surface.center.m_floats[1] = (surface.vertex[0].m_floats[1] + surface.vertex[1].m_floats[1] + surface.vertex[2].m_floats[1]) / 3;
-		surface.center.m_floats[2] = (surface.vertex[0].m_floats[2] + surface.vertex[1].m_floats[2] + surface.vertex[2].m_floats[2]) / 3;
+        surface.center.m_floats[0] =
+            (surface.vertex[0].m_floats[0] + surface.vertex[1].m_floats[0] +
+             surface.vertex[2].m_floats[0]) / 3;
+        surface.center.m_floats[1] =
+            (surface.vertex[0].m_floats[1] + surface.vertex[1].m_floats[1] +
+             surface.vertex[2].m_floats[1]) / 3;
+        surface.center.m_floats[2] =
+            (surface.vertex[0].m_floats[2] + surface.vertex[1].m_floats[2] +
+             surface.vertex[2].m_floats[2]) / 3;
 
-		surface.flag = false;
-		// 删去模型底部无法测量的面片
-		if(surface.center.m_floats[2] > 5){
-			TriSurfaces.push_back(surface);
-		}
+        surface.flag = false;
 
-		getline(ss, useless);
-		getline(ss, useless);
-		//getline(ss, useless);
+		TriSurfaces.push_back(surface);
 	} while (1);
-	cout << " 模型读取完成，共读取了" << TriSurfaces.size() << "个面片" << endl;
+	cout << "模型读取完成，共读取了" << TriSurfaces.size() << "个面片" << endl;
 	return TriSurfaces;
 }
 vector<TriSurface> ViewPlan::readBinary(const char* buffer) {
@@ -150,7 +168,7 @@ vector<TriSurface> ViewPlan::readBinary(const char* buffer) {
 	memcpy(name, p, 80);
 	p += 80;
 	num = cpyint(p);  //三角面片数量
-	int number = 0;  //三角面片序号
+	int number = 0;   //三角面片序号
 	for (i = 0; i < num; i++) {
 		TriSurface surface;
 		//存储面片法向量
@@ -164,83 +182,106 @@ vector<TriSurface> ViewPlan::readBinary(const char* buffer) {
 			tmp.m_floats[1] = cpyfloat(p);
 			tmp.m_floats[2] = cpyfloat(p);
 			surface.vertex.push_back(tmp);
-			//cout << tmp.y << " ";
 		}
+		p += 2; //跳过尾部标志
+
+		// if(surface.center.m_floats[2] > 5 &&
+        // surface.normal.normalized().m_floats[2] > -0.5){
+        if (surface.normal.normalized().m_floats[2] <= 0.1) {
+            continue;
+        }
+        // if(surface.center.m_floats[2] > 5){
+		// 	TriSurfaces.push_back(surface);
+		// }
+
 		surface.number = ++number;
-		//cout << number << endl;
 
 		//计算三角形面积
-        Vector3 AB(surface.vertex[2].m_floats[0] - surface.vertex[0].m_floats[0], surface.vertex[2].m_floats[1] - surface.vertex[0].m_floats[1], surface.vertex[2].m_floats[2] - surface.vertex[0].m_floats[2]);
-		Vector3 AC(surface.vertex[1].m_floats[0] - surface.vertex[0].m_floats[0], surface.vertex[1].m_floats[1] - surface.vertex[0].m_floats[1], surface.vertex[1].m_floats[2] - surface.vertex[0].m_floats[2]);
-		surface.area = (AB.cross(AC)).length() / 2;
+        Vector3 AB(surface.vertex[2].m_floats[0] - surface.vertex[0].m_floats[0],
+                   surface.vertex[2].m_floats[1] - surface.vertex[0].m_floats[1],
+                   surface.vertex[2].m_floats[2] - surface.vertex[0].m_floats[2]);
+        Vector3 AC(surface.vertex[1].m_floats[0] - surface.vertex[0].m_floats[0],
+                   surface.vertex[1].m_floats[1] - surface.vertex[0].m_floats[1],
+                   surface.vertex[1].m_floats[2] - surface.vertex[0].m_floats[2]);
+        surface.area = (AB.cross(AC)).length() / 2;
 
 		//面片中心提取
-		//cout << i << " " << surface.vertex[0].y << " " << surface.vertex[1].y << " " << surface.vertex[2].y << endl;
-		surface.center.m_floats[0] = (surface.vertex[0].m_floats[0] + surface.vertex[1].m_floats[0] + surface.vertex[2].m_floats[0]) / 3;
-		// surface.center.m_floats[0] = 0.77;
-		// surface.center.m_floats[1] = 0;
-		surface.center.m_floats[1] = (surface.vertex[0].m_floats[1] + surface.vertex[1].m_floats[1] + surface.vertex[2].m_floats[1]) / 3;
-		surface.center.m_floats[2] = (surface.vertex[0].m_floats[2] + surface.vertex[1].m_floats[2] + surface.vertex[2].m_floats[2]) / 3;
-		//cout << surface.center.y << " ";
-		
-		surface.flag = false;
-		if(surface.center.m_floats[2] > 5){
-			TriSurfaces.push_back(surface);
-		}
+        surface.center.m_floats[0] =
+            (surface.vertex[0].m_floats[0] + surface.vertex[1].m_floats[0] +
+             surface.vertex[2].m_floats[0]) / 3;
+        surface.center.m_floats[1] =
+            (surface.vertex[0].m_floats[1] + surface.vertex[1].m_floats[1] +
+             surface.vertex[2].m_floats[1]) / 3;
+        surface.center.m_floats[2] =
+            (surface.vertex[0].m_floats[2] + surface.vertex[1].m_floats[2] +
+             surface.vertex[2].m_floats[2]) / 3;
 
-		p += 2; //跳过尾部标志
+        surface.flag = false;
+        
+        TriSurfaces.push_back(surface);
 	}
-	cout << " 模型读取完成，共读取了" << TriSurfaces.size() << "个面片" << endl;
+	cout << "模型读取完成，共读取了" << TriSurfaces.size() << "个面片" << endl;
 	return TriSurfaces;
 }
 
-void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, int already_sampled, vector<ViewPoint> &candidate_view_point, const vector<pair<double, int>> &RK_index, int &rand_sample_num, MGI &group){
-    robot_model_loader::RobotModelLoader robot_model_loader("robot_description");  // 原为getJointState第一行，但在循环中无法生成随机数，所以提前声明
+void ViewPlan::sampleViewPoint(const vector<TriSurface>& model,
+                               int sampleNum,
+                               int already_sampled,
+                               vector<ViewPoint>& candidate_view_point,
+                               const vector<pair<double, int>>& RK_index,
+                               int& rand_sample_num,
+                               MGI& group) {
+	// 原为getJointState第一行，但在循环中无法生成随机数，所以提前声明
+    robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
 	srand((unsigned)time(NULL));
 
-    cout<<"开始生成候选视点："<<endl;
+    cout<<"开始生成候选视点:"<<endl;
 	int candidate_num = already_sampled;
 
 	// // 模型中心计算
-	double x_sum = 0;
-	double y_sum = 0;
-	double z_sum = 0;
-	for (int i = 0; i < model.size(); i++) {
-		// x_sum += model[i].center.m_floats[0];
-		// y_sum += model[i].center.m_floats[1];
-		z_sum += model[i].center.m_floats[2];
-	}
-	double center_x = model_position_x;
+	// double x_sum = 0;
+	// double y_sum = 0;
+	// double z_sum = 0;
+	// for (int i = 0; i < model.size(); i++) {
+	// 	x_sum += model[i].center.m_floats[0];
+	// 	y_sum += model[i].center.m_floats[1];
+	// 	z_sum += model[i].center.m_floats[2];
+	// }
+	double center_x = 0;
 	double center_y = 0;
-	double center_z = model_position_z + 0.04;
+	double center_z = 50;
     
 	while((candidate_view_point.size() - already_sampled) < sampleNum){
 		ViewPoint candidate;
 		vector<int> tempVisibility;
 		if(rand_sample_num >= model.size()){
-			cout << "随机采样数超过模型面片数！" <<model.size()<< endl;
+			cout << "随机采样数超过模型面片数!" <<model.size()<< endl;
 			break;
 		}
+
 		int randNum = RK_index[rand_sample_num].second;
 		++rand_sample_num;
-		// 生成视点位置
-		// yang
-		// candidate.position = model[randNum].center + model[randNum].normal.normalized() * measure_dist; // 沿面片法线方向延伸最佳测量距离，生成候选视点
+        // 生成视点位置
+        // 沿面片法线方向延伸最佳测量距离，生成候选视点。用于一般物体
+        // candidate.position = model[randNum].center +
+        // model[randNum].normal.normalized() * measure_dist;
+        // 在选择面片的正上方延伸最佳测量距离，生成候选视点。用于钣金件
+        candidate.position = model[randNum].center + Vector3(0, 0, measure_dist);
 
-		// xcf
-		float randNum_1 = (float)rand() / RAND_MAX * 0.4;
-		float randNum_2 = (float)rand() / RAND_MAX * 0.6 + 0.4;
-		float randNum_3 = (float)rand() / RAND_MAX;
-		if(candidate_num < 0.4 * sampleNum) {
-			candidate.position.m_floats[0] = center_x + measure_dist * cos(randNum_1 * PI/2) * cos(randNum_3 * 2*PI);
-			candidate.position.m_floats[1] = center_y + measure_dist * cos(randNum_1 * PI/2) * sin(randNum_3 * 2*PI);
-			candidate.position.m_floats[2] = center_z + measure_dist * sin(randNum_1 * PI/2);
-		}
-		else {
-			candidate.position.m_floats[0] = center_x + measure_dist * cos(randNum_2 * PI/2) * cos(randNum_3 * 2*PI);
-			candidate.position.m_floats[1] = center_y + measure_dist * cos(randNum_2 * PI/2) * sin(randNum_3 * 2*PI);
-			candidate.position.m_floats[2] = center_z + measure_dist * sin(randNum_2 * PI/2);
-		}
+		// cxf
+		// float randNum_1 = (float)rand() / RAND_MAX * 0.3;
+		// float randNum_2 = (float)rand() / RAND_MAX * 0.7 + 0.3;
+		// float randNum_3 = (float)rand() / RAND_MAX;
+		// if(candidate_num < 0.4 * sampleNum) {
+		// 	candidate.position.m_floats[0] = center_x + measure_dist * cos(randNum_1 * PI/2) * cos(randNum_3 * 2*PI);
+		// 	candidate.position.m_floats[1] = center_y + measure_dist * cos(randNum_1 * PI/2) * sin(randNum_3 * 2*PI);
+		// 	candidate.position.m_floats[2] = center_z + measure_dist * sin(randNum_1 * PI/2);
+		// }
+		// else {
+		// 	candidate.position.m_floats[0] = center_x + measure_dist * cos(randNum_2 * PI/2) * cos(randNum_3 * 2*PI);
+		// 	candidate.position.m_floats[1] = center_y + measure_dist * cos(randNum_2 * PI/2) * sin(randNum_3 * 2*PI);
+		// 	candidate.position.m_floats[2] = center_z + measure_dist * sin(randNum_2 * PI/2);
+		// }
 
 		// 生成视点的z过低，重新生成
 		if(candidate.position.m_floats[2] < -300){
@@ -248,33 +289,36 @@ void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, i
 			continue;
 		}
         
-		// 在所选面片的rangeFOD/2范围内寻找夹角小于90度的邻面片，势场法计算视点方向  
-		// yang   
-		// candidate.direction = Vector3(0,0,0);
-        // for(int j = 0; j < model.size(); ++j){
-        //     double dist = (model[j].center - model[randNum].center).length();
-        //     double theta = model[randNum].normal.angle(model[j].normal);
-		// 	if (dist <= (maxFOD - minFOD) / 2 && theta <= PI / 2){
-		// 		candidate.direction += model[j].area * (model[j].center - candidate.position) / (model[j].center - candidate.position).length();  // 视点方向 = sum（邻面片方向*面积/距视点的距离）
-		// 	}
-		// }
+		// 在所选面片的rangeFOD/2范围内寻找夹角小于90度的邻面片，势场法计算视点方向        
+		candidate.direction = Vector3(0,0,0);
+        for(int j = 0; j < model.size(); ++j){
+            double dist = (model[j].center - model[randNum].center).length();
+            double theta = model[randNum].normal.angle(model[j].normal);
+			if (dist <= (maxFOD - minFOD) / 2 && theta <= PI / 2){
+				// 视点方向 = sum（邻面片方向*面积/距视点的距离）
+                candidate.direction += model[j].area *
+                    (model[j].center - candidate.position) /
+                    (model[j].center - candidate.position).length();  
+            }
+		}
+        candidate.direction.normalize();
 
-		// xcf
-		// 加权求和生成视点方向
-		Vector3 model_center(center_x,center_y,center_z);
-        // for(int j = 0; j < model.size(); ++j){
-        //     double dist = (model[j].center - candidate.position).length();
-        //     double theta = (candidate.position - model_center).angle(model[j].normal);
-		// 	if (dist <= maxFOD && dist >=minFOD && theta <= PI / 3){
-		// 		candidate.direction += model[j].area * (model[j].center - candidate.position) / (model[j].center - candidate.position).length();  // 视点方向 = sum（邻面片方向*面积/距视点的距离）
-		// 	}
-		// }
-		// 以模型中心为视点方向
-		candidate.direction = (model_center - candidate.position).normalized();
+        // xcf
+		// Vector3 model_center(center_x,center_y,center_z);
+        // // for(int j = 0; j < model.size(); ++j){
+        // //     double dist = (model[j].center - candidate.position).length();
+        // //     double theta = (candidate.position - model_center).angle(model[j].normal);
+		// // 	if (dist <= maxFOD && dist >=minFOD && theta <= PI / 3){
+		// // 		candidate.direction += model[j].area * (model[j].center - candidate.position) / (model[j].center - candidate.position).length();  // 视点方向 = sum（邻面片方向*面积/距视点的距离）
+		// // 	}
+		// // }
+		// candidate.direction = (model_center - candidate.position).normalized();
+
 
 		// 计算视点的机器人轴配置参数和碰撞检测，舍弃无法求解IK或发生碰撞的候选视点
-		if(!getJointState(candidate, robot_model_loader) || checkCollision(candidate, robot_model_loader)){
-			cout << "运动学不可解！" << endl;
+		if(!getJointState(candidate, robot_model_loader) || 
+		   checkCollision(candidate, robot_model_loader)){
+			cout << "运动学不可解!" << endl;
 			continue;
 		}
 
@@ -288,8 +332,9 @@ void ViewPlan::sampleViewPoint(const vector<TriSurface> &model, int sampleNum, i
 		// 生成视点图
 		candidate.num = candidate_num++;
 		if(candidate.num != 0){
-			setGraph(candidate_view_point, candidate, group, robot_model_loader);
-		}
+            setGraph(candidate_view_point, candidate, group,
+                     robot_model_loader);
+        }
 
         candidate.direction = candidate.direction.normalize();
 		candidate_view_point.push_back(candidate);
@@ -313,38 +358,42 @@ void ViewPlan::setRandomKey(int size, vector<pair<double, int>> &RK_index){
 void ViewPlan::sortRK(vector<pair<double, int>> &RK_index){
     sort(RK_index.begin(), RK_index.end(), less<pair<double, int>>());
 }
-bool ViewPlan::sampleEnough(const vector<TriSurface> &model, int candidate_num, int sample_num, double coverage_rate){
-	// 未开始采样，可见性矩阵仍为空，进行采样
-	if(visibility_matrix.size() == 0){
-		cout<<"可见性矩阵容量为0"<<endl;
-		return 0;
-	}
+bool ViewPlan::sampleEnough(const vector<TriSurface>& model,
+                            int candidate_num,
+                            int sample_num,
+                            double coverage_rate) {
+    // 未开始采样，可见性矩阵仍为空，进行采样
+    if (visibility_matrix.size() == 0) {
+        cout << "可见性矩阵容量为0" << endl;
+        return 0;
+    }
 
-	// 判断模型表面覆盖率是否达到要求
-	double visible_num = 0;
-	for(int j = 0; j < model.size(); j++){
-		double visible_tmp = 0;
-		for(int i = 0; i < candidate_num; i++){
-			visible_tmp += visibility_matrix[i][j];
-			if(visible_tmp == 2)  // 建议设为2
-				break;
-		}
-		visible_num += visible_tmp / 2;
-	}
-	cout<<"表面覆盖率为： "<< visible_num / model.size() <<endl;
-	if(visible_num >= coverage_rate * model.size()){
-		return 1;
-	}
+    // 判断模型表面覆盖率是否达到要求
+    double visible_num = 0;
+    for (int j = 0; j < model.size(); j++) {
+        double visible_tmp = 0;
+        for (int i = 0; i < candidate_num; i++) {
+            visible_tmp += visibility_matrix[i][j];
+            if (visible_tmp == 2)  // 建议设为2
+                break;
+        }
+        visible_num += visible_tmp / 2;
+    }
+    cout << "表面覆盖率为: " << visible_num / model.size() << endl;
+    if (visible_num >= coverage_rate * model.size()) {
+        return 1;
+    }
 
-	// 采样数超过限额，停止采样
-	if(candidate_num >= (sample_num * 2)){
-		cout<<"采样数超过限额，停止采样"<<endl;
-		return 1;
-	}
-	
-	return 0;
+    // 采样数超过限额，停止采样
+    if (candidate_num >= (sample_num * 2)) {
+        cout << "采样数超过限额，停止采样" << endl;
+        return 1;
+    }
+
+    return 0;
 }
-bool ViewPlan::getJointState(ViewPoint &viewpoint, robot_model_loader::RobotModelLoader robot_model_loader){
+bool ViewPlan::getJointState(ViewPoint &viewpoint, 
+							 robot_model_loader::RobotModelLoader robot_model_loader){
     // 实例化一个RobotModelLoader对象，该对象将在ROS参数服务器上查找机器人描述并构建一个 RobotModel供我们使用。
     //robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
     const moveit::core::RobotModelPtr& kinematic_model = robot_model_loader.getModel();
@@ -363,13 +412,18 @@ bool ViewPlan::getJointState(ViewPoint &viewpoint, robot_model_loader::RobotMode
 	// 将视点的位置与方向转换为平移和旋转矩阵
 	Eigen::Matrix3d rotMatrix;
 	Eigen::Vector3d vectorBefore(1, 0, 0);  // joint_6的初始方向
-	Eigen::Vector3d vectorAfter(viewpoint.direction.m_floats[0], viewpoint.direction.m_floats[1], viewpoint.direction.m_floats[2]);
+    Eigen::Vector3d vectorAfter(viewpoint.direction.m_floats[0],
+                                viewpoint.direction.m_floats[1],
+                                viewpoint.direction.m_floats[2]);
 
-	viewpoint.quaternion = Eigen::Quaterniond::FromTwoVectors(vectorBefore, vectorAfter);
+    viewpoint.quaternion = Eigen::Quaterniond::FromTwoVectors(vectorBefore, vectorAfter);
 	rotMatrix = viewpoint.quaternion.toRotationMatrix();
-	Eigen::Vector3d translation(viewpoint.position.m_floats[0]/1000 + model_position_x, viewpoint.position.m_floats[1]/1000, viewpoint.position.m_floats[2]/1000 + model_position_z);  // 平移矩阵(单位：m)
-	// 机器人基座到视点位置的变换矩阵T1
-	end_effector_state.rotate(rotMatrix);
+    Eigen::Vector3d translation(
+            viewpoint.position.m_floats[0] / 1000 + model_position_x,
+            viewpoint.position.m_floats[1] / 1000,
+            viewpoint.position.m_floats[2] / 1000 + model_position_z);  // 平移矩阵(单位:m)
+    // 机器人基座到视点位置的变换矩阵T1
+    end_effector_state.rotate(rotMatrix);
 	end_effector_state.pretranslate(translation);
 
 	// 手眼标定结果 X1
@@ -434,14 +488,15 @@ bool ViewPlan::getJointState(ViewPoint &viewpoint, robot_model_loader::RobotMode
 	// 根据手眼标定关系校正后的机器人位姿变换矩阵T2      T1 = T2 * R
 	end_effector_state = end_effector_state * R.inverse();
 
-	// 我们现在可以为机器人求解逆运动学 (IK)。要解决 IK，我们需要以下内容：
-	// 1.机械臂末端的所需姿势（默认情况下，这是“arm”链中的最后一个链接）：我们在上述步骤中计算的 end_effector_state。
-	// 2.超时时间：0.1 秒
+	// 我们现在可以为机器人求解逆运动学 (IK)。要解决 IK，我们需要以下内容:
+	// 1.机械臂末端的所需姿势（默认情况下，这是“arm”链中的最后一个链接）:我们在上述步骤中计算的 end_effector_state。
+	// 2.超时时间:0.1 秒
 	double timeout = 0.1;
 	int n = 0;
-	bool found_ik = kinematic_state->setFromIK(joint_model_group, end_effector_state, timeout);
-	// 如果没找到IK解，则绕光轴旋转一定角度重新求解
-	Eigen::AngleAxisd v(PI / 90, Eigen::Vector3d(0,0,1));        // 旋转角度v
+    bool found_ik = kinematic_state->setFromIK(joint_model_group,
+                                               end_effector_state, timeout);
+    // 如果没找到IK解，则绕光轴旋转一定角度重新求解
+    Eigen::AngleAxisd v(PI / 90, Eigen::Vector3d(0,0,1));        // 旋转角度v
 	Eigen::Matrix3d rotationMatrix = v.matrix();                 // 绕光轴旋转20度的旋转矩阵
 	Eigen::Vector3d translation2(0, 0, 0);                       // 平移矩阵，0
 	Eigen::Isometry3d rotation = Eigen::Isometry3d::Identity();  // 变换矩阵
@@ -507,19 +562,21 @@ bool ViewPlan::isCovered(Vector3 orig, Vector3 position, const TriSurface &TriSu
 	return 1;
 }
 int ViewPlan::checkVisibility(const ViewPoint &view_point, const vector<TriSurface> &model, int i){
-	// 可见性准则：
+	// 可见性准则:
 	// 1.表面片的所有顶点都在视场FOV内 ———— view_point.direction.angle(model[i] - view_point) < rangeFOV
 	// 2.表面片的所有顶点都在景深FOD内 ———— minFOD < distance < maxFOD
 	// 3.视角必须在特定角度之内 ———— model[i].normal.angle(view_point - model[i])
 	// 4.没有遮挡 ———— isCovered()
 	// 1&2.判断表面片顶点是否都在FOV和FOD中
 	for (int j = 0; j < 3; j++){
-		double dist = (model[i].vertex[j] - view_point.position).dot(view_point.direction.normalized());
-		if (dist <= minFOD || dist >= maxFOD ||
-			abs(view_point.direction.angle(model[i].vertex[j] - view_point.position)) >= minFOV / 2){
-			return 0;
-		}
-	}
+        double dist = (model[i].vertex[j] - view_point.position)
+                        .dot(view_point.direction.normalized());
+        if (dist <= minFOD || dist >= maxFOD ||
+            abs(view_point.direction.angle(
+                model[i].vertex[j] - view_point.position)) >= minFOV / 2) {
+            return 0;
+        }
+    }
 
 	// 3.判断视角是否在规定范围中
 	if(model[i].normal.angle(view_point.position - model[i].center) >= view_angle_range){
@@ -539,7 +596,8 @@ int ViewPlan::checkVisibility(const ViewPoint &view_point, const vector<TriSurfa
 	}
 	return 1;
 }
-bool ViewPlan::checkCollision(const ViewPoint &view_point, robot_model_loader::RobotModelLoader robot_model_loader){
+bool ViewPlan::checkCollision(const ViewPoint &view_point, 
+							  robot_model_loader::RobotModelLoader robot_model_loader){
     // 加载机器人的运动学模型到情景实例中
 	const moveit::core::RobotModelPtr& kinematic_model = robot_model_loader.getModel();
 	planning_scene::PlanningScene planning_scene(kinematic_model);
@@ -557,20 +615,27 @@ bool ViewPlan::checkCollision(const ViewPoint &view_point, robot_model_loader::R
 	//cout<<"Full collision Test: " << (c_res.collision ? "in" : "not in") << " collision" << endl;
 	return c_res.collision;
 }
-void ViewPlan::setGraph(vector<ViewPoint> candidate_view_point, ViewPoint candidate, MGI &group, robot_model_loader::RobotModelLoader robot_model_loader){
-	// 该函数负责计算新视点与已有视点之间的运动成本
-	const moveit::core::RobotModelPtr& kinematic_model = robot_model_loader.getModel();
-	planning_scene::PlanningScene planning_scene(kinematic_model);
-	robot_state::RobotState &start_state = planning_scene.getCurrentStateNonConst();
-	const robot_model::JointModelGroup* joint_model_group = start_state.getJointModelGroup("arm");
+void ViewPlan::setGraph(vector<ViewPoint> candidate_view_point,
+    					ViewPoint candidate,
+    					MGI& group,
+    					robot_model_loader::RobotModelLoader robot_model_loader) {
+    // 该函数负责计算新视点与已有视点之间的运动成本
+    const moveit::core::RobotModelPtr& kinematic_model =
+        robot_model_loader.getModel();
+    planning_scene::PlanningScene planning_scene(kinematic_model);
+    robot_state::RobotState& start_state =
+        planning_scene.getCurrentStateNonConst();
+    const robot_model::JointModelGroup* joint_model_group =
+        start_state.getJointModelGroup("arm");
 
-	// 以运动时间为运动成本
-	for(int i = 0; i < candidate_view_point.size(); ++i){
-		double cost = 0.0;
+    // 以运动时间为运动成本
+    for (int i = 0; i < candidate_view_point.size(); ++i) {
+        double cost = 0.0;
 
-		// 以candidate_view_point[i]为起点，candidate为终点规划轨迹，以视点位置的机器人轴关节角度为起始点与目标点状态
-		start_state.setJointGroupPositions(joint_model_group, candidate_view_point[i].joint_state);
-		group.setStartState(start_state);
+        // 以candidate_view_point[i]为起点，candidate为终点规划轨迹，以视点位置的机器人轴关节角度为起始点与目标点状态
+        start_state.setJointGroupPositions(joint_model_group,
+                                           candidate_view_point[i].joint_state);
+        group.setStartState(start_state);
         group.setJointValueTarget(candidate.joint_state);
 
 		// 规划视点之间的运动轨迹
@@ -616,12 +681,18 @@ void ViewPlan::setGraph(vector<ViewPoint> candidate_view_point, ViewPoint candid
 		trajs[candidate.num][candidate_view_point[i].num] = traj;
 	}
 }
-moveit_msgs::RobotTrajectory calcMotionCost(ViewPoint candidate_view_point, ViewPoint candidate, MGI &group, planning_scene::PlanningScene &planning_scene){
-	// robot_state::RobotState &start_state = planning_scene.getCurrentStateNonConst();
-	// const robot_model::JointModelGroup* joint_model_group = start_state.getJointModelGroup("arm");
-	// start_state.setJointGroupPositions(joint_model_group, candidate.joint_state);
-		
-	// group.setStartState(start_state);
+moveit_msgs::RobotTrajectory calcMotionCost(ViewPoint candidate_view_point,
+    										ViewPoint candidate,
+    										MGI& group,
+    										planning_scene::PlanningScene& planning_scene) {
+    // robot_state::RobotState &start_state =
+    // planning_scene.getCurrentStateNonConst(); const
+    // robot_model::JointModelGroup* joint_model_group =
+    // start_state.getJointModelGroup("arm");
+    // start_state.setJointGroupPositions(joint_model_group,
+    // candidate.joint_state);
+
+    // group.setStartState(start_state);
     // group.setPoseTarget(candidate_view_point.end_effector_state);
 
 	// moveit::planning_interface::MoveGroupInterface::Plan my_plan;
@@ -661,7 +732,8 @@ ViewPoint::ViewPoint(int num, double cost){
 	this->num = num;
 	this->cost = cost;
 }
-ViewPoint::ViewPoint(int num_, int vis_area_, vector<double> joint_state_): num(num_), vis_area(vis_area_), joint_state(joint_state_){}
+ViewPoint::ViewPoint(int num_, int vis_area_, vector<double> joint_state_)
+    : num(num_), vis_area(vis_area_), joint_state(joint_state_){}
 ViewPoint::ViewPoint() : vis_area(0) {}
 
 Graph::Graph(){
@@ -669,8 +741,9 @@ Graph::Graph(){
 	// 	this->edges[i] = NULL;
 	graph = vector<vector<ViewPoint>>(100, vector<ViewPoint>(100));
 }
-Graph::~Graph(){ }
-void Graph::insertEdge(int x, int y, double cost, moveit_msgs::RobotTrajectory traj, bool directed){
+Graph::~Graph(){}
+void Graph::insertEdge(int x, int y, double cost, 
+					   moveit_msgs::RobotTrajectory traj, bool directed){
 	// ViewPoint *edge = new ViewPoint(y, cost, traj);
 	// edge->next = this->edges[x];
 	// this->edges[x] = edge;

@@ -166,7 +166,7 @@ int main(int argc, char **argv)
         else{
             // 马尔科夫决策过程 + 蒙特卡洛法求解
             MCST mcst_solver(coverage_rate, cand_view_point, vp.g.graph,
-                             vp.visibility_matrix);
+                             vp.visibility_matrix, node_handle);
             best_view_point = mcst_solver.solveMCST();
         }
         writeData(bestvp_file, best_view_point);

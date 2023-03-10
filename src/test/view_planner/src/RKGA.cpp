@@ -124,10 +124,10 @@ bool RKGA::isMostCovered(vector<ViewPoint> single){
         double visible_tmp = 0;
         for (int j = 0; j < tempVM.size(); j++){
             visible_tmp += tempVM[j][i];
-			if(visible_tmp == 2)  // 建议设为2
+			if(visible_tmp == 1)  // 建议设为2
 				break;
         }
-        visible_num += visible_tmp / 2;
+        visible_num += visible_tmp;
 	}
     // cout << "132 visible num: " << visible_num<<" / "<< coverage_rate * tempVM[0].size() << endl;
     if (visible_num >= coverage_rate * tempVM[0].size())
