@@ -190,7 +190,7 @@ int main(int argc, char **argv)
                 group.execute(my_plan.trajectory_);
                 send(socket_cli, sendbuffer,(int)strlen(sendbuffer),0);
                 printf("发送单次测量指令，开始采集图片\n");
-                sleep(2);
+                sleep(20);
                 cout << "sleep over" << endl;
             }
             continue;
@@ -212,7 +212,7 @@ int main(int argc, char **argv)
         group.execute(traj);
         send(socket_cli,sendbuffer,(int)strlen(sendbuffer),0);
         printf("发送单次测量指令，开始采集图片\n");
-        sleep(2);
+        sleep(20);
         cout << "sleep over" << endl;
         
     }
@@ -351,10 +351,10 @@ void visEnv(const char *file_path_small, const ViewPlan &vp){
     //发布消息
     // ros::Publisher planning_scene_diff_publisher = node_handle.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
     ros::WallDuration sleep_t(0.3);
-    while (env_vis_pub.getNumSubscribers() < 1)
-    {
-        sleep_t.sleep();
-    }
+    // while (env_vis_pub.getNumSubscribers() < 1)
+    // {
+    //     sleep_t.sleep();
+    // }
 
     moveit_msgs::PlanningScene planning_scene;
     planning_scene.world.collision_objects.push_back(obj);
