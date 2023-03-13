@@ -187,7 +187,7 @@ vector<TriSurface> ViewPlan::readBinary(const char* buffer) {
 
 		// if(surface.center.m_floats[2] > 5 &&
         // surface.normal.normalized().m_floats[2] > -0.5){
-        if (surface.normal.normalized().m_floats[2] <= 0.1) {
+        if (surface.normal.normalized().m_floats[2] <= 0.3) {
             continue;
         }
         // if(surface.center.m_floats[2] > 5){

@@ -100,7 +100,7 @@ private:
     const double minFOD           = measure_dist - 200.0;  // 前景深(单位：mm) minFOD = measure_dist - 200
 	const double maxFOD           = measure_dist + 150.0;  // 后景深(单位：mm) maxFOD = measure_dist + 400
     //int rangeFOD                = maxFOD - minFOD;       // 测量范围
-	const double minFOV           = 0.52359877;            // 视野(弧度) 水平视角30度，垂直视角25度  minFOV = 30/180*PI = 0.52359877
+	const double minFOV           = 0.4363323;            // 视野(弧度) 水平视角30度，垂直视角25度  minFOV = 30/180*PI = 0.52359877, 25/180*PI=0.4363323
 	const double view_angle_range = 1.047;                 // 测量视角范围 view_angle_range = 60/180*PI = 1.047
 	// 仿真场景距离参数
 	const double model_position_x = 0.77;                  // 待测模型在x轴上的位置（单位：m）  

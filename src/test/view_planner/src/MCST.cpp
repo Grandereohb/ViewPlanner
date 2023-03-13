@@ -52,7 +52,7 @@ vector<ViewPoint> MCST::solveMCST(){
 
             backPropagation(node, cost);
 
-            if(i % 100 == 0)
+            if(i % 1000 == 0)
                 cout << i << ", simulation cost: " << cost 
                           << ", min cost: " << root.getMinCost() << endl;
         }
