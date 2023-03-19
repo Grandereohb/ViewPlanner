@@ -190,7 +190,7 @@ int main(int argc, char **argv)
                 group.execute(my_plan.trajectory_);
                 send(socket_cli, sendbuffer,(int)strlen(sendbuffer),0);
                 printf("发送单次测量指令，开始采集图片\n");
-                sleep(20);
+                sleep(6);
                 cout << "sleep over" << endl;
             }
             continue;
@@ -212,7 +212,7 @@ int main(int argc, char **argv)
         group.execute(traj);
         send(socket_cli,sendbuffer,(int)strlen(sendbuffer),0);
         printf("发送单次测量指令，开始采集图片\n");
-        sleep(20);
+        sleep(6);
         cout << "sleep over" << endl;
         
     }

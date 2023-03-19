@@ -15,9 +15,9 @@
     <!-- input and output file address -->
     <param name="file_path"       value="/home/ohb/abb_ws/src/test/view_planner/model/0301/sheet_9392.stl"/>
     <param name="file_path_small" value="package://view_planner/model/0301/sheet_9392_small.stl"/>
-    <param name="viewpoint_file"  value="/home/ohb/abb_ws/src/test/view_planner/data/0301/candidates.dat"/>
-    <param name="trajectory_file" value="/home/ohb/abb_ws/src/test/view_planner/data/0301/trajs.dat"/>
-    <param name="bestvp_file"     value="/home/ohb/abb_ws/src/test/view_planner/data/0301/best_vps.dat"/>
+    <param name="viewpoint_file"  value="/home/ohb/abb_ws/src/test/view_planner/data/0301/sheet_1/12/candidates.dat"/>
+    <param name="trajectory_file" value="/home/ohb/abb_ws/src/test/view_planner/data/0301/sheet_1/12/trajs.dat"/>
+    <param name="bestvp_file"     value="/home/ohb/abb_ws/src/test/view_planner/data/0301/sheet_1/12/best_vps.dat"/>
     
     <!-- sample params -->
     <param name="sample_num"    value="40"/>
