@@ -151,6 +151,7 @@ void RKGA::calcMotionCost(vector<ViewPoint> single, double &cost){
         // }
         cost += graph.graph[single[k].num][single[k + 1].num].cost;
     }
+    cost += 6.0 * single.size();
 }
 void RKGA::evolve(Population curr, Population &next){
     cout << "进化开始： ";
