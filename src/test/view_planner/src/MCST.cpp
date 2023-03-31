@@ -31,9 +31,8 @@ vector<ViewPoint> MCST::solveMCST(){
     State state(candidates[start_index]);
     TreeNode root(state);
     root.initializeNode(candidates);
-    double cur_coverage_rate = 0.0;
 
-    while(!isMostCovered(res, cur_coverage_rate) && max_iteration < 300000){
+    while(!isMostCovered(res) && max_iteration < 300000){
         for (; i < max_iteration; ++i) {
             vector<ViewPoint> select_vp;
             select_vp.push_back(root.state.getVP());
@@ -52,7 +51,7 @@ vector<ViewPoint> MCST::solveMCST(){
 
             backPropagation(node, cost);
 
-            if(i % 1000 == 0)
+            if(i % 100 == 0)
                 cout << i << ", simulation cost: " << cost 
                           << ", min cost: " << root.getMinCost() << endl;
         }

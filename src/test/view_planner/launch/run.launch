@@ -13,40 +13,40 @@
     <rosparam command="load"
               file="$(find abb_irb1600_10_145_moveit_config)/config/kinematics.yaml"/>
     <!-- 输入与输出文件 -->
-    <param name="file_path"       value="/home/ros/abb_ws/src/test/view_planner/model/0301/sheet_9392.stl"/>
-    <param name="file_path_small" value="package://view_planner/model/0301/sheet_9392_small.stl"/>
-    <param name="viewpoint_file"  value="/home/ros/abb_ws/src/test/view_planner/data/0301/candidates.dat"/>
-    <param name="trajectory_file" value="/home/ros/abb_ws/src/test/view_planner/data/0301/trajs.dat"/>
-    <param name="bestvp_file"     value="/home/ros/abb_ws/src/test/view_planner/data/0301/best_vps.dat"/>
-    <param name="model_file"      value="/home/ros/abb_ws/src/test/view_planner/data/0301/model.dat"/>
-    <param name="uncovered_file"  value="/home/ros/abb_ws/src/test/view_planner/data/0301/uncovered.dat"/>
+    <param name="file_path"       value="/home/ros/abb_ws/src/test/view_planner/model/0301/stl6-9904.stl"/>
+    <param name="file_path_small" value="package://view_planner/model/0301/sheet18_small.stl"/>
+    <param name="viewpoint_file"  value="/home/ros/abb_ws/src/test/view_planner/data/0301/sheet_6/candidates.dat"/>
+    <param name="trajectory_file" value="/home/ros/abb_ws/src/test/view_planner/data/0301/sheet_6/trajs.dat"/>
+    <param name="bestvp_file"     value="/home/ros/abb_ws/src/test/view_planner/data/0301/sheet_6/best_vps.dat"/>
+    <param name="model_file"      value="/home/ros/abb_ws/src/test/view_planner/data/0301/sheet_6/model.dat"/>
+    <param name="uncovered_file"  value="/home/ros/abb_ws/src/test/view_planner/data/0301/sheet_6/uncovered.dat"/>
 
     <!-- 采样参数 -->
-    <param name="sample_num"    value="30"/>
-    <param name="coverage_rate" value="0.93"/>
+    <param name="sample_num"    value="40"/>
+    <param name="coverage_rate" value="0.95"/>
 
     <!-- RKGA参数 -->
-    <param name="max_gen"    value="400"/>
+    <param name="max_gen"    value="200"/>
     <param name="pop"        value="200"/>
     <param name="pop_elite"  value="0.1"/>
     <param name="pop_mutant" value="0.3"/>
     <param name="rhoe"       value="70"/>
 
     <!-- MCTS参数 -->
-    <param name="max_iter"         value="50000"/>
+    <param name="max_iter"         value="20000"/>
     <!-- epsilon1平衡选择与扩展，越大越扩展 -->
-    <param name="epsilon1"         value="80"/>
+    <param name="epsilon1"         value="90"/>
     <!-- epsilon2平衡探索与利用，越大越利用 -->
-    <param name="epsilon2"         value="80"/>
-    <param name="single_pic_cost"  value="2.0"/>
+    <param name="epsilon2"         value="70"/>
+    <param name="single_pic_cost"  value="6.0"/>
 
     <!-- 是否重用与优化方法 -->
     <!-- true 即 重用已存储的候选视点，false 即 重新生成候选视点 -->
-    <param name="reuse"      value="true"/>
+    <param name="reuse"      value="false"/>
     <!-- true 即 重用已存储的最佳视点，false 即 重新生成最佳视点 -->
     <param name="reuse_best" value="false"/>
     <!-- 1 即 MCTS, 0 即 RKGA -->
-    <param name="optm_type"  value="1"/>
+    <param name="optm_type"  value="0"/>
 
     
   </node>

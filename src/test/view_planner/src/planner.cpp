@@ -196,6 +196,9 @@ int main(int argc, char **argv){
         moveit_msgs::RobotTrajectory traj;
         traj = vp.trajs[best_view_point[i - 1].num][best_view_point[i].num];
 
+        // int tmp;
+        // cin >> tmp;
+
         // 机器人运动轨迹可视化
         // visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group, rvt::BLUE);
         visual_tools.publishTrajectoryLine(traj, joint_model_group);
