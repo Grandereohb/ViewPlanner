@@ -26,6 +26,10 @@ void writeData(const char* viewpoint_file,
 void writeData(const char *viewpoint_file, const vector<ViewPoint> &best_view_point);
 void writeData(const char *patch_file, const vector<TriSurface> &model);
 void writeData(const char* patch_file, const vector<int>& uncovered_patch);
+void writeVisModel(string vis_file,
+                   const vector<ViewPoint>& best_view_point,
+                   const vector<vector<int>>& visibility_matrix,
+                   const vector<TriSurface>& model);
 void readData(const char* viewpoint_file,
               vector<ViewPoint>& cand_view_point,
               vector<vector<ViewPoint>>& graph,
@@ -46,11 +50,12 @@ int main(int argc, char **argv){
 
     // 初始化参数
     // 输入模型与输出视点文件
-    string _file_path, _file_path_small, _viewpoint_file, _trajectory_file, _bestvp_file;
+    string _file_path, _file_path_small, _vis_file_path, _viewpoint_file, _trajectory_file, _bestvp_file;
     // 模型表面片文件
     string _model_file, _uncovered_file;
     node_handle.getParam("file_path", _file_path);
     node_handle.getParam("file_path_small", _file_path_small);
+    node_handle.getParam("vis_file_path", _vis_file_path);
     node_handle.getParam("viewpoint_file", _viewpoint_file);
     node_handle.getParam("trajectory_file", _trajectory_file);
     node_handle.getParam("bestvp_file", _bestvp_file);
@@ -159,6 +164,7 @@ int main(int argc, char **argv){
     }
     visBestViewPoint(best_view_point, vp);  // 最佳视点与运动路径可视化
     visPatch(uncovered_patch, vp);
+    writeVisModel(_vis_file_path, best_view_point, vp.visibility_matrix, vp.model);
 
     // 规划机器人运动轨迹并控制机器人运动
     cout << "共获得" << best_view_point.size()
@@ -730,8 +736,15 @@ void writeData(const char *patch_file, const vector<TriSurface> &model){
     n = model.size();
     fout.write((char *)&n, sizeof(n));
     for(int i = 0; i < n; ++i){
-        for (int j = 0; j < 3; ++j){
+        auto num = sizeof(model[i].center.m_floats[0]);
+        for (int j = 0; j < 3; ++j)
             fout.write((char *)(&model[i].center.m_floats[j]), sizeof(double));
+        for (int j = 0; j < 3; ++j)
+            fout.write((char *)(&model[i].normal.m_floats[j]), sizeof(double));
+        for (int j = 0; j < 3; ++j){
+            fout.write((char *)(&model[i].vertex[j].m_floats[0]), sizeof(double));
+            fout.write((char *)(&model[i].vertex[j].m_floats[1]), sizeof(double));
+            fout.write((char *)(&model[i].vertex[j].m_floats[2]), sizeof(double));
         }
     }
 
@@ -754,8 +767,65 @@ void writeData(const char* patch_file, const vector<int>& uncovered_patch){
 
     fout.close();
 }
+void writeVisModel(string vis_file,
+                   const vector<ViewPoint>& best_view_point,
+                   const vector<vector<int>>& visibility_matrix,
+                   const vector<TriSurface>& model) {
+    for (int i = 0; i < best_view_point.size(); ++i){
+        vector<TriSurface> vis_patch;
+        for (int j = 0; j < model.size(); ++j){
+            if(visibility_matrix[best_view_point[i].num][j] == 1)
+                vis_patch.push_back(model[j]);
+        }
+        string filename = vis_file + "/" + to_string(i) + ".stl";
+        // Binary
+        // ofstream file(filename.c_str(), ios_base::out | ios::binary);
+        // if (!file){
+        //     cerr << "Error: Unable to open file " << filename << endl;
+        //     return;
+        // }
+        // char header[80] = "STL File";
+        // file.write(header, 80);
+        // int size = vis_patch.size();
+        // file.write((char*)&size, 4);
+        // for (int j = 0; j < size; ++j){
+        //     file.write((char*)&vis_patch[j].normal.m_floats[0], 4);
+        //     file.write((char*)&vis_patch[j].normal.m_floats[1], 4);
+        //     file.write((char*)&vis_patch[j].normal.m_floats[2], 4);
+        //     for (int k = 0; k < 3; ++k){
+        //         file.write((char*)&vis_patch[j].vertex[k].m_floats[0], 4);
+        //         file.write((char*)&vis_patch[j].vertex[k].m_floats[1], 4);
+        //         file.write((char*)&vis_patch[j].vertex[k].m_floats[2], 4);
+        //     }
+        //     short val = 0;
+        //     file.write((char*)&val, 2);
+        // }
+        // file.close();
 
-
+        // ASCII
+        ofstream output(filename.c_str(), ios_base::out);
+        output << "solid" << filename << endl;
+        for (int j = 0; j < vis_patch.size(); ++j){
+            output << "   "
+                   << "facet normal " << vis_patch[j].normal.m_floats[0] << " "
+                   << vis_patch[j].normal.m_floats[1] << " " << vis_patch[j].normal.m_floats[2]
+                   << endl;
+            output << "      "
+                   << "outer loop" << endl;
+            for (int k = 0; k < 3; ++k){
+                output << "         "
+                       << "vertex"
+                       << " " << vis_patch[j].vertex[k].m_floats[0] << " "
+                       << vis_patch[j].vertex[k].m_floats[1] << " "
+                       << vis_patch[j].vertex[k].m_floats[2] << endl;
+            }
+            output << "      " << "endloop" << endl;
+            output << "   " << "endfacet" << endl;
+        }
+        output << "endsolid" << endl;
+        output.close();
+    }
+}
 
 void readData(const char *viewpoint_file, vector<ViewPoint> &cand_view_point,
               vector<vector<ViewPoint>> &graph, vector<vector<int>> &visibility_matrix){
@@ -895,6 +965,14 @@ void readData(const char *patch_file, vector<TriSurface> &model){
         for(int i = 0; i < n; ++i){
             for (int j = 0; j < 3; ++j)
                 fin.read((char *)(&model[i].center.m_floats[j]), sizeof(double));
+            for (int j = 0; j < 3; ++j)
+                fin.read((char *)(&model[i].normal.m_floats[j]), sizeof(double));
+            model[i].vertex.resize(3);
+            for (int j = 0; j < 3; ++j){
+                fin.read((char *)(&model[i].vertex[j].m_floats[0]), sizeof(double));
+                fin.read((char *)(&model[i].vertex[j].m_floats[1]), sizeof(double));
+                fin.read((char *)(&model[i].vertex[j].m_floats[2]), sizeof(double));
+            }
         }
         fin.close();
     }
