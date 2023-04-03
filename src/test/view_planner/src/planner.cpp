@@ -10,12 +10,13 @@
 #include <moveit_msgs/DisplayRobotState.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 
-// 在RViz环境中发布实验环境/视点位置/机器人运动轨迹/表面片
-ros::Publisher env_vis_pub, view_point_vis_pub, patch_vis_pub;
+// 在RViz环境中发布实验环境/视点位置/机器人运动轨迹/表面片/每个视点的可见区域
+ros::Publisher env_vis_pub, view_point_vis_pub, patch_vis_pub, view_area_vis_pub;
 void visEnv(const char *file_path_small, const ViewPlan &vp);
 void visCandidateViewPoint(const vector<ViewPoint> &cand_view_point, const ViewPlan &vp);
 void visBestViewPoint(const vector<ViewPoint> &best_view_point, const ViewPlan &vp);
 void visPatch(const vector<int>& uncovered_patch, const ViewPlan& vp);
+void visViewArea(const string vis_file_path, const ViewPlan& vp);
 // 读写视点/可见性矩阵/轨迹/表面片信息
 void writeData(const char* viewpoint_file,
                const vector<ViewPoint>& cand_view_point,
@@ -184,6 +185,7 @@ int main(int argc, char **argv){
             ROS_INFO("Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
             visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
             visual_tools.trigger();
+            visViewArea(string("package://view_planner/model/vis") + "/" + to_string(i) + ".stl", vp);
 
             //让机械臂按照规划的轨迹开始运动。
             if (success)
@@ -209,6 +211,7 @@ int main(int argc, char **argv){
         // visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group, rvt::BLUE);
         visual_tools.publishTrajectoryLine(traj, joint_model_group);
         visual_tools.trigger();
+        visViewArea(string("package://view_planner/model/vis") + "/" + to_string(i) + ".stl", vp);
 
         // 轨迹运动时间
         cout << "第" << i << "条轨迹时间: ";
@@ -325,7 +328,7 @@ void visEnv(const char *file_path_small, const ViewPlan &vp){
     // 设置颜色
     vector<moveit_msgs::ObjectColor> colors;
     moveit_msgs::ObjectColor color_obj;
-    color_obj.color.a = 1.0;
+    color_obj.color.a = 0.5;
     color_obj.color.r = 0.6;
     color_obj.color.g = 0.6;
     color_obj.color.b = 0.6;
@@ -619,6 +622,54 @@ void visPatch(const vector<int>& uncovered_patch, const ViewPlan& vp) {
     cout << "表面片可视化完成!" << endl;
 }
 
+void visViewArea(const string vis_file_path, const ViewPlan& vp){
+    // 在Rviz中添加每个视点的可见区域
+    moveit_msgs::CollisionObject obj;
+    obj.header.frame_id = "base_link";
+    obj.id = "vis_area";
+
+    // 导入待测物体STL网格模型
+    shape_msgs::Mesh model_mesh;
+    shapes::Mesh* mesh_ptr=shapes::createMeshFromResource(vis_file_path);
+    if(mesh_ptr == NULL){
+        cout << "可见区域导入错误!" << endl;
+    }
+    shapes::ShapeMsg model_mesh_msg;
+    shapes::constructMsgFromShape(mesh_ptr, model_mesh_msg);
+    model_mesh = boost::get<shape_msgs::Mesh>(model_mesh_msg);
+
+    // 设置可见区域位置
+    geometry_msgs::Pose model_pose;
+    model_pose.orientation.w = 0;
+    model_pose.orientation.x = 0;
+    model_pose.orientation.y = 0;
+    model_pose.orientation.z = 0;
+    model_pose.position.x = vp.getModelPositionX();
+    model_pose.position.y = 0;
+    model_pose.position.z = vp.getModelPositionZ(); 
+
+    // 设置颜色
+    vector<moveit_msgs::ObjectColor> colors;
+    moveit_msgs::ObjectColor color_obj;
+    color_obj.color.a = 1.0;
+    color_obj.color.r = 1.0;
+    color_obj.color.g = 1.0;
+    color_obj.color.b = 0.0;
+    color_obj.id = "vis_area";
+
+    //将物体添加到场景并发布
+    obj.meshes.push_back(model_mesh);
+    obj.mesh_poses.push_back(model_pose);
+    obj.operation = obj.ADD;
+
+    moveit_msgs::PlanningScene planning_scene;
+    planning_scene.world.collision_objects.push_back(obj);
+    planning_scene.object_colors.push_back(color_obj);
+
+    planning_scene.is_diff = true;
+    env_vis_pub.publish(planning_scene);
+}
+
 void writeData(const char *viewpoint_file, const vector<ViewPoint> &cand_view_point,
                const vector<vector<ViewPoint>> &graph, const vector<vector<int>> &visibility_matrix){
     // 用于存储视点生成步骤生成的候选视点集，视点图和可见性矩阵
@@ -815,9 +866,9 @@ void writeVisModel(string vis_file,
             for (int k = 0; k < 3; ++k){
                 output << "         "
                        << "vertex"
-                       << " " << vis_patch[j].vertex[k].m_floats[0] << " "
-                       << vis_patch[j].vertex[k].m_floats[1] << " "
-                       << vis_patch[j].vertex[k].m_floats[2] << endl;
+                       << " " << vis_patch[j].vertex[k].m_floats[0] / 1000 << " "
+                       << vis_patch[j].vertex[k].m_floats[1] / 1000 << " "
+                       << vis_patch[j].vertex[k].m_floats[2] / 1000 << endl;
             }
             output << "      " << "endloop" << endl;
             output << "   " << "endfacet" << endl;

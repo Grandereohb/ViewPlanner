@@ -14,7 +14,7 @@
               file="$(find abb_irb1600_10_145_moveit_config)/config/kinematics.yaml"/>
     <!-- 输入与输出文件 -->
     <param name="file_path"       value="/home/ros/abb_ws/src/test/view_planner/model/0301/sheet18.stl"/>
-    <param name="file_path_small" value="package://view_planner/model/0301/sheet1_small.stl"/>
+    <param name="file_path_small" value="package://view_planner/model/0301/sheet18_small.stl"/>
     <param name="vis_file_path"   value="/home/ros/abb_ws/src/test/view_planner/model/vis"/>
     <param name="viewpoint_file"  value="/home/ros/abb_ws/src/test/view_planner/data/0301/sheet_18/candidates.dat"/>
     <param name="trajectory_file" value="/home/ros/abb_ws/src/test/view_planner/data/0301/sheet_18/trajs.dat"/>
