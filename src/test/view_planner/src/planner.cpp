@@ -203,6 +203,9 @@ int main(int argc, char **argv)
         visual_tools.publishTrajectoryLine(traj, joint_model_group);
         visual_tools.trigger();
 
+        int tmp;
+        cin>>tmp;
+
         cout << "第" << i << "条轨迹时间：";
         int size = traj.joint_trajectory.points.size();
         cout << traj.joint_trajectory.points[size - 1].time_from_start.toSec()

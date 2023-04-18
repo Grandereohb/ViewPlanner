@@ -263,10 +263,10 @@ void ViewPlan::sampleViewPoint(const vector<TriSurface>& model,
 		++rand_sample_num;
         // 生成视点位置
         // 沿面片法线方向延伸最佳测量距离，生成候选视点。用于一般物体
-        // candidate.position = model[randNum].center +
-        // model[randNum].normal.normalized() * measure_dist;
+        candidate.position = model[randNum].center +
+        model[randNum].normal.normalized() * measure_dist;
         // 在选择面片的正上方延伸最佳测量距离，生成候选视点。用于钣金件
-        candidate.position = model[randNum].center + Vector3(0, 0, measure_dist);
+        // candidate.position = model[randNum].center + Vector3(0, 0, measure_dist);
 
 		// cxf
 		// float randNum_1 = (float)rand() / RAND_MAX * 0.3;

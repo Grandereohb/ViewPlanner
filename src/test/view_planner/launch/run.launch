@@ -13,15 +13,15 @@
     <rosparam command="load"
               file="$(find irb1600_10_145_moveit_config)/config/kinematics.yaml"/>
     <!-- input and output file address -->
-    <param name="file_path"       value="/home/ohb/abb_ws/src/test/view_planner/model/0301/sheet_9392.stl"/>
-    <param name="file_path_small" value="package://view_planner/model/0301/sheet_9392_small.stl"/>
-    <param name="viewpoint_file"  value="/home/ohb/abb_ws/src/test/view_planner/data/0301/sheet_1/12/candidates.dat"/>
-    <param name="trajectory_file" value="/home/ohb/abb_ws/src/test/view_planner/data/0301/sheet_1/12/trajs.dat"/>
-    <param name="bestvp_file"     value="/home/ohb/abb_ws/src/test/view_planner/data/0301/sheet_1/12/best_vps.dat"/>
+    <param name="file_path"       value="/home/ohb/abb_ws/src/test/view_planner/model/sheet20/sheet20.stl"/>
+    <param name="file_path_small" value="package://view_planner/model/sheet20/sheet20_small.stl"/>
+    <param name="viewpoint_file"  value="/home/ohb/abb_ws/src/test/view_planner/data/sheet20/15/candidates.dat"/>
+    <param name="trajectory_file" value="/home/ohb/abb_ws/src/test/view_planner/data/sheet20/15/trajs.dat"/>
+    <param name="bestvp_file"     value="/home/ohb/abb_ws/src/test/view_planner/data/sheet20/15/best_vps.dat"/>
     
     <!-- sample params -->
     <param name="sample_num"    value="40"/>
-    <param name="coverage_rate" value="0.6"/>
+    <param name="coverage_rate" value="0.9"/>
 
     <!-- RKGA params -->
     <param name="max_gen"    value="400"/>
