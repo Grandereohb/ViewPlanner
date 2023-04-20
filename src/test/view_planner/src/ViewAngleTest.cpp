@@ -36,6 +36,37 @@ bool getJointState(ViewPoint &viewpoint, robot_model_loader::RobotModelLoader ro
 	end_effector_state.rotate(rotMatrix);
 	end_effector_state.pretranslate(translation);
 
+	Eigen::Matrix4d rob_cam_calibration;
+	// 右相机到末端（从末端移动到右相机） 第一次标定（x为光轴）
+	// rob_cam_calibration << 0.206326, 0.001152, 0.978508, 0.067869619,
+	// 				      -0.000008, 0.999980, 0.001183,-0.139219215,
+	// 				      -0.978482, 0.000183, 0.206310, 0.102563320,
+	// 				       0,        0,        0,        1;
+	// 左相机到末端（从末端移动到左相机）手眼标定结果（z为光轴）
+	// rob_cam_calibration << -0.231825,  0.002388,  0.972779, 0.060808487,
+    //                        -0.972672,  0.011158, -0.231820, 0.140728791,
+    //                        -0.011499, -0.999932, -0.000279, 0.103992375,
+    //                         0.000000,  0.000000,  0.000000, 1.000000;
+	// 左相机到末端（从末端移动到左相机）手眼标定结果（x为光轴）
+	// rob_cam_calibration << -0.000279, 0.011499,  0.999932, 0.060808487,
+    //                         -0.972779, -0.231825,  0.002388, 0.140728791,
+    //                         0.231820, -0.972672,  0.011158, 0.103992375,
+    //                         0.000000,  0.000000,  0.000000, 1.000000;
+
+	// 左相机到末端（从末端移动到左相机）手眼标定结果（原始标定数据）
+	rob_cam_calibration << -0.223298,  0.001657,  0.974749, 0.0687322,
+                           -0.974743, -0.004212, -0.223290, 0.141444,
+                            0.003736, -0.999999,  0.002555, 0.133232,
+                            0.000000,  0.000000,  0.000000, 1.000000;				   
+	
+	// 绕z轴顺时针旋转90度, 用于校正手眼标定结果至x轴为光轴
+	Eigen::Matrix4d rot;
+	rot << 0,-1, 0, 0,
+	       1, 0, 0, 0,
+		   0, 0, 1, 0,
+		   0, 0, 0, 1;
+	rob_cam_calibration = rob_cam_calibration * rot;
+
 	// 投影仪到末端的变换矩阵（手动估计）
 	Eigen::Matrix4d R;
 	R << 0,  0,  1, 0.09,
@@ -44,7 +75,8 @@ bool getJointState(ViewPoint &viewpoint, robot_model_loader::RobotModelLoader ro
 		 0,  0,  0, 1;
 
 	// 根据手眼标定关系校正后的机器人位姿变换矩阵T2      T1 = T2 * R
-	end_effector_state = end_effector_state * R.inverse();
+	// end_effector_state = end_effector_state * R.inverse();
+	end_effector_state = end_effector_state * rob_cam_calibration.inverse();
 
 	// 我们现在可以为机器人求解逆运动学 (IK)。要解决 IK，我们需要以下内容：
 	// 1.机械臂末端的所需姿势（默认情况下，这是“arm”链中的最后一个链接）：我们在上述步骤中计算的 end_effector_state。
@@ -110,7 +142,7 @@ int main(int argc, char **argv){
     Vector3 view_position, view_direction;
     geometry_msgs::Pose view_pose;
 
-    for (int i = 0; i < 10; i++){
+    for (int i = 0; i < 8; i++){
         ViewPoint cur;
         cur.position.m_floats[0] = -measure_dist * cos(PI / 2 - interval * i);
         cur.position.m_floats[1] = 0;

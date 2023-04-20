@@ -1,17 +1,18 @@
 <launch>
-  <!-- execution -->
   <arg name="debug" default="false" />
   <arg unless="$(arg debug)" name="launch_prefix" value="" />
   <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
 
+  <!-- 下面两个参数分别对应demo.launch 与 planning_execution.launch，使用时需注释另一个 -->
   <!-- demo -->
-  <!-- <arg name="rviz_config" default="" />
+  <arg name="rviz_config" default="" />
   <arg     if="$(eval rviz_config=='')" name="command_args" value="" />
-  <arg unless="$(eval rviz_config=='')" name="command_args" value="-d $(arg rviz_config)" /> -->
+  <arg unless="$(eval rviz_config=='')" name="command_args" value="-d $(arg rviz_config)" />
 
-  <arg name="config" default="false" />
+  <!-- execution -->
+  <!-- <arg name="config" default="false" />
   <arg unless="$(arg config)" name="command_args" value="" />
-  <arg     if="$(arg config)" name="command_args" value="-d $(find irb1600_10_145_moveit_config)/launch/moveit.rviz" />
+  <arg     if="$(arg config)" name="command_args" value="-d $(find irb1600_10_145_moveit_config)/launch/moveit.rviz" /> -->
 
   <node name="$(anon rviz)" launch-prefix="$(arg launch_prefix)" pkg="rviz" type="rviz" respawn="false"
         args="$(arg command_args)" output="screen">
